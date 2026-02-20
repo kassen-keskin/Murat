@@ -312,12 +312,79 @@
                 grid-template-columns: 1fr;
             }
         }
+
+        .filter-panel {
+            background-color: var(--surface-color);
+            border-radius: 8px;
+            padding: 8px 15px;
+            /* Reduced vertical padding */
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            flex-shrink: 0;
+            flex-direction: row;
+            /* FORCE ROW */
+        }
+
+        .filter-group {
+            display: flex;
+            flex-direction: row;
+            /* Horizontal: Label -> Input */
+            align-items: center;
+            /* Center vertically */
+            gap: 10px;
+            flex: 0 0 auto;
+            /* Don't stretch */
+        }
+
+        .filter-label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 600;
+            white-space: nowrap;
+            /* Keep label on one line */
+        }
+
+        .filter-input,
+        .filter-select {
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 6px 10px;
+            /* Smaller input padding */
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.95rem;
+            outline: none;
+            transition: border-color 0.2s;
+            width: 180px;
+            /* Fixed width for consistency */
+        }
     </style>
 </head>
 
 <body>
 
     <div class="dashboard-container">
+
+        <!-- Filter Panel -->
+        <div class="panel filter-panel">
+
+            <div class="filter-group">
+                <label class="filter-label">KundenNr</label>
+                <input type="text" id="filterKundenNr" class="filter-input" placeholder="Type to filter...">
+            </div>
+
+            <div class="filter-group">
+                <label class="filter-label">KundenKategorie</label>
+                <select id="filterKundenKategorie" class="filter-select">
+                    <option value="">All</option>
+                </select>
+            </div>
+        </div>
+
         <!-- Customer List Container -->
         <div class="panel list-panel">
             <div id="cardContainer" class="card-container">
@@ -345,13 +412,28 @@
         const modal = document.getElementById('detailModal');
         const modalBody = document.getElementById('modalBody');
 
+        // Global Data Store
+        let allCustomers = [];
+
         // Fetch Data
         async function fetchCustomers() {
             try {
                 const response = await fetch('/api/customers');
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
-                renderCards(data);
+
+                // Update global data only if changed (simple check or just overwrite)
+                // For now, overwrite
+                allCustomers = data;
+
+                // Initialize Filters if first load or update options?
+                // We typically populate dropdowns on first load or refresh them.
+                // Let's populate filter options based on current data
+                populateFilterOptions();
+
+                // Apply current filters to render
+                applyFilters();
+
             } catch (error) {
                 console.error('Error fetching customers:', error);
             }
@@ -413,6 +495,73 @@
             }
         }
 
+        // Filter Logic
+        const filterKundenNr = document.getElementById('filterKundenNr');
+
+
+        const filterKundenKategorie = document.getElementById('filterKundenKategorie');
+
+        function populateFilterOptions() {
+            // Helper to populate select
+            const populate = (selectId, key) => {
+                const select = document.getElementById(selectId);
+                const currentVal = select.value;
+                const uniqueValues = [...new Set(allCustomers.map(c => c[key]).filter(v => v))].sort();
+
+                // clear options, keep first (All)
+                select.innerHTML = '<option value="">All</option>';
+
+                uniqueValues.forEach(val => {
+                    const opt = document.createElement('option');
+                    opt.value = val;
+                    opt.textContent = val;
+                    select.appendChild(opt);
+                });
+
+                // Restore selection if possible
+                if (uniqueValues.includes(currentVal)) {
+                    select.value = currentVal;
+                }
+            };
+
+            // Only repopulate effectively if we want dynamic updates of filters
+            // For stability, maybe check if empty? But refreshing might bring new categories.
+            // Let's repopulate.
+
+            populate('filterKundenKategorie', 'KundenKategorie');
+        }
+
+        function applyFilters() {
+            const kundenNrVal = filterKundenNr.value.trim().toLowerCase();
+
+
+            const kundenKategorieVal = filterKundenKategorie.value;
+
+            const filtered = allCustomers.filter(row => {
+                // Check KundenNr (Edit - contains)
+                const nr = row['KundenNr'] ? String(row['KundenNr']).toLowerCase() : '';
+                if (kundenNrVal && !nr.includes(kundenNrVal)) return false;
+
+
+
+
+
+                // Check KundenKategorie (Combobox - exact match)
+                if (kundenKategorieVal && row['KundenKategorie'] != kundenKategorieVal) return false;
+
+                return true;
+            });
+
+            renderCards(filtered);
+        }
+
+        // Filter Events
+        filterKundenNr.addEventListener('input', applyFilters);
+
+
+        filterKundenKategorie.addEventListener('change', applyFilters);
+
+
         // Render Functions
         function renderCards(data) {
             const container = document.getElementById('cardContainer');
@@ -444,7 +593,11 @@
                 }
 
                 // Pass the title value to openModal
-                const displayTitle = row[titleKey] || '(No Name)';
+                // Format: [KundenNr] - [Firma]
+                const firmaName = row[titleKey] || '(No Name)';
+                const kundenNr = row['KundenNr'] || '';
+                const displayTitle = kundenNr ? `${kundenNr} - ${firmaName}` : firmaName;
+
                 card.onclick = () => openModal(row.kKunde, displayTitle);
 
                 // Render Title
