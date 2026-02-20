@@ -58,13 +58,18 @@
             display: none;
         }
 
-        .card-container {
+        .card-container-wrapper {
             overflow-y: auto;
             flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+        }
+
+        .card-container {
             display: grid;
             grid-template-columns: repeat(6, 1fr);
             gap: 20px;
-            padding: 10px;
             align-content: start;
         }
 
@@ -353,14 +358,90 @@
             border: 1px solid var(--border-color);
             border-radius: 4px;
             padding: 6px 10px;
-            /* Smaller input padding */
             color: var(--text-color);
             font-family: inherit;
             font-size: 0.95rem;
             outline: none;
             transition: border-color 0.2s;
             width: 180px;
-            /* Fixed width for consistency */
+        }
+
+        /* View Toggle Styling */
+        .view-toggle {
+            display: flex;
+            background-color: var(--bg-color);
+            border-radius: 6px;
+            padding: 4px;
+            border: 1px solid var(--border-color);
+            margin-left: auto;
+            /* Push to the right */
+        }
+
+        .toggle-option {
+            display: none;
+        }
+
+        .toggle-label {
+            padding: 6px 12px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .toggle-option:checked+.toggle-label {
+            background-color: var(--primary-color);
+            color: #000;
+        }
+
+        /* List View Tables/Rows */
+        .list-container {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+
+        .list-header {
+            background-color: rgba(255, 255, 255, 0.03);
+            border-bottom: 2px solid var(--border-color);
+            text-align: left;
+        }
+
+        .list-header th {
+            padding: 12px 15px;
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .list-row {
+            border-bottom: 1px solid var(--border-color);
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .list-row:hover {
+            background-color: var(--hover-color);
+        }
+
+        .list-row td {
+            padding: 10px 15px;
+            color: var(--text-color);
+        }
+
+        .list-row.service-kunde {
+            background-color: rgba(27, 94, 32, 0.1);
+        }
+
+        .list-row.service-kunde:hover {
+            background-color: rgba(27, 94, 32, 0.3);
+        }
+
+        .list-row.service-kunde td:first-child {
+            color: #81c784;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -383,12 +464,32 @@
                     <option value="">All</option>
                 </select>
             </div>
+
+            <div class="filter-group">
+                <label class="filter-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="filterElster" style="width: 18px; height: 18px; cursor: pointer;">
+                    Elster
+                </label>
+            </div>
+
+            <div class="view-toggle">
+                <input type="radio" id="viewCard" name="viewMode" value="cardgrid" class="toggle-option" checked>
+                <label for="viewCard" class="toggle-label">Card Grid</label>
+
+                <input type="radio" id="viewList" name="viewMode" value="listgrid" class="toggle-option">
+                <label for="viewList" class="toggle-label">List Grid</label>
+            </div>
+
+            <div id="recordCount"
+                style="margin-left: 20px; font-size: 0.9rem; color: var(--primary-color); font-weight: 600; white-space: nowrap;">
+                Result: 0
+            </div>
         </div>
 
         <!-- Customer List Container -->
         <div class="panel list-panel">
-            <div id="cardContainer" class="card-container">
-                <!-- Cards will be populated dynamically -->
+            <div id="cardContainer" class="card-container-wrapper card-container">
+                <!-- Data will be populated dynamically (Cards or List) -->
             </div>
         </div>
     </div>
@@ -414,6 +515,7 @@
 
         // Global Data Store
         let allCustomers = [];
+        let currentViewMode = 'cardgrid';
 
         // Fetch Data
         async function fetchCustomers() {
@@ -422,16 +524,8 @@
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
 
-                // Update global data only if changed (simple check or just overwrite)
-                // For now, overwrite
                 allCustomers = data;
-
-                // Initialize Filters if first load or update options?
-                // We typically populate dropdowns on first load or refresh them.
-                // Let's populate filter options based on current data
                 populateFilterOptions();
-
-                // Apply current filters to render
                 applyFilters();
 
             } catch (error) {
@@ -497,20 +591,17 @@
 
         // Filter Logic
         const filterKundenNr = document.getElementById('filterKundenNr');
-
-
         const filterKundenKategorie = document.getElementById('filterKundenKategorie');
+        const filterElster = document.getElementById('filterElster');
+        const viewToggles = document.getElementsByName('viewMode');
 
         function populateFilterOptions() {
-            // Helper to populate select
             const populate = (selectId, key) => {
                 const select = document.getElementById(selectId);
                 const currentVal = select.value;
                 const uniqueValues = [...new Set(allCustomers.map(c => c[key]).filter(v => v))].sort();
 
-                // clear options, keep first (All)
                 select.innerHTML = '<option value="">All</option>';
-
                 uniqueValues.forEach(val => {
                     const opt = document.createElement('option');
                     opt.value = val;
@@ -518,49 +609,56 @@
                     select.appendChild(opt);
                 });
 
-                // Restore selection if possible
                 if (uniqueValues.includes(currentVal)) {
                     select.value = currentVal;
                 }
             };
-
-            // Only repopulate effectively if we want dynamic updates of filters
-            // For stability, maybe check if empty? But refreshing might bring new categories.
-            // Let's repopulate.
-
             populate('filterKundenKategorie', 'KundenKategorie');
         }
 
         function applyFilters() {
             const kundenNrVal = filterKundenNr.value.trim().toLowerCase();
-
-
             const kundenKategorieVal = filterKundenKategorie.value;
+            const elsterOnly = filterElster.checked;
 
             const filtered = allCustomers.filter(row => {
-                // Check KundenNr (Edit - contains)
                 const nr = row['KundenNr'] ? String(row['KundenNr']).toLowerCase() : '';
                 if (kundenNrVal && !nr.includes(kundenNrVal)) return false;
-
-
-
-
-
-                // Check KundenKategorie (Combobox - exact match)
                 if (kundenKategorieVal && row['KundenKategorie'] != kundenKategorieVal) return false;
+
+                // Elster Filter: Only if checked, filter for Elster == 1
+                if (elsterOnly && row['Elster'] != 1) return false;
 
                 return true;
             });
 
-            renderCards(filtered);
+            // Update record count
+            document.getElementById('recordCount').textContent = `Result: ${filtered.length}`;
+
+            if (currentViewMode === 'cardgrid') {
+                renderCards(filtered);
+            } else {
+                renderList(filtered);
+            }
         }
 
-        // Filter Events
+        // Event Listeners
         filterKundenNr.addEventListener('input', applyFilters);
-
-
         filterKundenKategorie.addEventListener('change', applyFilters);
+        filterElster.addEventListener('change', applyFilters);
 
+        viewToggles.forEach(toggle => {
+            toggle.addEventListener('change', (e) => {
+                currentViewMode = e.target.value;
+                const container = document.getElementById('cardContainer');
+                if (currentViewMode === 'listgrid') {
+                    container.classList.remove('card-container');
+                } else {
+                    container.classList.add('card-container');
+                }
+                applyFilters();
+            });
+        });
 
         // Render Functions
         function renderCards(data) {
@@ -572,35 +670,28 @@
                 return;
             }
 
-            // Heuristic to find Title Key
             const sample = data[0];
             const keys = Object.keys(sample).filter(k => k !== 'kKunde');
             let titleKey = keys.find(k => /ad|name|firma|unvan|customer/i.test(k));
             if (!titleKey && keys.length > 0) titleKey = keys[0];
 
             data.forEach(row => {
-                // Wrapper anchor
                 const wrapper = document.createElement('div');
                 wrapper.className = 'card-placeholder';
 
-                // Visual card
                 const card = document.createElement('div');
                 card.className = 'customer-card';
 
-                // Conditional Styling for Servicekunde
                 if (row['KundenGruppe'] === 'Servicekunde') {
                     card.classList.add('service-kunde');
                 }
 
-                // Pass the title value to openModal
-                // Format: [KundenNr] - [Firma]
                 const firmaName = row[titleKey] || '(No Name)';
                 const kundenNr = row['KundenNr'] || '';
                 const displayTitle = kundenNr ? `${kundenNr} - ${firmaName}` : firmaName;
 
                 card.onclick = () => openModal(row.kKunde, displayTitle);
 
-                // Render Title
                 if (titleKey) {
                     const title = document.createElement('div');
                     title.className = 'card-title';
@@ -609,7 +700,6 @@
                     card.appendChild(title);
                 }
 
-                // Render Other Fields
                 const infoContainer = document.createElement('div');
                 infoContainer.style.display = 'flex';
                 infoContainer.style.flexDirection = 'column';
@@ -617,29 +707,92 @@
 
                 keys.forEach(key => {
                     if (key === titleKey) return;
-
                     const rowDiv = document.createElement('div');
                     rowDiv.className = 'card-row';
-
                     const label = document.createElement('span');
                     label.className = 'card-info';
                     label.textContent = key;
-
                     const val = document.createElement('span');
                     val.className = 'card-value';
-                    const value = row[key] !== null ? row[key] : '-';
-                    val.textContent = value;
-                    // val.title = value; 
 
+                    let value = row[key] !== null ? row[key] : '-';
+                    // Elster specific formatting
+                    if (key === 'Elster') {
+                        value = row[key] == 1 ? 'Var' : 'Yok';
+                    }
+
+                    val.textContent = value;
                     rowDiv.appendChild(label);
                     rowDiv.appendChild(val);
                     infoContainer.appendChild(rowDiv);
                 });
                 card.appendChild(infoContainer);
-
                 wrapper.appendChild(card);
                 container.appendChild(wrapper);
             });
+        }
+
+        function renderList(data) {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = '';
+
+            if (data.length === 0) {
+                container.innerHTML = '<div class="empty-state">No customers found</div>';
+                return;
+            }
+
+            const table = document.createElement('table');
+            table.className = 'list-container';
+
+            // Heuristic for Title/Main Display
+            const sample = data[0];
+            const keys = Object.keys(sample).filter(k => k !== 'kKunde');
+
+            // Header
+            const thead = document.createElement('thead');
+            thead.className = 'list-header';
+            const headerRow = document.createElement('tr');
+
+            // Default columns to show in list view for better UX
+            const displayKeys = ['KundenNr', 'Firma', 'KundenGruppe', 'KundenKategorie', 'Tel', 'Elster'];
+            // If these keys don't exist, just show the first 5
+            const actualKeys = displayKeys.filter(k => keys.includes(k));
+            const finalKeys = actualKeys.length > 0 ? actualKeys : keys.slice(0, 5);
+
+            finalKeys.forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            // Body
+            const tbody = document.createElement('tbody');
+            data.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'list-row';
+                if (row['KundenGruppe'] === 'Servicekunde') {
+                    tr.classList.add('service-kunde');
+                }
+
+                const displayTitle = `${row['KundenNr'] || ''} - ${row['Firma'] || ''}`;
+                tr.onclick = () => openModal(row.kKunde, displayTitle);
+
+                finalKeys.forEach(key => {
+                    const td = document.createElement('td');
+                    let value = row[key] !== null ? row[key] : '-';
+                    // Elster specific formatting
+                    if (key === 'Elster') {
+                        value = row[key] == 1 ? 'Var' : 'Yok';
+                    }
+                    td.textContent = value;
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            container.appendChild(table);
         }
 
         function startAutoRefresh() {

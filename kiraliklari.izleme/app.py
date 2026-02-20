@@ -48,7 +48,9 @@ def get_customers():
               ,[AnyDesk]
               ,[KundenKategorie]
               ,[KundenGruppe]
+              ,[Elster]
           FROM [Custom].[MieteKundenMaster]
+          ORDER BY [KundenNr]
         """
         cursor.execute(query)
         columns = [column[0] for column in cursor.description]
