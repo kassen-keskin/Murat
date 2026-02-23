@@ -443,6 +443,40 @@
             color: #81c784;
             font-weight: bold;
         }
+
+        /* Tabs Styling */
+        .tabs-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: -1px;
+            /* Overlap border if needed */
+            padding: 0 10px;
+            flex-shrink: 0;
+        }
+
+        .tab-item {
+            padding: 10px 25px;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-bottom: none;
+            border-radius: 8px 8px 0 0;
+            cursor: pointer;
+            color: var(--text-muted);
+            font-weight: 600;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .tab-item:hover {
+            color: var(--text-color);
+            background-color: var(--hover-color);
+        }
+
+        .tab-item.active {
+            background-color: var(--primary-color);
+            color: #000;
+            border-color: var(--primary-color);
+        }
     </style>
 </head>
 
@@ -486,6 +520,12 @@
             </div>
         </div>
 
+        <!-- Tab Selection -->
+        <div class="tabs-container">
+            <div id="tabRental" class="tab-item active" onclick="switchTab('rental')">Rental Customers</div>
+            <div id="tabCustom" class="tab-item" onclick="switchTab('custom')">Master Customers</div>
+        </div>
+
         <!-- Customer List Container -->
         <div class="panel list-panel">
             <div id="cardContainer" class="card-container-wrapper card-container">
@@ -514,23 +554,42 @@
         const modalBody = document.getElementById('modalBody');
 
         // Global Data Store
-        let allCustomers = [];
+        let datasets = {
+            rental: [],
+            custom: []
+        };
+        let currentTab = 'rental';
         let currentViewMode = 'cardgrid';
 
         // Fetch Data
-        async function fetchCustomers() {
+        async function fetchAllData() {
+            await Promise.all([
+                fetchData('rental', '/api/customers'),
+                fetchData('custom', '/api/customers_custom')
+            ]);
+            populateFilterOptions();
+            applyFilters();
+        }
+
+        async function fetchData(key, url) {
             try {
-                const response = await fetch('/api/customers');
+                const response = await fetch(url);
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
-
-                allCustomers = data;
-                populateFilterOptions();
-                applyFilters();
-
+                datasets[key] = data;
             } catch (error) {
-                console.error('Error fetching customers:', error);
+                console.error(`Error fetching ${key}:`, error);
             }
+        }
+
+        function switchTab(tab) {
+            currentTab = tab;
+
+            // Update UI
+            document.getElementById('tabRental').classList.toggle('active', tab === 'rental');
+            document.getElementById('tabCustom').classList.toggle('active', tab === 'custom');
+
+            applyFilters();
         }
 
         async function fetchDetails(id) {
@@ -599,7 +658,13 @@
             const populate = (selectId, key) => {
                 const select = document.getElementById(selectId);
                 const currentVal = select.value;
-                const uniqueValues = [...new Set(allCustomers.map(c => c[key]).filter(v => v))].sort();
+
+                // Combine unique values from all datasets for consistent filters
+                const allValues = [
+                    ...datasets.rental.map(c => c[key]),
+                    ...datasets.custom.map(c => c[key])
+                ];
+                const uniqueValues = [...new Set(allValues.filter(v => v))].sort();
 
                 select.innerHTML = '<option value="">All</option>';
                 uniqueValues.forEach(val => {
@@ -621,7 +686,9 @@
             const kundenKategorieVal = filterKundenKategorie.value;
             const elsterOnly = filterElster.checked;
 
-            const filtered = allCustomers.filter(row => {
+            const currentData = datasets[currentTab] || [];
+
+            const filtered = currentData.filter(row => {
                 const nr = row['KundenNr'] ? String(row['KundenNr']).toLowerCase() : '';
                 if (kundenNrVal && !nr.includes(kundenNrVal)) return false;
                 if (kundenKategorieVal && row['KundenKategorie'] != kundenKategorieVal) return false;
@@ -661,6 +728,14 @@
         });
 
         // Render Functions
+        function getDisplayKeys(dataRow) {
+            if (currentTab === 'custom') {
+                return ['KundenNr', 'Firma', 'KundenKategorie', 'KundenGruppe', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi'];
+            }
+            // For rental tab, use all keys except kKunde and internal ones
+            return Object.keys(dataRow).filter(k => k !== 'kKunde' && k !== 'Elster' && k !== 'ElsterSayisi');
+        }
+
         function renderCards(data) {
             const container = document.getElementById('cardContainer');
             container.innerHTML = '';
@@ -671,7 +746,9 @@
             }
 
             const sample = data[0];
-            const keys = Object.keys(sample).filter(k => k !== 'kKunde');
+            const keys = getDisplayKeys(sample);
+
+            // For Card Title, we search for a "Name" field in the discovered keys
             let titleKey = keys.find(k => /ad|name|firma|unvan|customer/i.test(k));
             if (!titleKey && keys.length > 0) titleKey = keys[0];
 
@@ -744,20 +821,17 @@
             const table = document.createElement('table');
             table.className = 'list-container';
 
-            // Heuristic for Title/Main Display
+            // Header
             const sample = data[0];
-            const keys = Object.keys(sample).filter(k => k !== 'kKunde');
+            const keys = getDisplayKeys(sample);
 
             // Header
             const thead = document.createElement('thead');
             thead.className = 'list-header';
             const headerRow = document.createElement('tr');
 
-            // Default columns to show in list view for better UX
-            const displayKeys = ['KundenNr', 'Firma', 'KundenGruppe', 'KundenKategorie', 'Tel', 'Elster'];
-            // If these keys don't exist, just show the first 5
-            const actualKeys = displayKeys.filter(k => keys.includes(k));
-            const finalKeys = actualKeys.length > 0 ? actualKeys : keys.slice(0, 5);
+            // Column Order
+            const finalKeys = keys;
 
             finalKeys.forEach(key => {
                 const th = document.createElement('th');
@@ -797,11 +871,11 @@
 
         function startAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(fetchCustomers, REFRESH_RATE);
+            refreshInterval = setInterval(fetchAllData, REFRESH_RATE);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            fetchCustomers();
+            fetchAllData();
             startAutoRefresh();
         });
     </script>

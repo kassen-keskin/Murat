@@ -65,6 +65,40 @@ def get_customers():
     finally:
         conn.close()
 
+@app.route('/api/customers_custom')
+def get_customers_custom():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    cursor = conn.cursor()
+    try:
+        query = """
+        SELECT [kKunde]
+              ,[KundenNr]
+              ,[Firma]
+              ,[KundenKategorie]
+              ,[KundenGruppe]
+              ,[KasaSayisi]
+              ,[SeriKodluKasaSayisi]
+              ,[ElsterSayisi]
+              ,CASE WHEN [ElsterSayisi] > 0 THEN 1 ELSE 0 END AS [Elster]
+          FROM [Custom].[KundenMaster]
+          ORDER BY [KundenNr]
+        """
+        cursor.execute(query)
+        columns = [column[0] for column in cursor.description]
+        results = []
+        for row in cursor.fetchall():
+            results.append(dict(zip(columns, row)))
+        
+        return jsonify(results)
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/details/<int:id>')
 def get_details(id):
     conn = get_db_connection()
