@@ -146,6 +146,21 @@
             border-color: #81c784;
         }
 
+        /* Debt Styling */
+        .customer-card.has-debt {
+            border-color: #ef5350;
+        }
+
+        .customer-card.has-debt .card-title,
+        .customer-card.has-debt .card-info,
+        .customer-card.has-debt .card-value {
+            color: #ef5350;
+        }
+
+        .customer-card.has-debt .card-title {
+            border-bottom-color: #ef5350;
+        }
+
         .card-row {
             display: flex;
             justify-content: space-between;
@@ -436,6 +451,11 @@
             font-weight: bold;
         }
 
+        .list-row.has-debt td {
+            color: #ef5350 !important;
+            font-weight: 500;
+        }
+
         /* Excel-like Filtering and Sorting Styling */
         .list-header th {
             position: relative;
@@ -622,6 +642,12 @@
 
         <!-- Filter Panel -->
         <div class="panel filter-panel">
+
+            <div class="filter-group">
+                <button id="btnResetFilters" class="filter-btn"
+                    style="background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 12px;"
+                    onclick="resetAllFilters()">Clear All Filters</button>
+            </div>
 
             <div class="filter-group">
                 <label class="filter-label">KundenNr</label>
@@ -977,6 +1003,24 @@
                     card.classList.add('service-kunde');
                 }
 
+                let borcAmountStr = String(row['BorcToplami'] || '0').replace(',', '.');
+                let borcAmount = parseFloat(borcAmountStr);
+
+                // Cross-reference Master dataset if no direct debt value
+                if (isNaN(borcAmount) || borcAmount === 0) {
+                    const masterMatch = datasets.custom.find(c => c['KundenNr'] === row['KundenNr']);
+                    if (masterMatch) {
+                        const mBorc = parseFloat(String(masterMatch['BorcToplami'] || '0').replace(',', '.'));
+                        if (!isNaN(mBorc)) {
+                            borcAmount = mBorc;
+                        }
+                    }
+                }
+
+                if (!isNaN(borcAmount) && borcAmount > 0) {
+                    card.classList.add('has-debt');
+                }
+
                 const firmaName = row[titleKey] || '(No Name)';
                 const kundenNr = row['KundenNr'] || '';
                 const displayTitle = kundenNr ? `${kundenNr} - ${firmaName}` : firmaName;
@@ -997,7 +1041,7 @@
                 infoContainer.style.gap = '4px';
 
                 keys.forEach(key => {
-                    if (key === titleKey) return;
+                    if (key === titleKey || key === 'KundenNr') return;
                     const rowDiv = document.createElement('div');
                     rowDiv.className = 'card-row';
                     const label = document.createElement('span');
@@ -1095,6 +1139,24 @@
                 tr.className = 'list-row';
                 if (row['KundenGruppe'] === 'Servicekunde') {
                     tr.classList.add('service-kunde');
+                }
+
+                let borcAmountStr = String(row['BorcToplami'] || '0').replace(',', '.');
+                let borcAmount = parseFloat(borcAmountStr);
+
+                // Cross-reference Master dataset if no direct debt value
+                if (isNaN(borcAmount) || borcAmount === 0) {
+                    const masterMatch = datasets.custom.find(c => c['KundenNr'] === row['KundenNr']);
+                    if (masterMatch) {
+                        const mBorc = parseFloat(String(masterMatch['BorcToplami'] || '0').replace(',', '.'));
+                        if (!isNaN(mBorc)) {
+                            borcAmount = mBorc;
+                        }
+                    }
+                }
+
+                if (!isNaN(borcAmount) && borcAmount > 0) {
+                    tr.classList.add('has-debt');
                 }
 
                 const displayTitle = `${row['KundenNr'] || ''} - ${row['Firma'] || ''}`;
@@ -1205,6 +1267,24 @@
                 applyFilters();
                 renderFilterOptions(activeFilterColumn);
             }
+        }
+
+        function resetAllFilters() {
+            // Reset global inputs
+            document.getElementById('filterKundenNr').value = '';
+            document.getElementById('filterKundenKategorie').value = '';
+            document.getElementById('filterElster').checked = false;
+            document.getElementById('filterGunSayisi').value = '';
+
+            // Reset Excel-style states
+            columnFilters = {};
+            currentSort = { column: 'KundenNr', direction: 'desc' };
+
+            // Optional: You could update UI for columnFilterDropdown if it's currently open
+            closeColumnFilter();
+
+            // Reapply constraints
+            applyFilters();
         }
 
         function closeColumnFilter() {
