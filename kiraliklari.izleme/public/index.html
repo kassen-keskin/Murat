@@ -431,17 +431,153 @@
             color: var(--text-color);
         }
 
-        .list-row.service-kunde {
-            background-color: rgba(27, 94, 32, 0.1);
-        }
-
-        .list-row.service-kunde:hover {
-            background-color: rgba(27, 94, 32, 0.3);
-        }
-
         .list-row.service-kunde td:first-child {
             color: #81c784;
             font-weight: bold;
+        }
+
+        /* Excel-like Filtering and Sorting Styling */
+        .list-header th {
+            position: relative;
+            cursor: pointer;
+            user-select: none;
+            padding-right: 30px !important;
+        }
+
+        .list-header th:hover {
+            background-color: rgba(255, 255, 255, 0.05);
+        }
+
+        .header-controls {
+            position: absolute;
+            right: 5px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sort-icon {
+            font-size: 0.7rem;
+            opacity: 0.3;
+        }
+
+        .sort-icon.active {
+            opacity: 1;
+            color: var(--secondary-color);
+        }
+
+        .filter-icon {
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            font-size: 0.8rem;
+            color: var(--text-muted);
+        }
+
+        .filter-icon:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--text-color);
+        }
+
+        .filter-icon.active {
+            color: var(--secondary-color);
+        }
+
+        /* Filter Dropdown */
+        .column-filter-dropdown {
+            position: fixed;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            z-index: 3000;
+            min-width: 180px;
+            max-height: 300px;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideDown 0.15s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .filter-search {
+            padding: 8px;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-search input {
+            width: 100%;
+            background: var(--bg-color);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            box-sizing: border-box;
+        }
+
+        .filter-options {
+            overflow-y: auto;
+            flex: 1;
+            padding: 5px 0;
+        }
+
+        .filter-option {
+            padding: 6px 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: background 0.2s;
+        }
+
+        .filter-option:hover {
+            background-color: var(--hover-color);
+        }
+
+        .filter-option input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .filter-actions {
+            padding: 8px;
+            border-top: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .filter-btn {
+            background: none;
+            border: none;
+            color: var(--primary-color);
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .filter-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
         }
 
         /* Tabs Styling */
@@ -506,11 +642,17 @@
                 </label>
             </div>
 
+            <div class="filter-group">
+                <label class="filter-label">BorcTarihiGunSayisi &ge;</label>
+                <input type="number" id="filterGunSayisi" class="filter-input" placeholder="Min days..."
+                    style="width: 100px;">
+            </div>
+
             <div class="view-toggle">
-                <input type="radio" id="viewCard" name="viewMode" value="cardgrid" class="toggle-option" checked>
+                <input type="radio" id="viewCard" name="viewMode" value="cardgrid" class="toggle-option">
                 <label for="viewCard" class="toggle-label">Card Grid</label>
 
-                <input type="radio" id="viewList" name="viewMode" value="listgrid" class="toggle-option">
+                <input type="radio" id="viewList" name="viewMode" value="listgrid" class="toggle-option" checked>
                 <label for="viewList" class="toggle-label">List Grid</label>
             </div>
 
@@ -522,13 +664,13 @@
 
         <!-- Tab Selection -->
         <div class="tabs-container">
-            <div id="tabRental" class="tab-item active" onclick="switchTab('rental')">Rental Customers</div>
-            <div id="tabCustom" class="tab-item" onclick="switchTab('custom')">Master Customers</div>
+            <div id="tabRental" class="tab-item" onclick="switchTab('rental')">Takipteki Müşteriler</div>
+            <div id="tabCustom" class="tab-item active" onclick="switchTab('custom')">Tüm Müşteriler</div>
         </div>
 
         <!-- Customer List Container -->
         <div class="panel list-panel">
-            <div id="cardContainer" class="card-container-wrapper card-container">
+            <div id="cardContainer" class="card-container-wrapper">
                 <!-- Data will be populated dynamically (Cards or List) -->
             </div>
         </div>
@@ -547,6 +689,20 @@
         </div>
     </div>
 
+    <!-- Column Filter Dropdown Template -->
+    <div id="columnFilterDropdown" class="column-filter-dropdown">
+        <div class="filter-search">
+            <input type="text" id="filterSearchInput" placeholder="Search values...">
+        </div>
+        <div id="filterOptions" class="filter-options">
+            <!-- Checkboxes will be here -->
+        </div>
+        <div class="filter-actions">
+            <button class="filter-btn" onclick="clearColumnFilter()">Clear</button>
+            <button class="filter-btn" onclick="closeColumnFilter()">Close</button>
+        </div>
+    </div>
+
     <script>
         let refreshInterval;
         const REFRESH_RATE = 60000; // 60 seconds
@@ -558,8 +714,13 @@
             rental: [],
             custom: []
         };
-        let currentTab = 'rental';
-        let currentViewMode = 'cardgrid';
+        let currentTab = 'custom';
+        let currentViewMode = 'listgrid';
+
+        // Excel-like Grid State
+        let columnFilters = {}; // { columnName: [selectedValues] }
+        let currentSort = { column: 'KundenNr', direction: 'desc' }; // { column: 'KundenNr', direction: 'asc'|'desc' }
+        let activeFilterColumn = null;
 
         // Fetch Data
         async function fetchAllData() {
@@ -576,6 +737,21 @@
                 const response = await fetch(url);
                 if (!response.ok) throw new Error('Network response was not ok');
                 const data = await response.json();
+
+                // Format dates
+                data.forEach(row => {
+                    if (row['BorcTarihi']) {
+                        const d = new Date(row['BorcTarihi']);
+                        if (!isNaN(d)) {
+                            row[`_BorcTarihi_Sort`] = d.getTime();
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            row['BorcTarihi'] = `${dd}-${mm}-${yyyy}`;
+                        }
+                    }
+                });
+
                 datasets[key] = data;
             } catch (error) {
                 console.error(`Error fetching ${key}:`, error);
@@ -652,6 +828,7 @@
         const filterKundenNr = document.getElementById('filterKundenNr');
         const filterKundenKategorie = document.getElementById('filterKundenKategorie');
         const filterElster = document.getElementById('filterElster');
+        const filterGunSayisi = document.getElementById('filterGunSayisi');
         const viewToggles = document.getElementsByName('viewMode');
 
         function populateFilterOptions() {
@@ -685,10 +862,11 @@
             const kundenNrVal = filterKundenNr.value.trim().toLowerCase();
             const kundenKategorieVal = filterKundenKategorie.value;
             const elsterOnly = filterElster.checked;
+            const minGunSayisi = filterGunSayisi.value ? parseInt(filterGunSayisi.value, 10) : null;
 
             const currentData = datasets[currentTab] || [];
 
-            const filtered = currentData.filter(row => {
+            let filtered = currentData.filter(row => {
                 const nr = row['KundenNr'] ? String(row['KundenNr']).toLowerCase() : '';
                 if (kundenNrVal && !nr.includes(kundenNrVal)) return false;
                 if (kundenKategorieVal && row['KundenKategorie'] != kundenKategorieVal) return false;
@@ -696,8 +874,42 @@
                 // Elster Filter: Only if checked, filter for Elster == 1
                 if (elsterOnly && row['Elster'] != 1) return false;
 
+                // BorcTarihiGunSayisi Global Numeric Filter (gte)
+                if (minGunSayisi !== null && !isNaN(minGunSayisi)) {
+                    const rowGunSayisi = row['BorcTarihiGunSayisi'] !== null && row['BorcTarihiGunSayisi'] !== undefined ? parseInt(row['BorcTarihiGunSayisi'], 10) : null;
+                    if (rowGunSayisi === null || isNaN(rowGunSayisi) || rowGunSayisi < minGunSayisi) {
+                        return false;
+                    }
+                }
+
+                // Column-specific Checkbox Filters
+                for (const [col, selectedValues] of Object.entries(columnFilters)) {
+                    if (selectedValues.length > 0) {
+                        const cellValue = String(row[col] !== null ? row[col] : '-');
+                        if (!selectedValues.includes(cellValue)) return false;
+                    }
+                }
+
                 return true;
             });
+
+            // Sorting
+            if (currentSort.column && currentSort.direction) {
+                filtered.sort((a, b) => {
+                    let valA = a[`_${currentSort.column}_Sort`] !== undefined ? a[`_${currentSort.column}_Sort`] : a[currentSort.column];
+                    let valB = b[`_${currentSort.column}_Sort`] !== undefined ? b[`_${currentSort.column}_Sort`] : b[currentSort.column];
+
+                    if (valA === null) valA = '';
+                    if (valB === null) valB = '';
+
+                    if (typeof valA === 'string') valA = valA.toLowerCase();
+                    if (typeof valB === 'string') valB = valB.toLowerCase();
+
+                    if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
+                    if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
+            }
 
             // Update record count
             document.getElementById('recordCount').textContent = `Result: ${filtered.length}`;
@@ -712,6 +924,8 @@
         // Event Listeners
         filterKundenNr.addEventListener('input', applyFilters);
         filterKundenKategorie.addEventListener('change', applyFilters);
+        filterElster.addEventListener('change', applyFilters);
+        filterGunSayisi.addEventListener('input', applyFilters);
         filterElster.addEventListener('change', applyFilters);
 
         viewToggles.forEach(toggle => {
@@ -730,10 +944,10 @@
         // Render Functions
         function getDisplayKeys(dataRow) {
             if (currentTab === 'custom') {
-                return ['KundenNr', 'Firma', 'KundenKategorie', 'KundenGruppe', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi'];
+                return ['KundenNr', 'Firma', 'KundenKategorie', 'KundenGruppe', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi'];
             }
-            // For rental tab, use all keys except kKunde and internal ones
-            return Object.keys(dataRow).filter(k => k !== 'kKunde' && k !== 'Elster' && k !== 'ElsterSayisi');
+            // For rental tab, use specific ordering and exclude Tel/Mobil
+            return ['KundenNr', 'Firma', 'InhabeName', 'KundenGruppe', 'KundenKategorie', 'PLZ', 'Strasse', 'AnyDesk'];
         }
 
         function renderCards(data) {
@@ -836,6 +1050,39 @@
             finalKeys.forEach(key => {
                 const th = document.createElement('th');
                 th.textContent = key;
+
+                // Add header controls container
+                const controls = document.createElement('div');
+                controls.className = 'header-controls';
+
+                // Sort Icon
+                const sortIcon = document.createElement('span');
+                sortIcon.className = 'sort-icon';
+                sortIcon.innerHTML = '&#9650;'; // Up arrow
+                if (currentSort.column === key) {
+                    sortIcon.classList.add('active');
+                    if (currentSort.direction === 'desc') sortIcon.innerHTML = '&#9660;'; // Down arrow
+                }
+                controls.appendChild(sortIcon);
+
+                // Filter Icon
+                const filterIcon = document.createElement('span');
+                filterIcon.className = 'filter-icon';
+                filterIcon.innerHTML = '&#9662;'; // Down caret
+                if (columnFilters[key] && columnFilters[key].length > 0) {
+                    filterIcon.classList.add('active');
+                }
+                filterIcon.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleFilterDropdown(key, filterIcon);
+                };
+                controls.appendChild(filterIcon);
+
+                th.appendChild(controls);
+
+                // Sorting Handler on Header Click
+                th.onclick = () => handleSort(key);
+
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
@@ -861,6 +1108,9 @@
                         value = row[key] == 1 ? 'Var' : 'Yok';
                     }
                     td.textContent = value;
+                    if (key === 'BorcToplami') {
+                        td.style.textAlign = 'right';
+                    }
                     tr.appendChild(td);
                 });
                 tbody.appendChild(tr);
@@ -868,6 +1118,119 @@
             table.appendChild(tbody);
             container.appendChild(table);
         }
+
+        // New Excel Grid Functions
+        function handleSort(column) {
+            if (currentSort.column === column) {
+                if (currentSort.direction === 'asc') currentSort.direction = 'desc';
+                else if (currentSort.direction === 'desc') {
+                    currentSort.column = null;
+                    currentSort.direction = null;
+                }
+            } else {
+                currentSort.column = column;
+                currentSort.direction = 'asc';
+            }
+            applyFilters();
+        }
+
+        function toggleFilterDropdown(column, iconElement) {
+            const dropdown = document.getElementById('columnFilterDropdown');
+            if (activeFilterColumn === column && dropdown.style.display === 'flex') {
+                closeColumnFilter();
+                return;
+            }
+
+            activeFilterColumn = column;
+            const rect = iconElement.getBoundingClientRect();
+
+            dropdown.style.left = `${rect.left - 150}px`;
+            dropdown.style.top = `${rect.bottom + 5}px`;
+            dropdown.style.display = 'flex';
+
+            renderFilterOptions(column);
+
+            // Focus search input
+            document.getElementById('filterSearchInput').value = '';
+            setTimeout(() => document.getElementById('filterSearchInput').focus(), 50);
+        }
+
+        function renderFilterOptions(column) {
+            const container = document.getElementById('filterOptions');
+            container.innerHTML = '';
+
+            const currentData = datasets[currentTab] || [];
+            const uniqueValues = [...new Set(currentData.map(row => String(row[column] !== null ? row[column] : '-')))].sort();
+
+            const selected = columnFilters[column] || [];
+
+            uniqueValues.forEach(val => {
+                const opt = document.createElement('div');
+                opt.className = 'filter-option';
+
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = selected.includes(val);
+                cb.onchange = () => toggleOption(column, val, cb.checked);
+
+                const label = document.createElement('span');
+                label.textContent = val;
+
+                opt.appendChild(cb);
+                opt.appendChild(label);
+                opt.onclick = (e) => {
+                    if (e.target !== cb) {
+                        cb.checked = !cb.checked;
+                        toggleOption(column, val, cb.checked);
+                    }
+                };
+                container.appendChild(opt);
+            });
+        }
+
+        function toggleOption(column, value, isChecked) {
+            if (!columnFilters[column]) columnFilters[column] = [];
+
+            if (isChecked) {
+                if (!columnFilters[column].includes(value)) columnFilters[column].push(value);
+            } else {
+                columnFilters[column] = columnFilters[column].filter(v => v !== value);
+            }
+            applyFilters();
+        }
+
+        function clearColumnFilter() {
+            if (activeFilterColumn) {
+                columnFilters[activeFilterColumn] = [];
+                applyFilters();
+                renderFilterOptions(activeFilterColumn);
+            }
+        }
+
+        function closeColumnFilter() {
+            document.getElementById('columnFilterDropdown').style.display = 'none';
+            activeFilterColumn = null;
+        }
+
+        // Filter search input logic
+        document.getElementById('filterSearchInput').addEventListener('input', (e) => {
+            const search = e.target.value.toLowerCase();
+            const options = document.querySelectorAll('.filter-option');
+            options.forEach(opt => {
+                const text = opt.textContent.toLowerCase();
+                opt.style.display = text.includes(search) ? 'flex' : 'none';
+            });
+        });
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', (e) => {
+            const dropdown = document.getElementById('columnFilterDropdown');
+            if (dropdown.style.display === 'flex' &&
+                !dropdown.contains(e.target) &&
+                !e.target.classList.contains('filter-icon')) {
+                closeColumnFilter();
+            }
+        });
 
         function startAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);

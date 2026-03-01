@@ -83,6 +83,9 @@ def get_customers_custom():
               ,[SeriKodluKasaSayisi]
               ,[ElsterSayisi]
               ,CASE WHEN [ElsterSayisi] > 0 THEN 1 ELSE 0 END AS [Elster]
+              ,[BorcToplami]
+              ,[BorcTarihi]
+              ,[BorcTarihiGunSayisi]
           FROM [Custom].[KundenMaster]
           ORDER BY [KundenNr]
         """
