@@ -919,17 +919,33 @@
                 return true;
             });
 
+            // Sayısal sıralama yapılacak sütunlar
+            const NUMERIC_COLUMNS = ['BorcToplami', 'BorcTarihiGunSayisi', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'KundenNr'];
+
+            function parseNumeric(val) {
+                if (val === null || val === undefined || val === '') return null;
+                // Avrupa formatı: "1.234,56" -> 1234.56
+                const str = String(val).replace(/\./g, '').replace(',', '.');
+                const num = parseFloat(str);
+                return isNaN(num) ? null : num;
+            }
+
             // Sorting
             if (currentSort.column && currentSort.direction) {
+                const isNumeric = NUMERIC_COLUMNS.includes(currentSort.column);
                 filtered.sort((a, b) => {
                     let valA = a[`_${currentSort.column}_Sort`] !== undefined ? a[`_${currentSort.column}_Sort`] : a[currentSort.column];
                     let valB = b[`_${currentSort.column}_Sort`] !== undefined ? b[`_${currentSort.column}_Sort`] : b[currentSort.column];
 
-                    if (valA === null) valA = '';
-                    if (valB === null) valB = '';
-
-                    if (typeof valA === 'string') valA = valA.toLowerCase();
-                    if (typeof valB === 'string') valB = valB.toLowerCase();
+                    if (isNumeric) {
+                        valA = parseNumeric(valA) ?? -Infinity;
+                        valB = parseNumeric(valB) ?? -Infinity;
+                    } else {
+                        if (valA === null) valA = '';
+                        if (valB === null) valB = '';
+                        if (typeof valA === 'string') valA = valA.toLowerCase();
+                        if (typeof valB === 'string') valB = valB.toLowerCase();
+                    }
 
                     if (valA < valB) return currentSort.direction === 'asc' ? -1 : 1;
                     if (valA > valB) return currentSort.direction === 'asc' ? 1 : -1;
@@ -937,8 +953,21 @@
                 });
             }
 
-            // Update record count
-            document.getElementById('recordCount').textContent = `Result: ${filtered.length}`;
+            // Update record count and BorcToplami sum
+            // BorcToplami comes from the DB as a plain numeric (e.g. 1234.56),
+            // so we use parseFloat directly — parseNumeric would corrupt it by
+            // stripping the decimal dot thinking it's a thousand separator.
+            const borcSum = filtered.reduce((sum, row) => {
+                let val = parseFloat(row['BorcToplami']);
+                // Rental tab has no BorcToplami — cross-reference from custom dataset
+                if (isNaN(val)) {
+                    const match = datasets.custom.find(c => c['KundenNr'] === row['KundenNr']);
+                    if (match) val = parseFloat(match['BorcToplami']);
+                }
+                return sum + (isNaN(val) ? 0 : val);
+            }, 0);
+            const borcSumFormatted = borcSum.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            document.getElementById('recordCount').textContent = `Result: ${filtered.length}   |   Toplam Borç: ${borcSumFormatted}`;
 
             if (currentViewMode === 'cardgrid') {
                 renderCards(filtered);
