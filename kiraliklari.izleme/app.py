@@ -49,6 +49,7 @@ def get_customers():
               ,[KundenKategorie]
               ,[KundenGruppe]
               ,[Elster]
+              ,[TamKontrolTarihi]
           FROM [Custom].[MieteKundenMaster]
           ORDER BY [KundenNr]
         """

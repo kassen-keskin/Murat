@@ -766,14 +766,52 @@
 
                 // Format dates
                 data.forEach(row => {
+                    const parseTRDate = (dateStr) => {
+                        if (!dateStr || typeof dateStr !== 'string') return null;
+
+                        // Check if it matches DD-MM-YYYY or DD.MM.YYYY
+                        let sep = '-';
+                        if (dateStr.includes('.')) sep = '.';
+
+                        if (dateStr.includes(sep)) {
+                            const p = dateStr.split(sep);
+                            if (p.length === 3) {
+                                // Assume DD-MM-YYYY (or if it's actually YYYY-MM-DD handled safely below)
+                                let d = parseInt(p[0], 10);
+                                let m = parseInt(p[1], 10) - 1;
+                                let y = parseInt(p[2], 10);
+                                if (y < 1000) {
+                                    // It was YYYY-MM-DD
+                                    y = parseInt(p[0], 10);
+                                    m = parseInt(p[1], 10) - 1;
+                                    d = parseInt(p[2], 10);
+                                }
+                                return new Date(y, m, d);
+                            }
+                        }
+
+                        // Fallback
+                        return new Date(dateStr);
+                    };
+
                     if (row['BorcTarihi']) {
-                        const d = new Date(row['BorcTarihi']);
-                        if (!isNaN(d)) {
+                        const d = parseTRDate(row['BorcTarihi']);
+                        if (d && !isNaN(d)) {
                             row[`_BorcTarihi_Sort`] = d.getTime();
                             const dd = String(d.getDate()).padStart(2, '0');
                             const mm = String(d.getMonth() + 1).padStart(2, '0');
                             const yyyy = d.getFullYear();
                             row['BorcTarihi'] = `${dd}-${mm}-${yyyy}`;
+                        }
+                    }
+                    if (row['TamKontrolTarihi']) {
+                        const d = parseTRDate(row['TamKontrolTarihi']);
+                        if (d && !isNaN(d)) {
+                            row[`_TamKontrolTarihi_Sort`] = d.getTime();
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            row['TamKontrolTarihi'] = `${dd}-${mm}-${yyyy}`;
                         }
                     }
                 });
@@ -1002,7 +1040,7 @@
                 return ['KundenNr', 'Firma', 'KundenKategorie', 'KundenGruppe', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi'];
             }
             // For rental tab, use specific ordering and exclude Tel/Mobil
-            return ['KundenNr', 'Firma', 'InhabeName', 'KundenGruppe', 'KundenKategorie', 'PLZ', 'Strasse', 'AnyDesk'];
+            return ['KundenNr', 'Firma', 'InhabeName', 'KundenGruppe', 'KundenKategorie', 'PLZ', 'Strasse', 'AnyDesk', 'TamKontrolTarihi'];
         }
 
         function renderCards(data) {
@@ -1083,6 +1121,28 @@
                     // Elster specific formatting
                     if (key === 'Elster') {
                         value = row[key] == 1 ? 'Var' : 'Yok';
+                    }
+
+                    if (key === 'TamKontrolTarihi') {
+                        let isGreen = false;
+                        if (row['_TamKontrolTarihi_Sort']) {
+                            const now = new Date().getTime();
+                            const diffTime = Math.abs(now - row['_TamKontrolTarihi_Sort']);
+                            const diffDays = diffTime / (1000 * 3600 * 24);
+                            if (diffDays <= 90) {
+                                isGreen = true;
+                            }
+                        }
+                        if (isGreen) {
+                            val.style.setProperty('background-color', '#4caf50', 'important');
+                            val.style.setProperty('color', 'black', 'important');
+                        } else {
+                            val.style.setProperty('background-color', '#ef5350', 'important');
+                            val.style.setProperty('color', 'white', 'important');
+                        }
+                        val.style.padding = '2px 6px';
+                        val.style.borderRadius = '4px';
+                        val.style.fontWeight = 'bold';
                     }
 
                     val.textContent = value;
@@ -1201,6 +1261,26 @@
                     td.textContent = value;
                     if (key === 'BorcToplami') {
                         td.style.textAlign = 'right';
+                    }
+                    if (key === 'TamKontrolTarihi') {
+                        let isGreen = false;
+                        if (row['_TamKontrolTarihi_Sort']) {
+                            const now = new Date().getTime();
+                            const diffTime = Math.abs(now - row['_TamKontrolTarihi_Sort']);
+                            const diffDays = diffTime / (1000 * 3600 * 24);
+                            if (diffDays <= 90) {
+                                isGreen = true;
+                            }
+                        }
+                        if (isGreen) {
+                            td.style.setProperty('background-color', '#4caf50', 'important');
+                            td.style.setProperty('color', 'black', 'important');
+                            td.style.fontWeight = 'bold';
+                        } else {
+                            td.style.setProperty('background-color', '#ef5350', 'important');
+                            td.style.setProperty('color', 'white', 'important');
+                            td.style.fontWeight = 'bold';
+                        }
                     }
                     tr.appendChild(td);
                 });
