@@ -45,7 +45,7 @@ def get_customers():
               ,[Mobil]
               ,[Strasse]
               ,[PLZ]
-              ,[AnyDesk]
+              ,[LisansNo]
               ,[KundenKategorie]
               ,[KundenGruppe]
               ,[Elster]
