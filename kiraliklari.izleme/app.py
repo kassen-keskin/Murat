@@ -83,6 +83,8 @@ def get_customers_custom():
               ,[KasaSayisi]
               ,[SeriKodluKasaSayisi]
               ,[ElsterSayisi]
+              ,[AuftragSayisi]
+              ,[NotSayisi]
               ,CASE WHEN [ElsterSayisi] > 0 THEN 1 ELSE 0 END AS [Elster]
               ,[BorcToplami]
               ,[BorcTarihi]

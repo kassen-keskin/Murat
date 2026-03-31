@@ -457,6 +457,10 @@
             font-weight: 500;
         }
 
+        .list-row.no-notes td {
+            color: #616161 !important;
+        }
+
         /* Excel-like Filtering and Sorting Styling */
         .list-header th {
             position: relative;
@@ -959,7 +963,7 @@
             });
 
             // Sayısal sıralama yapılacak sütunlar
-            const NUMERIC_COLUMNS = ['BorcToplami', 'BorcTarihiGunSayisi', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'KundenNr'];
+            const NUMERIC_COLUMNS = ['BorcToplami', 'BorcTarihiGunSayisi', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'AuftragSayisi', 'KundenNr'];
 
             function parseNumeric(val) {
                 if (val === null || val === undefined || val === '') return null;
@@ -1038,7 +1042,7 @@
         // Render Functions
         function getDisplayKeys(dataRow) {
             if (currentTab === 'custom') {
-                return ['KundenNr', 'Firma', 'KundenKategorie', 'KundenGruppe', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi'];
+                return ['KundenNr', 'Firma', 'KundenKategorie', 'KundenGruppe', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi', 'AuftragSayisi'];
             }
             // For rental tab, use specific ordering and exclude Tel/Mobil
             return ['KundenNr', 'Firma', 'InhabeName', 'KundenGruppe', 'KundenKategorie', 'PLZ', 'Strasse', 'LisansNo', 'TamKontrolTarihi'];
@@ -1229,6 +1233,14 @@
                 tr.className = 'list-row';
                 if (row['KundenGruppe'] === 'Servicekunde') {
                     tr.classList.add('service-kunde');
+                }
+
+                // Grey out rows with no notes (NotSayisi is 0 or NULL) — custom tab only
+                if (currentTab === 'custom') {
+                    const notSayisi = row['NotSayisi'];
+                    if (notSayisi === null || notSayisi === undefined || notSayisi === 0 || notSayisi === '0') {
+                        tr.classList.add('no-notes');
+                    }
                 }
 
                 let borcAmountStr = String(row['BorcToplami'] || '0').replace(',', '.');
