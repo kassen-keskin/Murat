@@ -461,6 +461,19 @@
             color: #616161 !important;
         }
 
+        /* Gesperrt (İptal edilmiş) satır stili */
+        .list-row.gesperrt td {
+            text-decoration: line-through;
+            opacity: 0.55;
+        }
+
+        .customer-card.gesperrt .card-title,
+        .customer-card.gesperrt .card-info,
+        .customer-card.gesperrt .card-value {
+            text-decoration: line-through;
+            opacity: 0.55;
+        }
+
         /* Excel-like Filtering and Sorting Styling */
         .list-header th {
             position: relative;
@@ -1075,6 +1088,11 @@
                     card.classList.add('service-kunde');
                 }
 
+                // Gesperrt (İptal edilmiş) müşteri - üstü çizili göster
+                if (row['Gesperrt'] == 1) {
+                    card.classList.add('gesperrt');
+                }
+
                 let borcAmountStr = String(row['BorcToplami'] || '0').replace(',', '.');
                 let borcAmount = parseFloat(borcAmountStr);
 
@@ -1233,6 +1251,11 @@
                 tr.className = 'list-row';
                 if (row['KundenGruppe'] === 'Servicekunde') {
                     tr.classList.add('service-kunde');
+                }
+
+                // Gesperrt (İptal edilmiş) müşteri - üstü çizili göster
+                if (row['Gesperrt'] == 1) {
+                    tr.classList.add('gesperrt');
                 }
 
                 // Grey out rows with no notes (NotSayisi is 0 or NULL) — custom tab only

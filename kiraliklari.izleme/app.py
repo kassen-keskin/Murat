@@ -50,7 +50,7 @@ def get_customers():
               ,[KundenGruppe]
               ,[Elster]
               ,[TamKontrolTarihi]
-          FROM [Custom].[MieteKundenMaster]
+          FROM [Custom].[MieteKundenMaster] WITH (NOLOCK)
           ORDER BY [KundenNr]
         """
         cursor.execute(query)
@@ -89,7 +89,8 @@ def get_customers_custom():
               ,[BorcToplami]
               ,[BorcTarihi]
               ,[BorcTarihiGunSayisi]
-          FROM [Custom].[KundenMaster]
+              ,[Gesperrt]
+          FROM [Custom].[KundenMaster] WITH (NOLOCK)
           ORDER BY [KundenNr]
         """
         cursor.execute(query)
