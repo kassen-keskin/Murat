@@ -652,6 +652,9 @@
             border-color: var(--primary-color);
         }
     </style>
+    <link rel="stylesheet" href="/satis.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 
 <body>
@@ -710,12 +713,181 @@
         <div class="tabs-container">
             <div id="tabRental" class="tab-item" onclick="switchTab('rental')">Takipteki Müşteriler</div>
             <div id="tabCustom" class="tab-item active" onclick="switchTab('custom')">Tüm Müşteriler</div>
+            <div id="tabSatis"  class="tab-item" onclick="switchTab('satis')">🛒 Yeni Satış</div>
         </div>
 
         <!-- Customer List Container -->
         <div class="panel list-panel">
             <div id="cardContainer" class="card-container-wrapper">
                 <!-- Data will be populated dynamically (Cards or List) -->
+            </div>
+        </div>
+
+        <!-- ===== YENİ SATIŞ PANELİ ===== -->
+        <div id="satisPaneli" class="panel satis-panel" style="display:none;">
+            <!-- Top Bar -->
+            <div class="satis-top-bar">
+                <h2>🛒 Yeni Satış</h2>
+                <button class="btn-s secondary" onclick="toggleAdminPanel()">⚙️ Yönetim Paneli</button>
+                <button class="btn-s primary"   onclick="yeniSatisBaslat()">🔄 Yeni Satış Başlat</button>
+            </div>
+
+            <div class="satis-inner">
+
+                <!-- ADMIN PANEL -->
+                <div id="adminPanel" class="admin-panel" style="display:none;">
+                    <div class="admin-panel-hdr">
+                        <h3>⚙️ Yönetim Paneli — Ürün &amp; Hizmet Tanımlamaları</h3>
+                    </div>
+
+                    <!-- Scrollable body -->
+                    <div class="admin-panel-body">
+                        <div class="admin-groups" id="adminGroupsContainer"></div>
+
+                        <!-- Satış Temsilcileri Yönetimi -->
+                        <div style="padding:0 16px 16px;">
+                            <div class="admin-group" style="max-width:420px;">
+                                <div class="admin-group-hdr">
+                                    <span class="admin-group-title">👤 Satış Temsilcileri</span>
+                                </div>
+                                <div class="admin-items" id="adminTemsilcilerList"></div>
+                                <div class="admin-group-add" style="display:flex;gap:8px;padding:8px;">
+                                    <input type="text" id="newTemsilciInput" class="form-ctrl" placeholder="Ad Soyad giriniz..." style="flex:1;" onkeydown="if(event.key==='Enter')addTemsilci()">
+                                    <button class="btn-s teal" style="padding:8px 16px;" onclick="addTemsilci()">+ Ekle</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div><!-- /admin-panel-body -->
+
+                    <div class="admin-footer">
+                        <div style="display:flex;align-items:center;gap:12px;">
+                            <label>KDV Oranı (%)</label>
+                            <input type="number" id="adminKdvOrani" class="kdv-input" min="0" max="100" value="19">
+                        </div>
+                        <button class="btn-s success" onclick="adminKaydet()">💾 Tüm Tanımlamaları Kaydet</button>
+                    </div>
+                </div>
+
+                <!-- WIZARD -->
+                <div class="wizard-wrap" id="wizardContainer"></div>
+
+                <!-- SEÇİMLER ÖZETİ -->
+                <div class="sel-ozet" id="selOzet" style="display:none;">
+                    <div class="sel-ozet-hdr"><h3>✅ Seçilen Ürün &amp; Hizmetler</h3></div>
+                    <div class="sel-ozet-body" id="selOzetBody"></div>
+                </div>
+
+                <!-- GENEL TOPLAM -->
+                <div id="genelToplamSection" class="g-toplam">
+                    <div class="g-toplam-hdr"><h3>G. Genel Toplam</h3></div>
+                    <div class="g-toplam-body">
+                        <table class="tot-table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:left;">Kalem</th>
+                                    <th>Aylık Kiralama</th>
+                                    <th>Satın Alma</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="tot-row">
+                                    <td>Net Fiyat</td>
+                                    <td><div class="tot-amt monthly"  id="netKira">0,00 €</div></td>
+                                    <td><div class="tot-amt purchase" id="netSatis">0,00 €</div></td>
+                                </tr>
+                                <tr class="tot-row">
+                                    <td>KDV (<span id="kdvOranGoster">%19</span>)</td>
+                                    <td><div class="tot-amt monthly"  id="kdvKira">0,00 €</div></td>
+                                    <td><div class="tot-amt purchase" id="kdvSatis">0,00 €</div></td>
+                                </tr>
+                                <tr class="tot-row" style="border-top:2px solid #444;">
+                                    <td style="color:#e0e0e0;font-size:1rem;font-weight:800;">TOPLAM</td>
+                                    <td><div class="tot-amt monthly"  id="toplamKira"  style="font-size:2rem;">0,00 €</div></td>
+                                    <td><div class="tot-amt purchase" id="toplamSatis" style="font-size:2rem;">0,00 €</div></td>
+                                </tr>
+                                <tr>
+                                    <td colspan="3" style="padding:0;"><hr class="tot-divider" style="margin: 12px 0;"></td>
+                                </tr>
+                                <tr class="pesinat-row">
+                                    <td class="pesinat-lbl">💰 Peşinat (KDV Dahil)</td>
+                                    <td colspan="2"><div class="pesinat-amt" id="pesinatAmount">0,00 €</div></td>
+                                </tr>
+                                <tr class="pesinat-row">
+                                    <td class="kalan-lbl">📋 Kalan</td>
+                                    <td><div class="kalan-amt" id="kalanAmount">0,00 €</div></td>
+                                    <td><div class="kalan-amt" id="kalanSatisAmount">0,00 €</div></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- İMZA BÖLÜMÜ -->
+                <div id="imzaSection" class="imza-section">
+                    <div class="imza-info">
+                        <div class="imza-info-row">
+                            <div class="imza-lbl">📅 Tarih</div>
+                            <div class="imza-date-val" id="imzaTarih"></div>
+                        </div>
+                        <div class="imza-info-row">
+                            <div class="imza-lbl">👤 Satış Temsilcisi</div>
+                            <select id="imzaTemsilci" class="form-ctrl">
+                                <option value="">-- Seçiniz --</option>
+                            </select>
+                        </div>
+                        <div class="imza-info-row">
+                            <div class="imza-lbl">🏢 Müşteri Adı</div>
+                            <input type="text" id="imzaMusteriAdi" class="form-ctrl" placeholder="Müşteri adını giriniz..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="imza-canvas-wrap">
+                        <div class="imza-lbl">✍️ Müşteri İmzası</div>
+                        <canvas id="imzaCanvas" class="imza-canvas"></canvas>
+                        <div class="imza-canvas-acts">
+                            <button class="btn-s secondary" onclick="imzaTemizle()">🗑️ İmzayı Temizle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PDF -->
+                <div id="pdfRow" class="pdf-row">
+                    <button class="btn-s teal lg" onclick="pdfOlustur()">📄 PDF Çıktısı Al</button>
+                </div>
+
+            </div><!-- /satis-inner -->
+        </div><!-- /satisPaneli -->
+
+    </div><!-- /dashboard-container -->
+
+    <!-- Hidden Print Area -->
+    <div id="printArea"></div>
+
+    <!-- Item Edit Modal -->
+    <div id="itemModalOverlay" class="item-modal-overlay">
+        <div class="item-modal">
+            <h3 id="itemModalTitle">Ürün Ekle</h3>
+            <div class="form-grp">
+                <label>Ürün / Hizmet Adı *</label>
+                <input type="text" id="iName" class="form-ctrl" placeholder="Örn: EKR 100 Yazarkasa">
+            </div>
+            <div class="form-grp">
+                <label>Satış Fiyatı (€)</label>
+                <input type="number" id="iSatis" class="form-ctrl" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="form-grp" id="iKiraRow">
+                <label>Aylık Kira Fiyatı (€) — 0 ise peşinata eklenir</label>
+                <input type="number" id="iKira" class="form-ctrl" placeholder="0.00" step="0.01" min="0">
+            </div>
+            <div class="form-grp">
+                <label>Ürün Resmi</label>
+                <input type="file" id="iImg" class="form-ctrl" accept="image/*" onchange="handleImageUpload(this)">
+                <div class="img-preview-box" id="imgPreviewBox">
+                    <img id="imgPreviewEl" src="" alt="Önizleme">
+                </div>
+            </div>
+            <div class="modal-btns">
+                <button class="btn-s secondary" onclick="closeItemModal()">İptal</button>
+                <button class="btn-s success"   onclick="saveItem()">💾 Kaydet</button>
             </div>
         </div>
     </div>
@@ -843,11 +1015,26 @@
         function switchTab(tab) {
             currentTab = tab;
 
-            // Update UI
+            // Tab buttons
             document.getElementById('tabRental').classList.toggle('active', tab === 'rental');
             document.getElementById('tabCustom').classList.toggle('active', tab === 'custom');
+            document.getElementById('tabSatis').classList.toggle('active',  tab === 'satis');
 
-            applyFilters();
+            const filterPanel = document.querySelector('.filter-panel');
+            const listPanel   = document.querySelector('.panel.list-panel');
+            const satisPaneli = document.getElementById('satisPaneli');
+
+            if (tab === 'satis') {
+                filterPanel.style.display = 'none';
+                listPanel.style.display   = 'none';
+                satisPaneli.style.display = 'flex';
+                initSatisTab();
+            } else {
+                filterPanel.style.display = '';
+                listPanel.style.display   = '';
+                satisPaneli.style.display = 'none';
+                applyFilters();
+            }
         }
 
         async function fetchDetails(id) {
@@ -1467,6 +1654,7 @@
             startAutoRefresh();
         });
     </script>
+    <script src="/satis.js"></script>
 </body>
 
 </html>
