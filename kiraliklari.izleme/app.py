@@ -73,6 +73,7 @@ def get_customers():
               ,[KundenGruppe]
               ,[Elster]
               ,[TamKontrolTarihi]
+              ,[Servis]
           FROM [Custom].[MieteKundenMaster] WITH (NOLOCK)
           ORDER BY [KundenNr]
         """
@@ -101,6 +102,7 @@ def get_customers_custom():
         SELECT [kKunde]
               ,[KundenNr]
               ,[Firma]
+              ,[InhabeName]
               ,[KundenKategorie]
               ,[KundenGruppe]
               ,[KasaSayisi]
@@ -113,6 +115,8 @@ def get_customers_custom():
               ,[BorcTarihi]
               ,[BorcTarihiGunSayisi]
               ,[Gesperrt]
+              ,[TamKontrolTarihi]
+              ,[Servis]
           FROM [Custom].[KundenMaster] WITH (NOLOCK)
           ORDER BY [KundenNr]
         """

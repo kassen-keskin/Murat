@@ -147,6 +147,36 @@
             border-color: #81c784;
         }
 
+        /* Servis = 1 (Yellow) */
+        .customer-card.servis-1 {
+            background-color: rgba(245, 127, 23, 0.4);
+            border-color: #fbc02d;
+        }
+        .customer-card.servis-1:hover {
+            background-color: rgba(245, 127, 23, 0.8);
+            border-color: #fdd835;
+            box-shadow: 0 10px 30px rgba(100, 80, 0, 0.8);
+        }
+        .customer-card.servis-1 .card-title {
+            color: #fff59d;
+            border-bottom-color: #ffee58;
+        }
+
+        /* Servis = 2 (Green) */
+        .customer-card.servis-2 {
+            background-color: rgba(27, 94, 32, 0.4);
+            border-color: #4caf50;
+        }
+        .customer-card.servis-2:hover {
+            background-color: rgba(27, 94, 32, 0.8);
+            border-color: #81c784;
+            box-shadow: 0 10px 30px rgba(0, 50, 0, 0.8);
+        }
+        .customer-card.servis-2 .card-title {
+            color: #a5d6a7;
+            border-bottom-color: #66bb6a;
+        }
+
         /* Debt Styling */
         .customer-card.has-debt {
             border-color: #ef5350;
@@ -461,6 +491,16 @@
             color: #616161 !important;
         }
 
+        /* Servis list rows */
+        .list-row.servis-1 td:first-child {
+            color: #fbc02d;
+            font-weight: bold;
+        }
+        .list-row.servis-2 td:first-child {
+            color: #4caf50;
+            font-weight: bold;
+        }
+
         /* Gesperrt (İptal edilmiş) satır stili */
         .list-row.gesperrt td {
             text-decoration: line-through;
@@ -671,7 +711,7 @@
             </div>
 
             <div class="filter-group">
-                <label class="filter-label">KundenNr</label>
+                <label class="filter-label">Ara</label>
                 <input type="text" id="filterKundenNr" class="filter-input" placeholder="Type to filter...">
             </div>
 
@@ -1137,7 +1177,9 @@
 
             let filtered = currentData.filter(row => {
                 const nr = row['KundenNr'] ? String(row['KundenNr']).toLowerCase() : '';
-                if (kundenNrVal && !nr.includes(kundenNrVal)) return false;
+                const firma = row['Firma'] ? String(row['Firma']).toLowerCase() : '';
+                const inhabe = row['InhabeName'] ? String(row['InhabeName']).toLowerCase() : '';
+                if (kundenNrVal && !nr.includes(kundenNrVal) && !firma.includes(kundenNrVal) && !inhabe.includes(kundenNrVal)) return false;
                 if (kundenKategorieVal && row['KundenKategorie'] != kundenKategorieVal) return false;
 
                 // Elster Filter: Only if checked, filter for Elster == 1
@@ -1242,10 +1284,10 @@
         // Render Functions
         function getDisplayKeys(dataRow) {
             if (currentTab === 'custom') {
-                return ['KundenNr', 'Firma', 'KundenKategorie', 'KundenGruppe', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi', 'AuftragSayisi'];
+                return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'Servis', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi', 'AuftragSayisi'];
             }
             // For rental tab, use specific ordering and exclude Tel/Mobil
-            return ['KundenNr', 'Firma', 'InhabeName', 'KundenGruppe', 'KundenKategorie', 'PLZ', 'Strasse', 'LisansNo', 'TamKontrolTarihi'];
+            return ['KundenNr', 'Firma', 'InhabeName', 'KundenGruppe', 'TamKontrolTarihi', 'Servis', 'KundenKategorie', 'PLZ', 'Strasse', 'LisansNo'];
         }
 
         function renderCards(data) {
@@ -1273,6 +1315,12 @@
 
                 if (row['KundenGruppe'] === 'Servicekunde') {
                     card.classList.add('service-kunde');
+                }
+
+                if (row['Servis'] == 1) {
+                    card.classList.add('servis-1');
+                } else if (row['Servis'] == 2) {
+                    card.classList.add('servis-2');
                 }
 
                 // Gesperrt (İptal edilmiş) müşteri - üstü çizili göster
@@ -1438,6 +1486,12 @@
                 tr.className = 'list-row';
                 if (row['KundenGruppe'] === 'Servicekunde') {
                     tr.classList.add('service-kunde');
+                }
+
+                if (row['Servis'] == 1) {
+                    tr.classList.add('servis-1');
+                } else if (row['Servis'] == 2) {
+                    tr.classList.add('servis-2');
                 }
 
                 // Gesperrt (İptal edilmiş) müşteri - üstü çizili göster
