@@ -1,4 +1,5 @@
-from flask import Flask, jsonify, send_from_directory
+from flask import Flask, jsonify, send_from_directory, request
+import json
 import pyodbc
 import os
 from dotenv import load_dotenv
@@ -27,6 +28,28 @@ def get_db_connection():
 @app.route('/')
 def serve_index():
     return send_from_directory('public', 'index.html')
+
+SATIS_DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'satis_data.json')
+
+@app.route('/api/satis', methods=['GET', 'POST'])
+def manage_satis_data():
+    if request.method == 'GET':
+        try:
+            if os.path.exists(SATIS_DATA_FILE):
+                with open(SATIS_DATA_FILE, 'r', encoding='utf-8') as f:
+                    return jsonify(json.load(f))
+            return jsonify({})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+            
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            with open(SATIS_DATA_FILE, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+            return jsonify({"success": True})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
 
 @app.route('/api/customers')
 def get_customers():

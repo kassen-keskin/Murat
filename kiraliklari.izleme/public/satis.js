@@ -49,11 +49,22 @@ function fmtTL(num) {
 
 // ---- Data ----
 
-function loadSatisData() {
+async function loadSatisData() {
     try {
-        const s = localStorage.getItem(SATIS_KEY);
-        if (s) satisData = JSON.parse(s);
-    } catch (e) { /* ignore */ }
+        const res = await fetch('/api/satis', { cache: 'no-store' });
+        if (res.ok) {
+            const data = await res.json();
+            if (Object.keys(data).length > 0) {
+                satisData = data;
+            }
+        }
+    } catch (e) {
+        // Fallback to local storage if API fails
+        try {
+            const s = localStorage.getItem(SATIS_KEY);
+            if (s) satisData = JSON.parse(s);
+        } catch (err) { /* ignore */ }
+    }
     if (!satisData.items)       satisData.items       = {};
     if (!satisData.kdvOrani)    satisData.kdvOrani    = 19;
     if (!satisData.temsilciler) satisData.temsilciler = [];
@@ -62,15 +73,24 @@ function loadSatisData() {
     });
 }
 
-function saveSatisData() {
-    try { localStorage.setItem(SATIS_KEY, JSON.stringify(satisData)); }
-    catch (e) { alert('Kaydetme hatası: ' + e.message); }
+async function saveSatisData() {
+    try {
+        await fetch('/api/satis', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(satisData)
+        });
+        localStorage.setItem(SATIS_KEY, JSON.stringify(satisData));
+    } catch (e) {
+        alert('Sunucuya kaydetme hatası: ' + e.message + '\nYerel olarak kaydedildi.');
+        localStorage.setItem(SATIS_KEY, JSON.stringify(satisData));
+    }
 }
 
 // ---- Init ----
 
-function initSatisTab() {
-    loadSatisData();
+async function initSatisTab() {
+    await loadSatisData();
     document.getElementById('adminKdvOrani').value = satisData.kdvOrani;
     setImzaTarih();
     renderAdminGroups();
@@ -82,6 +102,7 @@ function initSatisTab() {
         initImzaCanvas();
         satisInited = true;
     } else {
+        renderWizardAll(); // Refresh wizard to show newly synced products
         updateTotals();
     }
 }
@@ -158,14 +179,20 @@ function adminItemHTML(groupKey, item, hasRent) {
     </div>`;
 }
 
-function adminKaydet() {
+async function adminKaydet() {
+    const btn = document.querySelector('.btn-s.success[onclick="adminKaydet()"]');
+    const oldText = btn ? btn.innerText : '💾 Tüm Tanımlamaları Kaydet';
+    if (btn) btn.innerText = '⏳ Kaydediliyor...';
+    
     satisData.kdvOrani = parseFloat(document.getElementById('adminKdvOrani').value) || 19;
-    saveSatisData();
+    await saveSatisData();
     renderAdminGroups();
     renderTemsilcilerAdmin();
     renderTemsilciSelect();
     renderWizardAll();
-    alert('✅ Tüm tanımlamalar kaydedildi!');
+    
+    if (btn) btn.innerText = oldText;
+    alert('✅ Tüm tanımlamalar kaydedildi. Diğer cihazlarda güncellemeyi görmek için Satış sekmesine yeniden girmeleri yeterli.');
 }
 
 // ---- Temsilci CRUD ----
