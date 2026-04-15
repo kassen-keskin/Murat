@@ -454,6 +454,8 @@ function yeniSatisBaslat() {
     if (temsilci) temsilci.value = '';
     const musteriAdi = document.getElementById('imzaMusteriAdi');
     if (musteriAdi) musteriAdi.value = '';
+    const wpEl = document.getElementById('imzaWhatsApp');
+    if (wpEl) wpEl.value = '';
     imzaTemizle();
     document.querySelector('.satis-inner').scrollTop = 0;
 }
@@ -590,10 +592,12 @@ function imzaTemizle() {
 async function pdfOlustur() {
     const temsilciEl  = document.getElementById('imzaTemsilci');
     const musteriEl   = document.getElementById('imzaMusteriAdi');
+    const wpEl        = document.getElementById('imzaWhatsApp');
     const adSoyad     = temsilciEl  ? temsilciEl.value.trim()  : '';
     const musteriAdi  = musteriEl   ? musteriEl.value.trim()   : '';
+    const wpNo        = wpEl        ? wpEl.value.trim()        : '';
     const tarih       = document.getElementById('imzaTarih').textContent;
-    buildPrintArea(adSoyad, musteriAdi, tarih);
+    buildPrintArea(adSoyad, musteriAdi, tarih, wpNo);
 
     const printEl = document.getElementById('printArea');
     printEl.style.cssText = 'position:absolute;left:0;top:0;z-index:9999;width:794px;background:#fff;font-family:Arial,sans-serif;padding:30px;box-sizing:border-box;';
@@ -661,7 +665,7 @@ async function pdfOlustur() {
     }
 }
 
-function buildPrintArea(adSoyad, musteriAdi, tarih) {
+function buildPrintArea(adSoyad, musteriAdi, tarih, wpNo) {
     const kdv   = parseFloat(satisData.kdvOrani) || 19;
     let netKira = 0, netSatis = 0, pesinat = 0;
     let rows    = '';
@@ -746,11 +750,14 @@ function buildPrintArea(adSoyad, musteriAdi, tarih) {
             <div>
                 <div style="font-size:0.8rem;color:#777;margin-bottom:4px;">Müşteri İmzası:</div>
                 ${imzaImg}
-                <div style="margin-top:6px;font-size:0.8rem;color:#444;">${tarih} — Müşteri: ${musteriAdi || ''} — Temsilci: ${adSoyad || ''}</div>
+                <div style="margin-top:6px;font-size:0.8rem;color:#444;">${tarih} — Müşteri: ${musteriAdi || ''}</div>
+                ${wpNo ? `<div style="font-size:0.8rem;color:#444;margin-top:2px;">WhatsApp No: ${wpNo}</div>` : ''}
+                <div style="margin-top:2px;font-size:0.8rem;color:#444;">Temsilci: ${adSoyad || ''}</div>
             </div>
             <div style="text-align:right;font-size:0.75rem;color:#aaa;">
                 <div>Kassen Keskin</div>
                 <div>Bu form bilgisayar ortamında oluşturulmuştur.</div>
+                <div style="margin-top:10px;font-weight:bold;color:#444;font-size:0.85rem;">Teklif 15 gün geçerlidir.</div>
             </div>
         </div>`;
 }
