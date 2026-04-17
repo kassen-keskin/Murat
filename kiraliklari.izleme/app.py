@@ -133,6 +133,32 @@ def get_customers_custom():
     finally:
         conn.close()
 
+@app.route('/api/aylik-fatura')
+def get_aylik_fatura():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        query = """
+        SELECT *
+        FROM [Custom].[MieteKundenSonFaturaDetay] WITH (NOLOCK)
+        ORDER BY [Kundennummer], [Artikelnummer]
+        """
+        cursor.execute(query)
+        columns = [column[0] for column in cursor.description]
+        results = []
+        for row in cursor.fetchall():
+            results.append(dict(zip(columns, row)))
+
+        return jsonify(results)
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/details/<int:id>')
 def get_details(id):
     conn = get_db_connection()

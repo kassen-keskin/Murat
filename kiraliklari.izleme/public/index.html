@@ -491,6 +491,43 @@
             color: #616161 !important;
         }
 
+        .aylik-controls {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .btn-small {
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background: var(--surface-color);
+            color: var(--text-color);
+            padding: 4px 8px;
+            cursor: pointer;
+            min-width: 32px;
+            height: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-small:hover {
+            background: var(--hover-color);
+        }
+
+        .btn-small.btn-danger {
+            border-color: #ef5350;
+            color: #ef5350;
+        }
+
+        .aylik-hidden-row td {
+            padding: 0 !important;
+        }
+
+        .aylik-hidden-row table td {
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+
         /* Servis list rows */
         .list-row.servis-1 td:first-child {
             color: #fbc02d;
@@ -754,6 +791,13 @@
             <div id="tabRental" class="tab-item" onclick="switchTab('rental')">Takipteki Müşteriler</div>
             <div id="tabCustom" class="tab-item active" onclick="switchTab('custom')">Tüm Müşteriler</div>
             <div id="tabSatis"  class="tab-item" onclick="switchTab('satis')">🛒 Yeni Satış</div>
+            <div id="tabAylik"  class="tab-item" onclick="switchTab('aylik')">Aylık Fatura</div>
+        </div>
+
+        <div id="aylikControls" class="aylik-controls" style="display:none; gap:10px; margin-top:12px;">
+            <button class="btn-s teal" onclick="exportAylikToExcel()">📥 Excel Olarak Çıkar</button>
+            <button class="btn-s teal" onclick="exportAylikToPDF()">📄 PDF Olarak Çıkar</button>
+            <button class="btn-s secondary" onclick="resetAylikList()">🔄 Listeyi Sıfırla</button>
         </div>
 
         <!-- Customer List Container -->
@@ -905,6 +949,7 @@
 
     <!-- Hidden Print Area -->
     <div id="printArea"></div>
+    <div id="aylikPdfPrintArea" style="position:absolute;left:-9999px;top:0;width:210mm;background:#fff;box-sizing:border-box;visibility:hidden;pointer-events:none;"></div>
 
     <!-- Item Edit Modal -->
     <div id="itemModalOverlay" class="item-modal-overlay">
@@ -972,10 +1017,16 @@
         // Global Data Store
         let datasets = {
             rental: [],
-            custom: []
+            custom: [],
+            aylik: []
         };
         let currentTab = 'custom';
         let currentViewMode = 'listgrid';
+
+        // Aylik Fatura state
+        let aylikLastFiltered = [];
+        let aylikExpandedGroups = {};
+        let aylikLoaded = false;
 
         // Excel-like Grid State
         let columnFilters = {}; // { columnName: [selectedValues] }
@@ -990,6 +1041,17 @@
             ]);
             populateFilterOptions();
             applyFilters();
+        }
+
+        async function fetchAylikData() {
+            try {
+                await fetchData('aylik', '/api/aylik-fatura');
+                aylikLoaded = true;
+                aylikExpandedGroups = {};
+                applyFilters();
+            } catch (error) {
+                console.error('Error fetching aylik data:', error);
+            }
         }
 
         async function fetchData(key, url) {
@@ -1063,10 +1125,14 @@
             document.getElementById('tabRental').classList.toggle('active', tab === 'rental');
             document.getElementById('tabCustom').classList.toggle('active', tab === 'custom');
             document.getElementById('tabSatis').classList.toggle('active',  tab === 'satis');
+            document.getElementById('tabAylik').classList.toggle('active',  tab === 'aylik');
 
             const filterPanel = document.querySelector('.filter-panel');
             const listPanel   = document.querySelector('.panel.list-panel');
             const satisPaneli = document.getElementById('satisPaneli');
+            const aylikControls = document.getElementById('aylikControls');
+
+            aylikControls.style.display = tab === 'aylik' ? 'flex' : 'none';
 
             if (tab === 'satis') {
                 filterPanel.style.display = 'none';
@@ -1077,7 +1143,15 @@
                 filterPanel.style.display = '';
                 listPanel.style.display   = '';
                 satisPaneli.style.display = 'none';
-                applyFilters();
+                if (tab === 'aylik') {
+                    if (!aylikLoaded) {
+                        fetchAylikData();
+                    } else {
+                        applyFilters();
+                    }
+                } else {
+                    applyFilters();
+                }
             }
         }
 
@@ -1180,8 +1254,8 @@
             const currentData = datasets[currentTab] || [];
 
             let filtered = currentData.filter(row => {
-                const nr = row['KundenNr'] ? String(row['KundenNr']).toLowerCase() : '';
-                const firma = row['Firma'] ? String(row['Firma']).toLowerCase() : '';
+                    const nr = String(row['KundenNr'] || row['Kundennummer'] || '').toLowerCase();
+                const firma = String(row['Firma'] || row['K_Firma'] || '').toLowerCase();
                 const inhabe = row['InhabeName'] ? String(row['InhabeName']).toLowerCase() : '';
                 if (kundenNrVal && !nr.includes(kundenNrVal) && !firma.includes(kundenNrVal) && !inhabe.includes(kundenNrVal)) return false;
                 if (kundenKategorieVal && row['KundenKategorie'] != kundenKategorieVal) return false;
@@ -1242,23 +1316,43 @@
                 });
             }
 
+            if (currentTab === 'aylik') {
+                aylikLastFiltered = filtered.slice();
+            } else {
+                aylikLastFiltered = [];
+            }
+
             // Update record count and BorcToplami sum
             // BorcToplami comes from the DB as a plain numeric (e.g. 1234.56),
             // so we use parseFloat directly — parseNumeric would corrupt it by
             // stripping the decimal dot thinking it's a thousand separator.
-            const borcSum = filtered.reduce((sum, row) => {
-                let val = parseFloat(row['BorcToplami']);
-                // Rental tab has no BorcToplami — cross-reference from custom dataset
-                if (isNaN(val)) {
-                    const match = datasets.custom.find(c => c['KundenNr'] === row['KundenNr']);
-                    if (match) val = parseFloat(match['BorcToplami']);
-                }
-                return sum + (isNaN(val) ? 0 : val);
-            }, 0);
-            const borcSumFormatted = borcSum.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-            document.getElementById('recordCount').textContent = `Result: ${filtered.length}   |   Toplam Borç: ${borcSumFormatted}`;
+            let totalValue = 0;
+            let recordCount = filtered.length;
+            if (currentTab === 'aylik') {
+                const visibleRows = filtered.filter(row => row['Artikelnummer'] !== null && String(row['Artikelnummer']).trim() !== '');
+                recordCount = visibleRows.length;
+                totalValue = visibleRows.reduce((sum, row) => {
+                    const val = parseFloat(String(row['Brutto-VK'] || row['BruttoVK'] || row['BruttoVK'] || 0).toString().replace(',', '.'));
+                    return sum + (isNaN(val) ? 0 : val);
+                }, 0);
+            } else {
+                totalValue = filtered.reduce((sum, row) => {
+                    let val = parseFloat(row['BorcToplami']);
+                    // Rental tab has no BorcToplami — cross-reference from custom dataset
+                    if (isNaN(val)) {
+                        const match = datasets.custom.find(c => c['KundenNr'] === row['KundenNr']);
+                        if (match) val = parseFloat(match['BorcToplami']);
+                    }
+                    return sum + (isNaN(val) ? 0 : val);
+                }, 0);
+            }
+            const formattedTotal = totalValue.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+            const label = currentTab === 'aylik' ? 'Toplam Brutto-VK' : 'Toplam Borç';
+            document.getElementById('recordCount').textContent = `Result: ${recordCount}   |   ${label}: ${formattedTotal}`;
 
-            if (currentViewMode === 'cardgrid') {
+            if (currentTab === 'aylik') {
+                renderAylikList(filtered);
+            } else if (currentViewMode === 'cardgrid') {
                 renderCards(filtered);
             } else {
                 renderList(filtered);
@@ -1287,6 +1381,12 @@
 
         // Render Functions
         function getDisplayKeys(dataRow) {
+            if (currentTab === 'aylik' && dataRow) {
+                const keys = Object.keys(dataRow);
+                const preferred = ['Kundennummer', 'KundenNr', 'K_Firma', 'Firma', 'Artikelnummer', 'Brutto-VK'];
+                const ordered = [...new Set([...preferred, ...keys])];
+                return ordered.filter(key => keys.includes(key));
+            }
             if (currentTab === 'custom') {
                 return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'Servis', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi', 'AuftragSayisi'];
             }
@@ -1571,6 +1671,342 @@
             container.appendChild(table);
         }
 
+        function getAylikDisplayKeys(dataRow) {
+            if (!dataRow) return ['Kundennummer', 'K_Firma', 'Artikelnummer', 'Brutto-VK'];
+            const keys = getDisplayKeys(dataRow);
+            return keys;
+        }
+
+        function renderAylikList(data) {
+            const container = document.getElementById('cardContainer');
+            container.innerHTML = '';
+
+            if (!data || data.length === 0) {
+                container.innerHTML = '<div class="empty-state">No invoices found</div>';
+                return;
+            }
+
+            const keys = getAylikDisplayKeys(data[0]);
+            const table = document.createElement('table');
+            table.className = 'list-container';
+
+            const thead = document.createElement('thead');
+            thead.className = 'list-header';
+            const headerRow = document.createElement('tr');
+
+            const visibleKeys = ['Kundennummer', 'K_Firma', 'Artikelnummer', 'Brutto-VK'];
+            const finalKeys = keys.filter(k => visibleKeys.includes(k)).length > 0 ? visibleKeys.filter(k => keys.includes(k)).concat(keys.filter(k => !visibleKeys.includes(k))) : keys;
+
+            finalKeys.forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                headerRow.appendChild(th);
+            });
+
+            const actionTh = document.createElement('th');
+            actionTh.textContent = 'İşlem';
+            headerRow.appendChild(actionTh);
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            const grouped = {};
+            data.forEach(row => {
+                const groupKey = row['Kundennummer'] || row['KundenNr'] || 'UNKNOWN';
+                if (!grouped[groupKey]) grouped[groupKey] = { visible: null, hidden: [] };
+                const hasArticle = row['Artikelnummer'] !== null && String(row['Artikelnummer']).trim() !== '';
+                if (hasArticle && !grouped[groupKey].visible) {
+                    grouped[groupKey].visible = row;
+                } else {
+                    grouped[groupKey].hidden.push(row);
+                }
+            });
+
+            Object.keys(grouped).forEach(groupKey => {
+                const group = grouped[groupKey];
+                const visibleRow = group.visible || group.hidden[0];
+                const hiddenRows = group.hidden.filter(r => r !== visibleRow);
+
+                const tr = document.createElement('tr');
+                tr.className = 'list-row aylik-main-row';
+
+                finalKeys.forEach(key => {
+                    const td = document.createElement('td');
+                    let value = visibleRow[key] !== null && visibleRow[key] !== undefined ? visibleRow[key] : '';
+                    td.textContent = value;
+                    if (key === 'Brutto-VK') {
+                        td.style.textAlign = 'right';
+                    }
+                    tr.appendChild(td);
+                });
+
+                const actionTd = document.createElement('td');
+                actionTd.style.whiteSpace = 'nowrap';
+                actionTd.style.display = 'flex';
+                actionTd.style.gap = '6px';
+
+                const toggleBtn = document.createElement('button');
+                toggleBtn.className = 'btn-small';
+                toggleBtn.textContent = aylikExpandedGroups[groupKey] ? '▼' : '▶';
+                toggleBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleAylikGroup(groupKey);
+                };
+                actionTd.appendChild(toggleBtn);
+
+                const removeBtn = document.createElement('button');
+                removeBtn.className = 'btn-small btn-danger';
+                removeBtn.textContent = '✕';
+                removeBtn.title = 'Bu grup verisini kaldır';
+                removeBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    removeAylikGroup(groupKey);
+                };
+                actionTd.appendChild(removeBtn);
+
+                tr.appendChild(actionTd);
+                table.appendChild(tr);
+
+                if (hiddenRows.length > 0) {
+                    const detailTr = document.createElement('tr');
+                    detailTr.className = 'aylik-hidden-row';
+                    detailTr.style.display = aylikExpandedGroups[groupKey] ? 'table-row' : 'none';
+
+                    const detailTd = document.createElement('td');
+                    detailTd.colSpan = finalKeys.length + 1;
+                    detailTd.style.padding = '8px 16px';
+                    detailTd.style.background = 'rgba(255,255,255,0.04)';
+                    detailTd.style.borderBottom = '1px solid var(--border-color)';
+
+                    const hiddenTable = document.createElement('table');
+                    hiddenTable.style.width = '100%';
+                    hiddenTable.style.borderCollapse = 'collapse';
+                    hiddenRows.forEach(hidden => {
+                        const rowEl = document.createElement('tr');
+                        rowEl.style.borderBottom = '1px solid rgba(255,255,255,0.08)';
+                        keys.forEach(key => {
+                            const td2 = document.createElement('td');
+                            td2.style.padding = '4px 8px';
+                            td2.style.color = 'var(--text-muted)';
+                            td2.style.fontSize = '0.85rem';
+                            td2.textContent = hidden[key] !== null && hidden[key] !== undefined ? hidden[key] : '';
+                            rowEl.appendChild(td2);
+                        });
+                        hiddenTable.appendChild(rowEl);
+                    });
+                    detailTd.appendChild(hiddenTable);
+                    detailTr.appendChild(detailTd);
+                    table.appendChild(detailTr);
+                }
+            });
+
+            const tfoot = document.createElement('tfoot');
+            const totalTr = document.createElement('tr');
+            const totalCells = finalKeys.length + 1;
+            for (let i = 0; i < totalCells; i++) {
+                const td = document.createElement('td');
+                td.style.borderTop = '1px solid var(--border-color)';
+                td.style.padding = '8px 10px';
+                if (i === finalKeys.indexOf('Brutto-VK')) {
+                    td.style.textAlign = 'right';
+                    td.style.fontWeight = '700';
+                    td.textContent = `Toplam Brutto-VK: ${data.reduce((sum, row) => {
+                        const val = parseFloat(String(row['Brutto-VK'] || row['BruttoVK'] || row['BruttoVK'] || 0).replace(',', '.'));
+                        return sum + (isNaN(val) ? 0 : val);
+                    }, 0).toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                }
+                totalTr.appendChild(td);
+            }
+            tfoot.appendChild(totalTr);
+            table.appendChild(tfoot);
+            container.appendChild(table);
+        }
+
+        function toggleAylikGroup(groupKey) {
+            aylikExpandedGroups[groupKey] = !aylikExpandedGroups[groupKey];
+            applyFilters();
+        }
+
+        function removeAylikGroup(groupKey) {
+            datasets.aylik = (datasets.aylik || []).filter(row => String(row['Kundennummer'] || row['KundenNr'] || '') !== String(groupKey));
+            applyFilters();
+        }
+
+        async function resetAylikList() {
+            aylikLoaded = false;
+            await fetchAylikData();
+        }
+
+        function exportAylikToExcel() {
+            const rows = aylikLastFiltered.length > 0 ? aylikLastFiltered : (datasets.aylik || []);
+            if (!rows.length) {
+                alert('Export için aylık fatura verisi bulunamadı.');
+                return;
+            }
+            const fixedOrder = [
+                'Kundennummer',
+                'K_Firma',
+                'Auftragsnummer',
+                'Zahlungsart Auftrag',
+                'Auftragsdatum',
+                'Artikelnummer',
+                'Bezeichnung (Position)',
+                'Menge',
+                'USt. in %',
+                'Brutto-VK'
+            ];
+            const keys = fixedOrder;
+            const csvRows = [];
+            csvRows.push(keys.map(k => `"${k.replace(/"/g,'""')}"`).join(';'));
+            rows.forEach(row => {
+                const line = keys.map(key => {
+                    const v = row[key] !== null && row[key] !== undefined ? String(row[key]) : '';
+                    return `"${v.replace(/"/g,'""')}"`;
+                }).join(';');
+                csvRows.push(line);
+            });
+            const blob = new Blob([csvRows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `AylikFatura_${new Date().toISOString().slice(0,10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        async function exportAylikToPDF() {
+            const rows = aylikLastFiltered.length > 0 ? aylikLastFiltered : (datasets.aylik || []);
+            if (!rows.length) {
+                alert('PDF için aylık fatura verisi bulunamadı.');
+                return;
+            }
+            const visibleRows = rows.filter(row => row['Artikelnummer'] !== null && String(row['Artikelnummer']).trim() !== '');
+            if (!visibleRows.length) {
+                alert('PDF için en az bir dolu Artikelnummer satırı gereklidir.');
+                return;
+            }
+            const keys = [
+                'Kundennummer',
+                'K_Firma',
+                'Auftragsnummer',
+                'Zahlungsart Auftrag',
+                'Auftragsdatum',
+                'Brutto-VK'
+            ];
+
+            const getPdfValue = (row, key) => {
+                switch (key) {
+                    case 'Kundennummer': return row['Kundennummer'] || row['KundenNr'] || '';
+                    case 'K_Firma': return row['K_Firma'] || row['Firma'] || '';
+                    case 'Auftragsnummer': return row['Auftragsnummer'] || '';
+                    case 'Zahlungsart Auftrag': return row['Zahlungsart Auftrag'] || row['ZahlungsartAuftrag'] || '';
+                    case 'Auftragsdatum': return row['Auftragsdatum'] || '';
+                    case 'Brutto-VK': return row['Brutto-VK'] || row['BruttoVK'] || '';
+                    default: return row[key] !== null && row[key] !== undefined ? row[key] : '';
+                }
+            };
+
+            const printArea = document.getElementById('aylikPdfPrintArea');
+            printArea.innerHTML = '';
+            printArea.style.visibility = 'visible';
+            printArea.style.padding = '20px';
+            printArea.style.background = '#ffffff';
+            printArea.style.color = '#000000';
+
+            const title = document.createElement('div');
+            title.style.fontSize = '18px';
+            title.style.marginBottom = '14px';
+            title.textContent = 'Aylık Fatura - PDF';
+            printArea.appendChild(title);
+
+            const info = document.createElement('div');
+            info.style.marginBottom = '10px';
+            info.textContent = `Satır sayısı: ${visibleRows.length}`;
+            printArea.appendChild(info);
+
+            const table = document.createElement('table');
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.fontSize = '11px';
+            table.style.marginBottom = '12px';
+            const thead = document.createElement('thead');
+            const headerRow = document.createElement('tr');
+            keys.forEach(key => {
+                const th = document.createElement('th');
+                th.textContent = key;
+                th.style.border = '1px solid #333';
+                th.style.padding = '6px 8px';
+                th.style.background = '#f2f2f2';
+                th.style.textAlign = key === 'Brutto-VK' ? 'right' : 'left';
+                headerRow.appendChild(th);
+            });
+            thead.appendChild(headerRow);
+            table.appendChild(thead);
+
+            const tbody = document.createElement('tbody');
+            visibleRows.forEach(row => {
+                const tr = document.createElement('tr');
+                keys.forEach(key => {
+                    const td = document.createElement('td');
+                    td.textContent = getPdfValue(row, key);
+                    td.style.border = '1px solid #333';
+                    td.style.padding = '6px 8px';
+                    td.style.textAlign = key === 'Brutto-VK' ? 'right' : 'left';
+                    tr.appendChild(td);
+                });
+                tbody.appendChild(tr);
+            });
+            table.appendChild(tbody);
+            printArea.appendChild(table);
+
+            const total = visibleRows.reduce((sum, row) => {
+                const val = parseFloat(String(row['Brutto-VK'] || row['BruttoVK'] || row['BruttoVK'] || 0).replace(',', '.'));
+                return sum + (isNaN(val) ? 0 : val);
+            }, 0);
+            const totalRow = document.createElement('div');
+            totalRow.style.marginTop = '12px';
+            totalRow.style.fontWeight = '700';
+            totalRow.style.textAlign = 'right';
+            totalRow.textContent = `Toplam Brutto-VK: ${total.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            printArea.appendChild(totalRow);
+
+            try {
+                const cvs = await html2canvas(printArea, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+                const W = 210;
+                const H = 297;
+                const ratio = cvs.height / cvs.width;
+                const pageHeightPx = Math.floor((H / W) * cvs.width);
+                let position = 0;
+                let pageIndex = 0;
+
+                while (position < cvs.height) {
+                    if (pageIndex > 0) pdf.addPage();
+
+                    const sliceHeight = Math.min(pageHeightPx, cvs.height - position);
+                    const tmpCanvas = document.createElement('canvas');
+                    tmpCanvas.width = cvs.width;
+                    tmpCanvas.height = sliceHeight;
+                    tmpCanvas.getContext('2d').drawImage(cvs, 0, position, cvs.width, sliceHeight, 0, 0, cvs.width, sliceHeight);
+
+                    const sliceHeightMM = (sliceHeight * W) / cvs.width;
+                    pdf.addImage(tmpCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, sliceHeightMM);
+
+                    position += sliceHeight;
+                    pageIndex += 1;
+                }
+
+                pdf.save(`AylikFatura_${new Date().toISOString().slice(0,10)}.pdf`);
+            } catch (error) {
+                alert('PDF oluşturma sırasında hata oluştu: ' + error.message);
+                console.error(error);
+            } finally {
+                printArea.style.visibility = 'hidden';
+            }
+        }
+
         // New Excel Grid Functions
         function handleSort(column) {
             if (currentSort.column === column) {
@@ -1704,7 +2140,11 @@
 
         function startAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
-            refreshInterval = setInterval(fetchAllData, REFRESH_RATE);
+            refreshInterval = setInterval(() => {
+                if (currentTab !== 'aylik') {
+                    fetchAllData();
+                }
+            }, REFRESH_RATE);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
