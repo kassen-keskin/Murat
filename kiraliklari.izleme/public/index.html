@@ -1677,6 +1677,13 @@
             return keys;
         }
 
+        function getKundeIdForAylikRow(row) {
+            const kundenNr = String(row['Kundennummer'] || row['KundenNr'] || '').trim();
+            if (!kundenNr) return null;
+            const match = datasets.custom.find(c => String(c['KundenNr'] || '').trim() === kundenNr);
+            return match ? match['kKunde'] : null;
+        }
+
         function renderAylikList(data) {
             const container = document.getElementById('cardContainer');
             container.innerHTML = '';
@@ -1728,6 +1735,17 @@
 
                 const tr = document.createElement('tr');
                 tr.className = 'list-row aylik-main-row';
+                tr.style.cursor = 'pointer';
+
+                const kundeId = getKundeIdForAylikRow(visibleRow);
+                const displayTitle = `${visibleRow['Kundennummer'] || visibleRow['KundenNr'] || ''} - ${visibleRow['K_Firma'] || visibleRow['Firma'] || ''}`.trim();
+                tr.onclick = () => {
+                    if (kundeId) {
+                        openModal(kundeId, displayTitle);
+                    } else {
+                        alert('Aylık fatura için müşteri detayı bulunamadı.');
+                    }
+                };
 
                 finalKeys.forEach(key => {
                     const td = document.createElement('td');
