@@ -788,8 +788,8 @@
 
         <!-- Tab Selection -->
         <div class="tabs-container">
-            <div id="tabRental" class="tab-item" onclick="switchTab('rental')">Takipteki Müşteriler</div>
-            <div id="tabCustom" class="tab-item active" onclick="switchTab('custom')">Tüm Müşteriler</div>
+            <div id="tabRental" class="tab-item active" onclick="switchTab('rental')">Takipteki Müşteriler</div>
+            <div id="tabCustom" class="tab-item" onclick="switchTab('custom')">Tüm Müşteriler</div>
             <div id="tabSatis"  class="tab-item" onclick="switchTab('satis')">🛒 Yeni Satış</div>
             <div id="tabAylik"  class="tab-item" onclick="switchTab('aylik')">Aylık Fatura</div>
         </div>
@@ -1020,7 +1020,7 @@
             custom: [],
             aylik: []
         };
-        let currentTab = 'custom';
+        let currentTab = 'rental';
         let currentViewMode = 'listgrid';
 
         // Aylik Fatura state
@@ -1283,7 +1283,7 @@
             });
 
             // Sayısal sıralama yapılacak sütunlar
-            const NUMERIC_COLUMNS = ['BorcToplami', 'BorcTarihiGunSayisi', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'AuftragSayisi', 'KundenNr'];
+            const NUMERIC_COLUMNS = ['BorcToplami', 'BorcTarihiGunSayisi', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'AuftragSayisi', 'KundenNr', 'Brutto-VK', 'Menge'];
 
             function parseNumeric(val) {
                 if (val === null || val === undefined || val === '') return null;
@@ -1329,8 +1329,13 @@
             let totalValue = 0;
             let recordCount = filtered.length;
             if (currentTab === 'aylik') {
+                const groupKeys = new Set();
+                filtered.forEach(row => {
+                    const groupKey = String(row['Kundennummer'] || row['KundenNr'] || 'UNKNOWN').trim();
+                    groupKeys.add(groupKey || `UNKNOWN_${JSON.stringify(row)}`);
+                });
+                recordCount = groupKeys.size;
                 const visibleRows = filtered.filter(row => row['Artikelnummer'] !== null && String(row['Artikelnummer']).trim() !== '');
-                recordCount = visibleRows.length;
                 totalValue = visibleRows.reduce((sum, row) => {
                     const val = parseFloat(String(row['Brutto-VK'] || row['BruttoVK'] || row['BruttoVK'] || 0).toString().replace(',', '.'));
                     return sum + (isNaN(val) ? 0 : val);
@@ -1707,6 +1712,23 @@
             finalKeys.forEach(key => {
                 const th = document.createElement('th');
                 th.textContent = key;
+
+                const controls = document.createElement('div');
+                controls.className = 'header-controls';
+
+                const filterIcon = document.createElement('span');
+                filterIcon.className = 'filter-icon';
+                filterIcon.innerHTML = '&#9662;';
+                if (columnFilters[key] && columnFilters[key].length > 0) {
+                    filterIcon.classList.add('active');
+                }
+                filterIcon.onclick = (e) => {
+                    e.stopPropagation();
+                    toggleFilterDropdown(key, filterIcon);
+                };
+                controls.appendChild(filterIcon);
+
+                th.appendChild(controls);
                 headerRow.appendChild(th);
             });
 
@@ -2032,9 +2054,7 @@
 
                 let position = 0;
                 let pageIndex = 0;
-                while (position < canvas.height) {
-                    if (pageIndex > 0) pdf.addPage();
-
+                while (position < canvas.height - 1) {
                     let sliceEnd = position + pageHeightPx;
                     const nextRow = rowBounds.find(rb => rb.top < sliceEnd && rb.bottom > sliceEnd);
                     if (nextRow) {
@@ -2048,7 +2068,15 @@
                     if (sliceEnd <= position) {
                         sliceEnd = Math.min(position + pageHeightPx, canvas.height);
                     }
+                    if (sliceEnd > canvas.height - 1) {
+                        sliceEnd = canvas.height;
+                    }
                     const sliceHeight = Math.min(sliceEnd - position, canvas.height - position);
+                    if (sliceHeight < 5) break;
+
+                    if (pageIndex > 0) {
+                        pdf.addPage();
+                    }
 
                     const tmpCanvas = document.createElement('canvas');
                     tmpCanvas.width = canvas.width;
