@@ -1842,6 +1842,17 @@
                 alert('Export için aylık fatura verisi bulunamadı.');
                 return;
             }
+            const sortedRows = [...rows].sort((a, b) => {
+                const aKey = String(a['Kundennummer'] || a['KundenNr'] || '').padStart(20, '0');
+                const bKey = String(b['Kundennummer'] || b['KundenNr'] || '').padStart(20, '0');
+                if (aKey !== bKey) return aKey.localeCompare(bKey, 'de', { numeric: true });
+
+                const aHasArtikel = a['Artikelnummer'] !== null && String(a['Artikelnummer']).trim() !== '';
+                const bHasArtikel = b['Artikelnummer'] !== null && String(b['Artikelnummer']).trim() !== '';
+                if (aHasArtikel === bHasArtikel) return 0;
+                return aHasArtikel ? -1 : 1;
+            });
+
             const fixedOrder = [
                 'Kundennummer',
                 'K_Firma',
@@ -1857,7 +1868,7 @@
             const keys = fixedOrder;
             const csvRows = [];
             csvRows.push(keys.map(k => `"${k.replace(/"/g,'""')}"`).join(';'));
-            rows.forEach(row => {
+            sortedRows.forEach(row => {
                 const line = keys.map(key => {
                     const v = row[key] !== null && row[key] !== undefined ? String(row[key]) : '';
                     return `"${v.replace(/"/g,'""')}"`;
@@ -1913,16 +1924,31 @@
             printArea.style.padding = '20px';
             printArea.style.background = '#ffffff';
             printArea.style.color = '#000000';
+            printArea.style.width = '210mm';
+            printArea.style.boxSizing = 'border-box';
+
+            const today = new Date();
+            const formattedDate = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
+            const total = visibleRows.reduce((sum, row) => {
+                const val = parseFloat(String(row['Brutto-VK'] || row['BruttoVK'] || 0).replace(',', '.'));
+                return sum + (isNaN(val) ? 0 : val);
+            }, 0);
+            const totalText = total.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
             const title = document.createElement('div');
             title.style.fontSize = '18px';
-            title.style.marginBottom = '14px';
-            title.textContent = 'Aylık Fatura - PDF';
+            title.style.fontWeight = '700';
+            title.style.marginBottom = '6px';
+            title.textContent = `Aylık Fatura PDF - ${formattedDate}`;
             printArea.appendChild(title);
 
             const info = document.createElement('div');
-            info.style.marginBottom = '10px';
-            info.textContent = `Satır sayısı: ${visibleRows.length}`;
+            info.style.display = 'flex';
+            info.style.justifyContent = 'space-between';
+            info.style.fontSize = '12px';
+            info.style.fontWeight = '600';
+            info.style.marginBottom = '12px';
+            info.innerHTML = `<span>Satır sayısı: ${visibleRows.length}</span><span>Toplam Brutto-VK: ${totalText}</span>`;
             printArea.appendChild(info);
 
             const table = document.createElement('table');
@@ -1930,15 +1956,21 @@
             table.style.borderCollapse = 'collapse';
             table.style.fontSize = '11px';
             table.style.marginBottom = '12px';
+
             const thead = document.createElement('thead');
             const headerRow = document.createElement('tr');
+            headerRow.style.borderBottom = '1px solid #333';
             keys.forEach(key => {
                 const th = document.createElement('th');
                 th.textContent = key;
-                th.style.border = '1px solid #333';
                 th.style.padding = '6px 8px';
+                th.style.border = '1px solid #333';
                 th.style.background = '#f2f2f2';
                 th.style.textAlign = key === 'Brutto-VK' ? 'right' : 'left';
+                th.style.fontWeight = '700';
+                th.style.whiteSpace = 'nowrap';
+                th.style.overflow = 'hidden';
+                th.style.textOverflow = 'ellipsis';
                 headerRow.appendChild(th);
             });
             thead.appendChild(headerRow);
@@ -1950,9 +1982,10 @@
                 keys.forEach(key => {
                     const td = document.createElement('td');
                     td.textContent = getPdfValue(row, key);
-                    td.style.border = '1px solid #333';
                     td.style.padding = '6px 8px';
+                    td.style.border = '1px solid #333';
                     td.style.textAlign = key === 'Brutto-VK' ? 'right' : 'left';
+                    td.style.verticalAlign = 'top';
                     tr.appendChild(td);
                 });
                 tbody.appendChild(tr);
@@ -1960,44 +1993,56 @@
             table.appendChild(tbody);
             printArea.appendChild(table);
 
-            const total = visibleRows.reduce((sum, row) => {
-                const val = parseFloat(String(row['Brutto-VK'] || row['BruttoVK'] || row['BruttoVK'] || 0).replace(',', '.'));
-                return sum + (isNaN(val) ? 0 : val);
-            }, 0);
-            const totalRow = document.createElement('div');
-            totalRow.style.marginTop = '12px';
-            totalRow.style.fontWeight = '700';
-            totalRow.style.textAlign = 'right';
-            totalRow.textContent = `Toplam Brutto-VK: ${total.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-            printArea.appendChild(totalRow);
-
             try {
-                const cvs = await html2canvas(printArea, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+                const canvas = await html2canvas(printArea, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
                 const W = 210;
                 const H = 297;
-                const ratio = cvs.height / cvs.width;
-                const pageHeightPx = Math.floor((H / W) * cvs.width);
+                const pageHeightPx = Math.floor((H / W) * canvas.width);
+                const printRect = printArea.getBoundingClientRect();
+                const scaleFactor = canvas.width / printRect.width;
+
+                const rows = Array.from(printArea.querySelectorAll('tr'));
+                const rowBounds = rows.map(rowEl => {
+                    const rect = rowEl.getBoundingClientRect();
+                    return {
+                        top: (rect.top - printRect.top) * scaleFactor,
+                        bottom: (rect.bottom - printRect.top) * scaleFactor
+                    };
+                });
+
                 let position = 0;
                 let pageIndex = 0;
-
-                while (position < cvs.height) {
+                while (position < canvas.height) {
                     if (pageIndex > 0) pdf.addPage();
 
-                    const sliceHeight = Math.min(pageHeightPx, cvs.height - position);
+                    let sliceEnd = position + pageHeightPx;
+                    const nextRow = rowBounds.find(rb => rb.top < sliceEnd && rb.bottom > sliceEnd);
+                    if (nextRow) {
+                        sliceEnd = nextRow.bottom;
+                    } else {
+                        const lastRowBefore = [...rowBounds].reverse().find(rb => rb.bottom <= sliceEnd);
+                        if (lastRowBefore && lastRowBefore.bottom > position) {
+                            sliceEnd = lastRowBefore.bottom;
+                        }
+                    }
+                    if (sliceEnd <= position) {
+                        sliceEnd = Math.min(position + pageHeightPx, canvas.height);
+                    }
+                    const sliceHeight = Math.min(sliceEnd - position, canvas.height - position);
+
                     const tmpCanvas = document.createElement('canvas');
-                    tmpCanvas.width = cvs.width;
+                    tmpCanvas.width = canvas.width;
                     tmpCanvas.height = sliceHeight;
-                    tmpCanvas.getContext('2d').drawImage(cvs, 0, position, cvs.width, sliceHeight, 0, 0, cvs.width, sliceHeight);
+                    tmpCanvas.getContext('2d').drawImage(canvas, 0, position, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
 
-                    const sliceHeightMM = (sliceHeight * W) / cvs.width;
-                    pdf.addImage(tmpCanvas.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, sliceHeightMM);
+                    const sliceHeightMM = (sliceHeight * W) / canvas.width;
+                    pdf.addImage(tmpCanvas.toDataURL('image/png'), 'PNG', 0, 0, W, sliceHeightMM);
 
-                    position += sliceHeight;
+                    position = sliceEnd;
                     pageIndex += 1;
                 }
-
                 pdf.save(`AylikFatura_${new Date().toISOString().slice(0,10)}.pdf`);
             } catch (error) {
                 alert('PDF oluşturma sırasında hata oluştu: ' + error.message);
