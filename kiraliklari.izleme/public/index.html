@@ -745,6 +745,9 @@
                 <button id="btnResetFilters" class="filter-btn"
                     style="background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 12px;"
                     onclick="resetAllFilters()">Clear All Filters</button>
+                <button id="btnRefreshData" class="filter-btn"
+                    style="background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 12px; margin-left: 10px;"
+                    onclick="refreshCurrentTabData()">Yenile</button>
             </div>
 
             <div class="filter-group">
@@ -1035,10 +1038,48 @@
 
         // Fetch Data
         async function fetchAllData() {
-            await Promise.all([
-                fetchData('rental', '/api/customers'),
-                fetchData('custom', '/api/customers_custom')
-            ]);
+            await loadTabDataIfNeeded(currentTab);
+            populateFilterOptions();
+            applyFilters();
+        }
+
+        async function loadTabDataIfNeeded(tab) {
+            if (tab === 'satis') {
+                return;
+            }
+            if (tab === 'rental') {
+                await fetchData('rental', '/api/customers');
+                if (!Array.isArray(datasets.custom) || datasets.custom.length === 0) {
+                    await fetchData('custom', '/api/customers_custom');
+                }
+                return;
+            }
+            if (tab === 'custom') {
+                await fetchData('custom', '/api/customers_custom');
+                return;
+            }
+            if (tab === 'aylik') {
+                await fetchAylikData();
+                return;
+            }
+        }
+
+        async function refreshCurrentTabData() {
+            if (currentTab === 'satis') {
+                return;
+            }
+
+            if (currentTab === 'rental') {
+                await fetchData('rental', '/api/customers');
+                if (!Array.isArray(datasets.custom) || datasets.custom.length === 0) {
+                    await fetchData('custom', '/api/customers_custom');
+                }
+            } else if (currentTab === 'custom') {
+                await fetchData('custom', '/api/customers_custom');
+            } else if (currentTab === 'aylik') {
+                await fetchAylikData();
+            }
+
             populateFilterOptions();
             applyFilters();
         }
@@ -1118,7 +1159,7 @@
             }
         }
 
-        function switchTab(tab) {
+        async function switchTab(tab) {
             currentTab = tab;
 
             // Tab buttons
@@ -1145,11 +1186,13 @@
                 satisPaneli.style.display = 'none';
                 if (tab === 'aylik') {
                     if (!aylikLoaded) {
-                        fetchAylikData();
+                        await fetchAylikData();
                     } else {
                         applyFilters();
                     }
                 } else {
+                    await loadTabDataIfNeeded(tab);
+                    populateFilterOptions();
                     applyFilters();
                 }
             }
@@ -2232,11 +2275,17 @@
         function startAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
             refreshInterval = setInterval(() => {
-                if (currentTab !== 'aylik') {
-                    fetchAllData();
+                if (!document.hidden) {
+                    refreshCurrentTabData();
                 }
             }, REFRESH_RATE);
         }
+
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                refreshCurrentTabData();
+            }
+        });
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchAllData();
