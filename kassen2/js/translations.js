@@ -31,6 +31,7 @@ const translations = {
         wizard_required_heading: "Obligatorisch",
         wizard_optional_heading: "OPTIONAL",
         included_tag: "(inklusive)",
+        hardware_note: "Die gekaufte Hardware gehört Ihnen.",
         wizard_contract_note: "Die gekaufte Hardware gehört Ihnen. Bleibt das Gerät auf Ihren Namen, wird die Software weiterhin von uns verwaltet (mögliche Übertragung bei Zahlungsverzug).",
         plan_choose: "Diesen Tarif wählen",
         
@@ -103,6 +104,7 @@ const translations = {
         extra_ec: "EC-GERÄT (ab Umsatz 10.000 € monatlich kostenlos)",
         extra_lieferando: "Lieferservice nur Lieferando",
         extra_lieferando_wolt: "Lieferservice nur Lieferando + UberEats + Wolt",
+        extra_lieferando_wolt_note: "UberEats und Wolt gibt es noch nicht.",
         extra_plu: "Artikeleingabe bis 100 PLU",
         extra_on_site: "Vor Ort Aufstellen Berlin",
         extra_tse_activation: "TSE Aktivierung + Kassenmeldung beim Finanzamt",
@@ -185,6 +187,7 @@ const translations = {
         wizard_required_heading: "Zorunlu",
         wizard_optional_heading: "OPSİYONEL",
         included_tag: "(dahil)",
+        hardware_note: "Satın aldığınız donanım size aittir.",
         wizard_contract_note: "Satin alinan donanim cihazlari sizindir. Cihaz kendi adınıza kalırsa yazılım tarafımızdan yönetilmeye devam eder (ödeme gecikmesi durumunda devredilebilir).",
         plan_choose: "Bu Tarifeyi Seç",
         
@@ -257,6 +260,7 @@ const translations = {
         extra_ec: "EC Cihazı (10.000 € ciro üstü aylık ücretsiz)",
         extra_lieferando: "Lieferservice sadece Lieferando",
         extra_lieferando_wolt: "Lieferservice Lieferando + UberEats + Wolt",
+        extra_lieferando_wolt_note: "UberEats ve Wolt henüz yok.",
         extra_plu: "100 PLU'ya kadar ürün girişi",
         extra_on_site: "Berlin'de yerinde kurulum",
         extra_tse_activation: "TSE aktivasyonu + vergi dairesi bildirimi",

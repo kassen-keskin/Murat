@@ -132,6 +132,7 @@
                     <h3 data-i18n="tarife1_title">Jassway Olimpia</h3>
 
                     <div class="plan-price">€1.200<span style="font-size:1rem; font-weight:400;"> <span data-i18n="plan_setup">Einmalig</span></span></div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 4px 0 8px;" data-i18n="hardware_note">Die gekaufte Hardware gehört Ihnen.</p>
                     <div class="price-setup">+ €59<span data-i18n="plan_month">/ Monat</span> <span style="color:var(--accent-primary); font-size:0.85rem;">(<span data-i18n="netto_label">netto</span>)</span></div>
                     <ul class="plan-features">
                         <li data-i18n="option_hardware_jassway_once_700">Hardware Jassway Olimpia — 700,00 €</li>
@@ -166,6 +167,7 @@
                     <h3 data-i18n="tarife2_title">Prox J500</h3>
 
                     <div class="plan-price">€1.400<span style="font-size:1rem; font-weight:400;"> <span data-i18n="plan_setup">Einmalig</span></span></div>
+                    <p style="font-size: 0.85rem; color: var(--text-secondary); margin: 4px 0 8px;" data-i18n="hardware_note">Die gekaufte Hardware gehört Ihnen.</p>
                     <div class="price-setup">+ €59<span data-i18n="plan_month">/ Monat</span> <span style="color:var(--accent-primary); font-size:0.85rem;">(<span data-i18n="netto_label">netto</span>)</span></div>
                     <ul class="plan-features">
                         <li data-i18n="option_hardware_prox_once">Hardware Prox J500 — 900,00 €</li>
@@ -205,7 +207,7 @@
                             <div class="radio-content">
                                 <h4 data-i18n="tarife1_title">Jassway Olimpia</h4>
                                 <p>€1.200 <span data-i18n="plan_setup">Einmalig</span> (<span data-i18n="netto_label">netto</span>) + €59 <span data-i18n="plan_month">/ Monat</span></p>
-
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;" data-i18n="hardware_note">Die gekaufte Hardware gehört Ihnen.</p>
                             </div>
                         </label>
                         <label class="radio-card popular">
@@ -213,7 +215,7 @@
                             <div class="radio-content">
                                 <h4 data-i18n="tarife2_title">Prox J500</h4>
                                 <p>€1.400 <span data-i18n="plan_setup">Einmalig</span> (<span data-i18n="netto_label">netto</span>) + €59 <span data-i18n="plan_month">/ Monat</span></p>
-
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;" data-i18n="hardware_note">Die gekaufte Hardware gehört Ihnen.</p>
                             </div>
                         </label>
                     </div>
@@ -326,10 +328,11 @@
                                 <p>+ 15,00 € <span data-i18n="plan_month">/ Monat</span></p>
                             </div>
                         </label>
-                        <label class="checkbox-card">
-                            <input type="checkbox" id="extra_lieferando_wolt" name="extra" value="lieferando_wolt" data-key="extra_lieferando_wolt" data-price="45" data-type="monthly" onchange="updateSummary()">
+                        <label class="checkbox-card" style="opacity: 0.6;">
+                            <input type="checkbox" id="extra_lieferando_wolt" name="extra" value="lieferando_wolt" data-key="extra_lieferando_wolt" data-price="45" data-type="monthly" onchange="updateSummary()" disabled>
                             <div class="checkbox-content">
                                 <h4 data-i18n="extra_lieferando_wolt">Lieferservice nur LIEFERANDO + ÜBEREAT + WOLT</h4>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;" data-i18n="extra_lieferando_wolt_note">UberEats und Wolt gibt es noch nicht.</p>
                                 <p>+ 45,00 € <span data-i18n="plan_month">/ Monat</span></p>
                             </div>
                         </label>
