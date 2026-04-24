@@ -445,6 +445,87 @@ document.getElementById('wizardOverlay').addEventListener('click', (e) => {
     }
 });
 
+function showImpressum(e) {
+    if (e) e.preventDefault();
+    
+    // Hide main sections
+    const mainSections = document.querySelectorAll('header, .features, .plans, .contact, #wizardOverlay, #datenschutz');
+    mainSections.forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Show impressum
+    document.getElementById('impressum').style.display = 'block';
+    document.body.style.overflow = 'auto';
+    window.scrollTo(0, 0);
+}
+
+function hideImpressum() {
+    // Show main sections again
+    const mainSections = document.querySelectorAll('header, .features, .plans, .contact, #wizardOverlay');
+    mainSections.forEach(section => {
+        section.style.display = '';
+    });
+    
+    // Hide impressum
+    document.getElementById('impressum').style.display = 'none';
+    window.scrollTo(0, 0);
+}
+
+function showDatenschutz(e) {
+    if (e) e.preventDefault();
+    
+    // Hide main sections
+    const mainSections = document.querySelectorAll('header, .features, .plans, .contact, #wizardOverlay, #impressum, #agb');
+    mainSections.forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Show datenschutz
+    document.getElementById('datenschutz').style.display = 'block';
+    document.body.style.overflow = 'auto';
+    window.scrollTo(0, 0);
+}
+
+function hideDatenschutz() {
+    // Show main sections again
+    const mainSections = document.querySelectorAll('header, .features, .plans, .contact, #wizardOverlay');
+    mainSections.forEach(section => {
+        section.style.display = '';
+    });
+    
+    // Hide datenschutz
+    document.getElementById('datenschutz').style.display = 'none';
+    window.scrollTo(0, 0);
+}
+
+function showAGB(e) {
+    if (e) e.preventDefault();
+    
+    // Hide main sections
+    const mainSections = document.querySelectorAll('header, .features, .plans, .contact, #wizardOverlay, #impressum, #datenschutz');
+    mainSections.forEach(section => {
+        section.style.display = 'none';
+    });
+    
+    // Show AGB
+    document.getElementById('agb').style.display = 'block';
+    document.body.style.overflow = 'auto';
+    window.scrollTo(0, 0);
+}
+
+function hideAGB() {
+    // Show main sections again
+    const mainSections = document.querySelectorAll('header, .features, .plans, .contact, #wizardOverlay');
+    mainSections.forEach(section => {
+        section.style.display = '';
+    });
+    
+    // Hide AGB
+    document.getElementById('agb').style.display = 'none';
+    window.scrollTo(0, 0);
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     setLanguage('de');
     initPlanCarousels();
