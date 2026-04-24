@@ -800,8 +800,8 @@ footer {
 
 .social-icon svg,
 .social-icon img {
-    width: 20px;
-    height: 20px;
+    width: 30px;
+    height: 30px;
     fill: currentColor;
     display: block;
 }
