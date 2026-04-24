@@ -226,7 +226,18 @@ const translations = {
         agb_8_text: "Kundendaten werden ausschließlich im Rahmen der gesetzlichen Datenschutzbestimmungen verarbeitet.",
         agb_9_title: "Gerichtsstand",
         agb_9_text: "Gerichtsstand ist, soweit gesetzlich zulässig, der Sitz der Firma Kassen Keskin.",
-        agb_back: "Zurück"
+        agb_back: "Zurück",
+        
+        // Google Reviews
+        reviews_title: "Google Bewertungen",
+        reviews_subtitle: "Was unsere Kunden über uns sagen",
+        reviews_score: "5.0 Basierend auf 229 Bewertungen",
+        review_1_text: "\"Ich habe für meinen Friseurbetrieb ein Kassensystem bei Keskin Kassensysteme gekauft und bin absolut zufrieden. Die Kasse ist einfach zu bedienen und perfekt auf meinen Salon abgestimmt. Klare Empfehlung, 5 Sterne!\"",
+        review_2_text: "\"Ich bin sehr zufrieden mit Kassensysteme Keskin. Herr Keskin und sein Mitarbeiter Hassan sind sehr hilfsbereit. Super Service, super Empfehlung, kann ich nur weiterempfehlen! Dankeschön\"",
+        review_3_text: "\"Herr Keskin und sein Mitarbeiter Hassan sind sehr kompetent und hilfsbereit. Heute habe ich unsere Kasse hingebracht und in nur einer Stunde wieder abgeholt. Super Service!\"",
+        review_4_text: "\"Sehr nett, und freundlich. Egal wann man die Firma anrufst nehmen Sie sich für die Kunden Zeit. Kann ich nur empfehlen.\"",
+        review_5_text: "\"Schnell, zuverlässig und kompetent. Ich kann den Service uneingeschränkt weiter empfehlen.\"",
+        reviews_all_btn: "Alle Google Bewertungen ansehen"
     },
     
     tr: {
@@ -434,6 +445,17 @@ const translations = {
         datenschutz_9_7: "Denetim mercilerine şikayet (GDPR Madde 77)",
         datenschutz_10_title: "10. Bu Gizlilik Politikasında Yapılan Değişiklikler",
         datenschutz_10_text: "Bu Gizlilik Politikasını, güncel yasal gereklilikleri veya teknik değişiklikleri yansıtmak için gerektiğinde güncelleme hakkını saklı tutarız.",
-        datenschutz_back: "Geri"
+        datenschutz_back: "Geri",
+        
+        // Google Reviews
+        reviews_title: "Google Yorumları",
+        reviews_subtitle: "Müşterilerimiz bizim için ne diyor?",
+        reviews_score: "229 yoruma göre 5.0 puan",
+        review_1_text: "\"Kuaför salonum için Keskin Kassensysteme'den bir yazar kasa sistemi aldım ve kesinlikle çok memnunum. Kasanın kullanımı kolay ve salonuma mükemmel uyum sağladı. Kesinlikle tavsiye ederim, 5 yıldız!\"",
+        review_2_text: "\"Kassensysteme Keskin'den çok memnunum. Keskin Bey ve çalışanı Hassan çok yardımsever. Süper hizmet, süper tavsiye, kesinlikle öneririm! Teşekkürler\"",
+        review_3_text: "\"Keskin Bey ve çalışanı Hassan çok yetkin ve yardımseverler. Bugün kasamızı götürdüm ve sadece bir saat içinde geri aldım. Harika hizmet!\"",
+        review_4_text: "\"Çok kibar ve nazikler. Firmayı ne zaman ararsanız arayın müşteriler için zaman ayırıyorlar. Kesinlikle tavsiye ederim.\"",
+        review_5_text: "\"Hızlı, güvenilir ve yetkin. Bu hizmeti hiç tereddüt etmeden tavsiye edebilirim.\"",
+        reviews_all_btn: "Tüm Google Yorumlarını Gör"
     }
 };
