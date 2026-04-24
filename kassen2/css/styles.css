@@ -720,3 +720,5 @@ footer {
         grid-template-columns: repeat(1, 1fr);
     }
 }
+
+.wa-qr:hover .qr-tooltip { display: block !important; }

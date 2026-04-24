@@ -26,8 +26,21 @@
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container nav-content">
-            <div class="logo">
-                <span class="logo-accent">Kassen</span> Keskin
+            <div style="display:flex; align-items:center; gap:20px;">
+                <div class="logo">
+                    <span class="logo-accent">Kassen</span> Keskin
+                </div>
+                <div class="wa-cta" style="display:flex; align-items:center; gap:10px; margin-left: 10px;">
+                    <a href="https://wa.me/4917622204117" target="_blank" class="btn btn-primary" style="display:flex; align-items:center; gap:8px; padding: 6px 12px; font-size:0.9rem; text-transform:none; border-radius: 4px;">
+                        Whats App +4917622204117
+                    </a>
+                    <div class="wa-qr" style="position:relative; cursor:pointer;" onclick="window.open('https://wa.me/4917622204117', '_blank')">
+                        <img src="img/whatsapp-qr.png" alt="WhatsApp QR" style="width:36px; height:36px; border-radius:4px; display:block; background:#fff; padding:2px;">
+                        <div class="qr-tooltip" style="position:absolute; top:46px; left:0; background:#fff; padding:10px; border-radius:8px; box-shadow:0 10px 25px rgba(0,0,0,0.5); display:none; z-index:1000;">
+                            <img src="img/whatsapp-qr.png" alt="WhatsApp QR Large" style="width:150px; height:150px; max-width:none; display:block;">
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="nav-links">
                 <div class="lang-switch" style="display:inline-flex; align-items:center; gap:8px; margin-right:16px; font-weight:600;">
@@ -435,7 +448,7 @@
     </div>
 
     <!-- AGB Section -->
-    <section id="agb" style="display: none; padding: 60px 0; background: var(--bg-secondary);">
+    <section id="agb" style="display: none; padding: 120px 0 60px; background: var(--bg-secondary);">
         <div class="container">
             <h1 data-i18n="agb_title" style="margin-bottom: 40px; font-size: 2.5rem;">AGB</h1>
             
@@ -493,7 +506,7 @@
     </section>
 
     <!-- Datenschutzerklärung Section -->
-    <section id="datenschutz" style="display: none; padding: 60px 0; background: var(--bg-secondary);">
+    <section id="datenschutz" style="display: none; padding: 120px 0 60px; background: var(--bg-secondary);">
         <div class="container">
             <h1 data-i18n="datenschutz_title" style="margin-bottom: 40px; font-size: 2.5rem;">Datenschutzerklärung</h1>
             
@@ -590,7 +603,7 @@
     </section>
 
     <!-- Impressum Section -->
-    <section id="impressum" style="display: none; padding: 60px 0; background: var(--bg-secondary);">
+    <section id="impressum" style="display: none; padding: 120px 0 60px; background: var(--bg-secondary);">
         <div class="container">
             <h1 data-i18n="impressum_title" style="margin-bottom: 40px; font-size: 2.5rem;">Impressum</h1>
             
@@ -650,7 +663,7 @@
         </div>
         <div class="footer-bottom">
             <div class="container">
-                <p>&copy; 2026 Kassen Keskin | Website Preview</p>
+                <p>&copy; 2026 Kassen Keskin</p>
             </div>
         </div>
     </footer>
