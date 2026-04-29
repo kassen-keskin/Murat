@@ -633,17 +633,41 @@ async function teslimatPdfOlustur() {
             backgroundColor: '#ffffff'
         });
         
-        const imgData = canvasOutput.toDataURL('image/png');
         const pdf = new jsPDF({
             orientation: 'portrait',
             unit: 'mm',
             format: 'a4'
         });
         
-        const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvasOutput.height * pdfWidth) / canvasOutput.width;
+        const W = 210, H = 297;
+        const ratio = canvasOutput.height / canvasOutput.width;
+        const pdfH = W * ratio;
         
-        pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+        if (pdfH <= H) {
+            pdf.addImage(canvasOutput.toDataURL('image/jpeg', 0.95), 'JPEG', 0, 0, W, pdfH);
+        } else {
+            const pageH_px = (H / pdfH) * canvasOutput.height;
+            let srcY = 0, page = 0;
+            
+            while (srcY < canvasOutput.height && page < 15) {
+                if (page > 0) pdf.addPage();
+                
+                let endY = Math.min(srcY + pageH_px, canvasOutput.height);
+                const chunkH = Math.ceil(endY - srcY);
+                if (chunkH <= 0) break;
+                
+                const tmp = document.createElement('canvas');
+                tmp.width = canvasOutput.width;
+                tmp.height = chunkH;
+                tmp.getContext('2d').drawImage(canvasOutput, 0, srcY, canvasOutput.width, chunkH, 0, 0, canvasOutput.width, chunkH);
+                
+                const sliceH_mm = W * (chunkH / canvasOutput.width);
+                pdf.addImage(tmp.toDataURL('image/jpeg', 0.92), 'JPEG', 0, 0, W, sliceH_mm);
+                
+                srcY = endY;
+                page++;
+            }
+        }
         
         const filename = `Teslimat_${musteri.replace(/[^a-z0-9]/gi, '_').toLowerCase()}_${Date.now()}.pdf`;
         pdf.save(filename);
