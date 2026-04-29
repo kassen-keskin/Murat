@@ -1,11 +1,11 @@
 {
     "steps": [
         {
-            "id": "step_1777454846340_0",
+            "id": "step_1777455355097_0",
             "title": "Müsteri Bilgileri",
             "questions": [
                 {
-                    "id": "q_1777454846340_0_0",
+                    "id": "q_1777455355097_0_0",
                     "text": "Firma Ismi, Adresi, Firma Sahibi",
                     "type": "radio",
                     "options": [
@@ -14,7 +14,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777454846340_0_1",
+                    "id": "q_1777455355097_0_1",
                     "text": "ELSTER yapilacak mi?",
                     "type": "radio",
                     "options": [
@@ -23,7 +23,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777454846340_0_2",
+                    "id": "q_1777455355097_0_2",
                     "text": "ESLTER bilgileri TAMAMEN toplandi mi , Bizde mi?",
                     "type": "radio",
                     "options": [
@@ -34,11 +34,11 @@
             ]
         },
         {
-            "id": "step_1777454846340_1",
+            "id": "step_1777455355097_1",
             "title": "Donanim",
             "questions": [
                 {
-                    "id": "q_1777454846340_1_0",
+                    "id": "q_1777455355097_1_0",
                     "text": "Kasa",
                     "type": "radio",
                     "options": [
@@ -51,7 +51,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777454846340_1_1",
+                    "id": "q_1777455355097_1_1",
                     "text": "Cekmece",
                     "type": "radio",
                     "options": [
@@ -60,7 +60,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777454846340_1_2",
+                    "id": "q_1777455355097_1_2",
                     "text": "Yazici",
                     "type": "radio",
                     "options": [
@@ -69,7 +69,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777454846340_1_3",
+                    "id": "q_1777455355097_1_3",
                     "text": "Yazici Kac tane",
                     "type": "text",
                     "options": []
@@ -77,11 +77,11 @@
             ]
         },
         {
-            "id": "step_1777454846340_2",
+            "id": "step_1777455355097_2",
             "title": "Müsteriye Anlatilacaklar",
             "questions": [
                 {
-                    "id": "q_1777454846340_2_0",
+                    "id": "q_1777455355097_2_0",
                     "text": "Storno Anlatildi mi?",
                     "type": "checkbox",
                     "options": [
@@ -89,7 +89,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777454846340_2_1",
+                    "id": "q_1777455355097_2_1",
                     "text": "Retour Anlatildi mi?",
                     "type": "checkbox",
                     "options": [
@@ -97,7 +97,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777454846340_2_2",
+                    "id": "q_1777455355097_2_2",
                     "text": "Bon Storno Anlatildi mi?",
                     "type": "checkbox",
                     "options": [
@@ -105,7 +105,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777454846340_2_3",
+                    "id": "q_1777455355097_2_3",
                     "text": "Wechelgeld Anlatildi mi?",
                     "type": "checkbox",
                     "options": [
@@ -115,11 +115,11 @@
             ]
         },
         {
-            "id": "step_1777454846340_3",
+            "id": "step_1777455355097_3",
             "title": "Yazilim Kontrolleri",
             "questions": [
                 {
-                    "id": "q_1777454846340_3_0",
+                    "id": "q_1777455355097_3_0",
                     "text": "Son sürüm yüklendi mi?",
                     "type": "radio",
                     "options": [
