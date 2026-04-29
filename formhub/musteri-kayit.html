@@ -1,0 +1,1978 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MüsteriKayit | Copyright Tekken-King</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- jsPDF Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <style>
+        /* CSS Değişkenleri - Açık Tema (Varsayılan) */
+        :root {
+            --bg-color: #e9eff6;
+            --form-container-bg: #ffffff;
+            --form-section-bg: #fcfdff;
+            --text-color-primary: #2c3e50;
+            --text-color-secondary: #4a4a4a;
+            --border-color-light: #e0e0e0;
+            --border-color-input: #cdd4da;
+            --box-shadow-light: rgba(0, 0, 0, 0.05);
+            --box-shadow-medium: rgba(0, 0, 0, 0.15);
+            --box-shadow-hover: rgba(0, 123, 255, 0.15);
+            --button-gradient-start: #007bff;
+            --button-gradient-end: #0056b3;
+            --button-gradient-hover-start: #0056b3;
+            --button-gradient-hover-end: #003f80;
+            --placeholder-color: #6c757d; /* Açık tema için varsayılan placeholder rengi */
+        }
+
+        /* Koyu Tema */
+        body.dark-theme {
+            --bg-color: #2c2c2c;
+            --form-container-bg: #3a3a3a;
+            --form-section-bg: #4a4a4a;
+            --text-color-primary: #f0f0f0;
+            --text-color-secondary: #cccccc;
+            --border-color-light: #555555;
+            --border-color-input: #666666;
+            --box-shadow-light: rgba(255, 255, 255, 0.05);
+            --box-shadow-medium: rgba(0, 0, 0, 0.4);
+            --box-shadow-hover: rgba(0, 123, 255, 0.3);
+            --button-gradient-start: #0056b3;
+            --button-gradient-end: #003f80;
+            --button-gradient-hover-start: #007bff;
+            --button-gradient-hover-end: #0056b3;
+            --placeholder-color: #b0b0b0; /* Koyu tema için açık placeholder rengi */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-color);
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            transition: background-color 0.3s ease;
+        }
+        .form-container {
+            max-width: 800px;
+            width: 100%;
+            margin: 20px auto;
+            background-color: var(--form-container-bg);
+            padding: 35px;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px var(--box-shadow-medium);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            position: relative;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+        .form-section {
+            margin-bottom: 15px;
+            padding: 20px;
+            border: 1px solid var(--border-color-light);
+            border-radius: 12px;
+            background-color: var(--form-section-bg);
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px var(--box-shadow-light);
+        }
+        .form-section:hover {
+            border-color: #007bff;
+            box-shadow: 0 8px 20px var(--box-shadow-hover);
+            transform: translateY(-2px);
+        }
+        .form-section-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--text-color-primary);
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            transition: color 0.3s ease;
+        }
+        .form-section-title i {
+            margin-right: 12px;
+            color: #007bff;
+            font-size: 1.9rem;
+        }
+        .form-label {
+            font-weight: 500;
+            color: var(--text-color-secondary);
+            margin-bottom: 6px;
+            font-size: 0.95rem;
+            transition: color 0.3s ease;
+        }
+        .form-control, .form-select {
+            border-radius: 10px;
+            padding: 10px 14px;
+            border: 1px solid var(--border-color-input);
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out, background-color 0.3s ease, color 0.3s ease;
+            font-size: 0.9rem;
+            background-color: var(--form-container-bg);
+            color: var(--text-color-primary);
+        }
+        /* Placeholder metin rengi için CSS */
+        .form-control::placeholder {
+            color: var(--placeholder-color);
+            opacity: 1; /* Firefox için */
+        }
+        .form-control::-webkit-input-placeholder { /* Chrome, Edge, Safari */
+            color: var(--placeholder-color);
+        }
+        .form-control::-moz-placeholder { /* Firefox 19+ */
+            color: var(--placeholder-color);
+        }
+        .form-control:-ms-input-placeholder { /* IE 10-11 */
+            color: var(--placeholder-color);
+        }
+        .form-control::ms-input-placeholder { /* Microsoft Edge */
+            color: var(--placeholder-color);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, var(--button-gradient-start), var(--button-gradient-end));
+            border: none;
+            border-radius: 10px;
+            padding: 14px 30px;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #ffffff;
+            box-shadow: 0 8px 20px rgba(0, 123, 255, 0.25);
+            transition: all 0.3s ease;
+            letter-spacing: 0.5px;
+        }
+        .btn-primary:hover {
+            background: linear-gradient(45deg, var(--button-gradient-hover-start), var(--button-gradient-hover-end));
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 12px 25px rgba(0, 123, 255, 0.35);
+        }
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        /* Alt kısım butonları için ortak stil */
+        .button-group {
+            display: flex;
+            flex-wrap: wrap; /* Butonların birden fazla satıra yayılmasını sağlar */
+            justify-content: center; /* Butonları ortalar */
+            gap: 15px; /* Butonlar arası boşluk */
+            margin-top: 50px; /* Üstten boşluk */
+        }
+
+        .button-group .btn {
+            border-radius: 10px;
+            padding: 12px 25px; /* Daha belirgin ve tutarlı boyut */
+            font-size: 1rem; /* Okunabilirliği artır */
+            font-weight: 600;
+            transition: all 0.3s ease;
+            flex-basis: calc(33.333% - 15px); /* Her satırda 3 buton (gap'i düş) */
+            max-width: 200px; /* Maksimum genişlik belirle */
+            min-width: 150px; /* Minimum genişlik belirle */
+            text-align: center;
+        }
+
+        /* Alt kısım butonlarının özel renkleri ve hover efektleri */
+        .btn-secondary {
+            background-color: #6c757d;
+            border-color: #6c757d;
+            color: #fff;
+        }
+        .btn-secondary:hover {
+            background-color: #5a6268;
+            border-color: #545b62;
+        }
+        .btn-info { /* Yeni Kayıt butonu için stil */
+            background-color: #17a2b8;
+            border-color: #17a2b8;
+            color: #fff;
+        }
+        .btn-info:hover {
+            background-color: #138496;
+            border-color: #117a8b;
+        }
+        .btn-xml { /* XML Oluştur butonu için stil */
+            background-color: #ffc107; /* A yellow/orange color */
+            border-color: #ffc107;
+            color: #343a40; /* Dark text for contrast */
+        }
+        .btn-xml:hover {
+            background-color: #e0a800;
+            border-color: #d39e00;
+        }
+        .btn-download-data { /* Yeni İndirme butonu için stil */
+            background-color: #6f42c1; /* Purple color */
+            border-color: #6f42c1;
+            color: #fff;
+        }
+        .btn-download-data:hover {
+            background-color: #5a359e;
+            border-color: #523091;
+        }
+        .btn-full-pdf { /* Komple Form PDF butonu için stil */
+            background-color: #dc3545; /* Red color */
+            border-color: #dc3545;
+            color: #fff;
+        }
+        .btn-full-pdf:hover {
+            background-color: #c82333;
+            border-color: #bd2130;
+        }
+        .btn-upload-data { /* Yeni Yükleme butonu için stil */
+            background-color: #007bff; /* Blue color */
+            border-color: #007bff;
+            color: #fff;
+        }
+        .btn-upload-data:hover {
+            background-color: #0056b3;
+            border-color: #004085;
+        }
+        .btn-csv-download { /* CSV İndir butonu için stil */
+            background-color: #198754; /* Green color */
+            border-color: #198754;
+            color: #fff;
+        }
+        .btn-csv-download:hover {
+            background-color: #157347;
+            border-color: #146c43;
+        }
+
+
+        .validation-message {
+            color: #dc3545;
+            font-size: 0.85em;
+            margin-top: 0.3rem;
+            display: none;
+        }
+        h2 {
+            font-size: 2.5rem;
+            color: var(--text-color-primary);
+            margin-bottom: 40px !important;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+            transition: color 0.3s ease;
+        }
+        .collapse-icon {
+            margin-left: auto;
+            transition: transform 0.3s ease;
+        }
+        .form-section-title.collapsed .collapse-icon {
+            transform: rotate(-90deg);
+        }
+
+        /* Tema, Aç/Kapa ve Yeni Kayıt Düğmeleri için Ortak Stil (Üstteki yuvarlak düğmeler) */
+        .theme-control-button {
+            background-color: var(--form-section-bg);
+            border: 1px solid var(--border-color-light);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 2px 8px var(--box-shadow-light);
+            transition: all 0.3s ease;
+            color: var(--text-color-primary);
+            font-size: 1.2rem;
+        }
+        .theme-control-button:hover {
+            box-shadow: 0 4px 12px var(--box-shadow-hover);
+            transform: translateY(-1px);
+        }
+        .theme-control-button i {
+            transition: transform 0.3s ease, color 0.3s ease;
+        }
+
+        /* Üstteki düğme grubu */
+        .control-buttons-container {
+            display: flex;
+            justify-content: space-between; /* Düğmeleri uçlara yayar */
+            align-items: center;
+            margin-bottom: 20px; /* Başlık ile form arasına boşluk */
+            width: 100%; /* Konteynerin tam genişlikte olmasını sağlar */
+        }
+
+        .center-top-buttons-group { /* Yeni eklenen ortadaki düğme grubu */
+            display: flex;
+            gap: 10px; /* Ortadaki düğmeler arası boşluk */
+        }
+
+        /* Üstteki ikonlar için renkler */
+        #toggle-all-sections i {
+            color: #28a745; /* Yeşil */
+        }
+        #new-record-button-top-round i {
+            color: #17a2b8; /* Turkuaz */
+        }
+        #generate-pdf-button-top-round i {
+            color: #dc3545; /* Kırmızı */
+        }
+        #generate-full-form-pdf-button-top-round i {
+            color: #fd7e14; /* Turuncu */
+        }
+        #generate-xml-button-top-round i {
+            color: #ffc107; /* Sarı */
+        }
+        #upload-data-button-top-round i {
+            color: #007bff; /* Mavi */
+        }
+        #download-data-button-top-round i {
+            color: #6f42c1; /* Mor */
+        }
+        #download-csv-button-top-round i {
+            color: #20c997; /* Teal */
+        }
+        /* Tema değiştirme ikonu için varsayılan renk, tema ile değişecek */
+        body:not(.dark-theme) #theme-toggle i {
+            color: var(--text-color-primary); /* Açık tema için varsayılan metin rengi */
+        }
+        body.dark-theme #theme-toggle i {
+            color: var(--text-color-primary); /* Koyu tema için varsayılan metin rengi */
+        }
+
+        /* Kapalı bölümler için özel stil */
+        .form-section.collapsed-state {
+            padding-top: 10px; /* Üst dolguyu azalt */
+            padding-bottom: 10px; /* Alt dolguyu azalt */
+            margin-bottom: 10px; /* Bölümler arası boşluğu azalt */
+        }
+        .form-section.collapsed-state .form-section-title {
+            margin-bottom: 5px; /* Başlığın alt boşluğunu azalt */
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            .form-container {
+                padding: 25px;
+                margin: 10px auto;
+            }
+            .form-section-title {
+                font-size: 1.4rem;
+            }
+            .form-section-title i {
+                font-size: 1.7rem;
+            }
+            .btn-primary {
+                width: 100%;
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+            h2 {
+                font-size: 2rem;
+                margin-bottom: 30px !important;
+            }
+            .theme-control-button {
+                width: 35px;
+                height: 35px;
+                font-size: 1rem;
+            }
+            .button-group { /* Mobil için buton grubunu dikey hizala */
+                flex-direction: column;
+                align-items: center;
+            }
+            .button-group .btn {
+                width: 100%;
+                margin-bottom: 10px;
+                max-width: none; /* Mobil görünümde maksimum genişliği kaldır */
+                flex-basis: auto; /* Mobil görünümde flex-basis'i sıfırla */
+            }
+            .control-buttons-container {
+                flex-wrap: wrap; /* Mobil görünümde düğmelerin alt satıra geçmesini sağlar */
+                justify-content: center; /* Mobil görünümde ortalar */
+                gap: 10px; /* Mobil görünümde düğmeler arası boşluk */
+            }
+            .control-buttons-container > .theme-control-button {
+                margin: 5px; /* Mobil görünümde düğmeler arası boşluk */
+            }
+            .center-top-buttons-group {
+                width: 100%; /* Mobil görünümde ortadaki grubu tam genişlik yapar */
+                justify-content: center; /* Mobil görünümde ortadaki düğmeleri ortalar */
+                order: 3; /* Mobil görünümde en alta alır, eğer diğerleri flex-start ise */
+            }
+            #toggle-all-sections { order: 1; }
+            #theme-toggle { order: 2; }
+        }
+
+        /* Yazdırma için özel stiller */
+        @media print {
+            body {
+                background-color: #fff; /* Yazdırırken arka planı beyaz yap */
+                padding: 0;
+                margin: 0;
+                display: block;
+                min-height: auto;
+            }
+            .form-container {
+                box-shadow: none; /* Gölgeyi kaldır */
+                border: none; /* Kenarlığı kaldır */
+                padding: 0;
+                margin: 0;
+                max-width: 100%;
+                width: 100%;
+            }
+            .control-buttons-container, .button-group, .status-message {
+                display: none !important; /* Butonları ve durum mesajlarını gizle */
+            }
+            .form-section {
+                border: 1px solid #ccc; /* Bölümlere hafif bir kenarlık ekle */
+                margin-bottom: 10px;
+                padding: 10px;
+                box-shadow: none;
+                transform: none;
+            }
+            .form-section-title {
+                font-size: 1.2rem; /* Başlık fontunu küçült */
+                margin-bottom: 5px;
+                color: #333;
+            }
+            .form-section-title i {
+                display: none; /* İkonları gizle */
+            }
+            .form-section-title .collapse-icon {
+                display: none; /* Collapse ikonunu gizle */
+            }
+            .form-control, .form-select {
+                border: 1px solid #eee; /* Input kenarlıklarını daha hafif yap */
+                background-color: #fff;
+                color: #000;
+                padding: 5px;
+                font-size: 0.85rem;
+            }
+            .form-label {
+                font-size: 0.8rem;
+                color: #555;
+                margin-bottom: 2px;
+            }
+            h2 {
+                font-size: 1.8rem;
+                margin-bottom: 20px !important;
+                color: #000;
+                text-shadow: none;
+            }
+            .collapse:not(.show) {
+                display: block !important; /* Tüm katlanmış bölümleri yazdırırken aç */
+            }
+        }
+        /* Tooltip için z-index ekle */
+        .tooltip {
+            z-index: 1080; /* Tooltip'lerin diğer elementlerin üzerinde görünmesini sağlar */
+        }
+        .page-footer {
+            position: fixed;
+            bottom: 10px;
+            left: 15px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-color-secondary);
+            z-index: 1000;
+            transition: color 0.3s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container form-container">
+        <h2 class="text-center mb-5" style="font-weight: 700;">Neukunden-Registrierungsformular</h2>
+
+        
+
+        <!-- Üstteki Kontrol Düğmeleri -->
+        <div class="control-buttons-container">
+            <div id="toggle-all-sections" class="theme-control-button" title="Alle Abschnitte öffnen/schließen" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                <i class="fas fa-expand-alt"></i> <!-- Tümünü aç/kapa ikonu -->
+            </div>
+            <div class="center-top-buttons-group">
+                <div id="new-record-button-top-round" class="theme-control-button" title="Neuer Datensatz" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fas fa-plus"></i> <!-- Yeni kayıt ikonu -->
+                </div>
+                <div id="generate-pdf-button-top-round" class="theme-control-button" title="Meldeverfahren PDF erstellen" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fas fa-file-pdf"></i> <!-- Sertifika PDF ikonu -->
+                </div>
+                <div id="generate-full-form-pdf-button-top-round" class="theme-control-button" title="Komplettes Formular-PDF erstellen" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fas fa-file-alt"></i> <!-- Komple Form PDF ikonu -->
+                </div>
+                <div id="generate-xml-button-top-round" class="theme-control-button" title="XML-Datei erstellen" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fas fa-file-code"></i> <!-- XML Oluştur ikonu -->
+                </div>
+                <div id="upload-data-button-top-round" class="theme-control-button" title="Daten aus JSON-Datei laden" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fas fa-upload"></i> <!-- Verileri Yükle ikonu -->
+                </div>
+                <div id="download-data-button-top-round" class="theme-control-button" title="Daten als JSON-Datei herunterladen" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fas fa-download"></i> <!-- Verileri İndir ikonu -->
+                </div>
+                <div id="download-csv-button-top-round" class="theme-control-button" title="Daten als CSV-Datei herunterladen" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                    <i class="fas fa-file-csv"></i> <!-- CSV İndir ikonu -->
+                </div>
+            </div>
+            <div id="theme-toggle" class="theme-control-button" title="Thema wechseln (Hell/Dunkel)" data-bs-toggle="tooltip" data-bs-placement="bottom">
+                <i class="fas fa-moon"></i> <!-- Tema değiştirme ikonu -->
+            </div>
+        </div>
+
+        <form id="customerForm">
+            <!-- Firma Bilgileri (Firmenadresse) -->
+            <div class="form-section">
+                <h3 class="form-section-title" data-bs-toggle="collapse" data-bs-target="#collapseFirmenadresse" aria-expanded="true" aria-controls="collapseFirmenadresse">
+                    <i class="fas fa-building"></i> Firmenadresse <i class="fas fa-chevron-down collapse-icon"></i>
+                </h3>
+                <div id="collapseFirmenadresse" class="collapse show">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="companyName" class="form-label">Firmenname</label>
+                            <input type="text" class="form-control" id="companyName" placeholder="Firmenname" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="street" class="form-label">Straße</label>
+                            <input type="text" class="form-control" id="street" placeholder="Zuerst PLZ eingeben" list="streetSuggestionsFirm" required disabled>
+                            <datalist id="streetSuggestionsFirm"></datalist>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="houseNumber" class="form-label">Hausnummer</label>
+                            <input type="text" class="form-control" id="houseNumber" placeholder="Nr." required>
+                        </div>
+                        <div class="col-12">
+                            <label for="additionalInfo" class="form-label">Zusatzinformation (c/o, Etage, Appartment etc.)</label>
+                            <input type="text" class="form-control" id="additionalInfo" placeholder="Zusatzinformation">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="zipCode" class="form-label">PLZ</label>
+                            <input type="text" class="form-control" id="zipCode" placeholder="PLZ" required maxlength="5">
+                        </div>
+                        <div class="col-md-8">
+                            <label for="city" class="form-label">Ort</label>
+                            <input type="text" class="form-control" id="city" placeholder="Ort" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İşletme Sahibi Bilgileri (Inhaber Informationen) -->
+            <div class="form-section">
+                <h3 class="form-section-title collapsed" data-bs-toggle="collapse" data-bs-target="#collapseInhaber" aria-expanded="false" aria-controls="collapseInhaber">
+                    <i class="fas fa-user-tie"></i> Inhaber Informationen <i class="fas fa-chevron-down collapse-icon"></i>
+                </h3>
+                <div id="collapseInhaber" class="collapse">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="anredeSelect" class="form-label">Anrede</label>
+                            <select class="form-select" id="anredeSelect" required>
+                                <option value="">Bitte wählen...</option>
+                                <option value="1">Herrn</option>
+                                <option value="2">Frau</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ownerFirstName" class="form-label">Vorname</label>
+                            <input type="text" class="form-control" id="ownerFirstName" placeholder="Vorname" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ownerLastName" class="form-label">Nachname</label>
+                            <input type="text" class="form-control" id="ownerLastName" placeholder="Nachname" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="birthDate" class="form-label">Geburtsdatum</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="birthDate" >
+                                <button class="btn btn-outline-secondary btn-today" type="button" data-target="birthDate" title="Heutiges Datum einstellen">
+                                    <i class="fas fa-calendar-day"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="taxNumber" class="form-label">Steuernummer</label>
+                            <input type="text" class="form-control" id="taxNumber" placeholder="Steuernummer" >
+                        </div>
+                        <div class="col-md-4">
+                            <label for="idNumber" class="form-label">Identifikationsnummer</label>
+                            <input type="text" class="form-control" id="idNumber" placeholder="Identifikationsnummer" >
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İkametgah Adresi (Wohnadresse) -->
+            <div class="form-section">
+                <h3 class="form-section-title collapsed" data-bs-toggle="collapse" data-bs-target="#collapseWohnadresse" aria-expanded="false" aria-controls="collapseWohnadresse">
+                    <i class="fas fa-home"></i> Wohnadresse <i class="fas fa-chevron-down collapse-icon"></i>
+                </h3>
+                <div id="collapseWohnadresse" class="collapse">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label for="residenceStreet" class="form-label">Straße</label>                            
+                            <input type="text" class="form-control" id="residenceStreet" placeholder="Zuerst PLZ eingeben" list="streetSuggestionsResidence" disabled>
+                            <datalist id="streetSuggestionsResidence"></datalist>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="residenceHouseNumber" class="form-label">Hausnummer</label>
+                            <input type="text" class="form-control" id="residenceHouseNumber" placeholder="Nr." >
+                        </div>
+                        <div class="col-12">
+                            <label for="residenceAdditionalInfo" class="form-label">Zusatzinformation (c/o, Etage, Appartment etc.)</label>
+                            <input type="text" class="form-control" id="residenceAdditionalInfo" placeholder="Zusatzinformation">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="residenceZipCode" class="form-label">PLZ</label>
+                            <input type="text" class="form-control" id="residenceZipCode" placeholder="PLZ" >
+                        </div>
+                        <div class="col-md-8">
+                            <label for="residenceCity" class="form-label">Ort</label>
+                            <input type="text" class="form-control" id="residenceCity" placeholder="Ort" >
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- İletişim Bilgileri (Kontaktinformationen) -->
+            <div class="form-section">
+                <h3 class="form-section-title collapsed" data-bs-toggle="collapse" data-bs-target="#collapseKontakt" aria-expanded="false" aria-controls="collapseKontakt">
+                    <i class="fas fa-address-book"></i> Kontaktinformationen <i class="fas fa-chevron-down collapse-icon"></i>
+                </h3>
+                <div id="collapseKontakt" class="collapse">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="phoneNumber" class="form-label">Telefon</label>
+                            <input type="tel" class="form-control" id="phoneNumber" placeholder="Telefonnummer" pattern="[0-9+\s()-]*" title="Lütfen geçerli bir telefon numarası girin.">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="email" class="form-label">E-Mail</label>
+                            <input type="email" class="form-control" id="email" placeholder="E-Mail Adresse" pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$" title="Lütfen geçerli bir e-posta adresi girin.">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="websiteAnydesk" class="form-label">Web / AnyDesk</label>
+                            <input type="text" class="form-control" id="websiteAnydesk" placeholder="Webseite oder AnyDesk ID">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Yazarkasa (eKasse) Bilgileri (eKasse Informationen) -->
+            <div class="form-section">
+                <h3 class="form-section-title collapsed" data-bs-toggle="collapse" data-bs-target="#collapseEkasse" aria-expanded="false" aria-controls="collapseEkasse">
+                    <i class="fas fa-cash-register"></i> eKasse Informationen <i class="fas fa-chevron-down collapse-icon"></i>
+                </h3>
+                <div id="collapseEkasse" class="collapse">
+                    <div class="row g-3">
+                        <!-- Yeni eKasse Typ Sütunları -->
+                        <div class="col-md-4">
+                            <label for="ekasseTypeSelect" class="form-label">Typ (Auswahl)</label>
+                            <select class="form-select" id="ekasseTypeSelect">
+                                <option value="">Bitte wählen...</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                            </select>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="ekasseTypeText" class="form-label">Typ (Beschreibung)</label>
+                            <input type="text" class="form-control" id="ekasseTypeText" readonly placeholder="Wird automatisch ausgefüllt">
+                        </div>
+                        <!-- Yeni Software des eAS alanı -->
+                        <div class="col-md-4">
+                            <label for="ekasseSoftwareName" class="form-label">Software des eAS</label>
+                            <input type="text" class="form-control" id="ekasseSoftwareName" placeholder="Software Name">
+                        </div>
+                        <!-- Diğer eKasse Bilgileri -->
+                        <div class="col-md-4">
+                            <label for="softwareVersion" class="form-label">Software Version</label>
+                            <input type="text" class="form-control" id="softwareVersion" placeholder="Software Version">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="ekasseSerialNumber" class="form-label">Seriennummer</label>
+                            <input type="text" class="form-control" id="ekasseSerialNumber" placeholder="Seriennummer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Donanım Bilgileri (Hardware Informationen) -->
+            <div class="form-section">
+                <h3 class="form-section-title collapsed" data-bs-toggle="collapse" data-bs-target="#collapseHardware" aria-expanded="false" aria-controls="collapseHardware">
+                    <i class="fas fa-hdd"></i> Hardware Informationen <i class="fas fa-chevron-down collapse-icon"></i>
+                </h3>
+                <div id="collapseHardware" class="collapse">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="hardwareManufacturer" class="form-label">Hersteller</label>
+                            <input type="text" class="form-control" id="hardwareManufacturer" placeholder="Hersteller">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="hardwareModel" class="form-label">Modell</label>
+                            <input type="text" class="form-control" id="hardwareModel" placeholder="Modell">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="hardwareSerialNumber" class="form-label">Seriennummer</label>
+                            <input type="text" class="form-control" id="hardwareSerialNumber" placeholder="Seriennummer">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="purchaseDate" class="form-label">Anschaffungsdatum</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="purchaseDate">
+                                <button class="btn btn-outline-secondary btn-today" type="button" data-target="purchaseDate" title="Heutiges Datum einstellen">
+                                    <i class="fas fa-calendar-day"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="usageDate" class="form-label">Inbetriebnahme</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="usageDate">
+                                <button class="btn btn-outline-secondary btn-today" type="button" data-target="usageDate" title="Bugünü Ayarla">
+                                    <i class="fas fa-calendar-day"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TSE Bilgileri (TSE Informationen) -->
+            <div class="form-section">
+                <h3 class="form-section-title collapsed" data-bs-toggle="collapse" data-bs-target="#collapseTSE" aria-expanded="false" aria-controls="collapseTSE">
+                    <i class="fas fa-certificate"></i> TSE Informationen <i class="fas fa-chevron-down collapse-icon"></i>
+                </h3>
+                <div id="collapseTSE" class="collapse">
+                    <div class="row g-3">
+                        <!-- TSE Tipi Sütunları -->
+                        <div class="col-md-2">
+                            <label for="tseTypeSelect" class="form-label">Typ (Auswahl)</label>
+                            <select class="form-select" id="tseTypeSelect">
+                                <option value="">Bitte wählen...</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="tseTypeText" class="form-label">Typ (Beschreibung)</label>
+                            <input type="text" class="form-control" id="tseTypeText" readonly placeholder="Wird automatisch ausgefüllt">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="bsiCertificateId" class="form-label">BSI Zertifikat ID</label>
+                            <input type="text" class="form-control" id="bsiCertificateId" placeholder="BSI Zertifikat ID">
+                        </div>
+                        <div class="col-12">
+                            <label for="tseSerialNumber" class="form-label">Seriennummer</label>
+                            <input type="text" class="form-control" id="tseSerialNumber" placeholder="Seriennummer" maxlength="64">
+                            <div id="tseSerialNumberValidation" class="validation-message">
+                                Die TSE Seriennummer muss genau 64 Zeichen lang sein.
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tseUsageDate" class="form-label">Inbetriebnahme</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="tseUsageDate">
+                                <button class="btn btn-outline-secondary btn-today" type="button" data-target="tseUsageDate" title="Bugünü Ayarla">
+                                    <i class="fas fa-calendar-day"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="tseValidityDate" class="form-label">Gültig bis</label>
+                            <div class="input-group">
+                                <input type="date" class="form-control" id="tseValidityDate">
+                                <button class="btn btn-outline-secondary btn-today" type="button" data-target="tseValidityDate" title="Bugünü Ayarla">
+                                    <i class="fas fa-calendar-day"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alt kısım butonları -->
+            <div class="d-flex justify-content-center gap-3 mt-5 button-group">
+                <button type="button" class="btn btn-secondary" id="generate-pdf-button-bottom">Meldeverfahren PDF</button>
+                <button type="button" class="btn btn-full-pdf" id="generate-full-form-pdf-button-bottom">Komplet Form PDF</button>
+                <button type="button" class="btn btn-xml" id="generate-xml-button-bottom">XML Elster</button>
+                <button type="button" class="btn btn-upload-data" id="upload-data-button-bottom">Verileri Yükle</button>
+                <button type="button" class="btn btn-download-data" id="download-data-button-bottom">Verileri İndir</button>
+                <button type="button" class="btn btn-csv-download" id="download-csv-button-bottom">CSV İndir</button>
+                <button type="button" class="btn btn-info" id="new-record-button-bottom">Yeni Kayit</button>
+            </div>
+            <div id="statusMessage" class="alert mt-3 text-center" style="display:none;"></div>
+        </form>
+        <!-- Gizli dosya inputu -->
+        <input type="file" id="fileInput" accept=".json" style="display: none;">
+    </div>
+
+    <footer class="page-footer">
+        Copyright Tekken-King
+    </footer>
+
+    <!-- Bootstrap JS and Popper.js -->
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <script>
+        // Helper function to get input value safely
+        const getValue = (id) => document.getElementById(id) ? document.getElementById(id).value.trim() : '';
+
+        // Helper function to set input value safely
+        const setValue = (id, value) => {
+            const element = document.getElementById(id);
+            if (element) {
+                element.value = value;
+            }
+        };
+
+        // Helper function to format date to DD.MM.YYYY
+        const formatDate = (dateString) => {
+            if (!dateString) return '';
+            const [year, month, day] = dateString.split('-');
+            return `${day}.${month}.${year}`;
+        };
+
+        // Display status message
+        const statusMessageDiv = document.getElementById('statusMessage');
+        let statusMessageTimeout;
+
+        function showStatusMessage(message, type = 'info') {
+            statusMessageDiv.textContent = message;
+            statusMessageDiv.className = `alert mt-3 text-center alert-${type}`;
+            statusMessageDiv.style.display = 'block';
+
+            clearTimeout(statusMessageTimeout);
+            statusMessageTimeout = setTimeout(() => {
+                statusMessageDiv.style.display = 'none';
+            }, 3000); // Message disappears after 3 seconds
+        }
+
+        // Theme toggling logic
+        const themeToggle = document.getElementById('theme-toggle');
+        const body = document.body;
+        const themeIcon = themeToggle.querySelector('i');
+
+        // Check theme on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedTheme = localStorage.getItem('theme');
+            if (savedTheme === 'dark') {
+                body.classList.add('dark-theme');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                body.classList.remove('dark-theme');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        });
+
+        // Event listener for theme toggle button
+        themeToggle.addEventListener('click', () => {
+            body.classList.toggle('dark-theme');
+            if (body.classList.contains('dark-theme')) {
+                localStorage.setItem('theme', 'dark');
+                themeIcon.classList.remove('fa-moon');
+                themeIcon.classList.add('fa-sun');
+            } else {
+                localStorage.setItem('theme', 'light');
+                themeIcon.classList.remove('fa-sun');
+                themeIcon.classList.add('fa-moon');
+            }
+        });
+
+        // Tüm bölümleri aç/kapa düğmesi mantığı
+        const toggleAllSectionsButton = document.getElementById('toggle-all-sections');
+        const toggleAllIcon = toggleAllSectionsButton.querySelector('i');
+
+        toggleAllSectionsButton.addEventListener('click', () => {
+            const collapsibleSectionContents = document.querySelectorAll('.form-section .collapse');
+            const firstSectionContent = document.getElementById('collapseFirmenadresse');
+            // Determine if sections should be collapsed (if the first section is currently shown)
+            const shouldCollapseAll = firstSectionContent.classList.contains('show');
+
+            collapsibleSectionContents.forEach(sectionContent => {
+                const collapseInstance = new bootstrap.Collapse(sectionContent, { toggle: false });
+                const sectionTitle = sectionContent.previousElementSibling; // The h3 title element
+                const parentSection = sectionContent.closest('.form-section'); // Get the parent .form-section
+
+                if (shouldCollapseAll) {
+                    // Collapse all
+                    if (sectionContent.classList.contains('show')) {
+                        collapseInstance.hide();
+                        sectionTitle.classList.add('collapsed'); // To rotate the title icon
+                        sectionTitle.setAttribute('aria-expanded', 'false');
+                        parentSection.classList.add('collapsed-state'); // Add collapsed-state class
+                    }
+                } else {
+                    // Expand all
+                    if (!sectionContent.classList.contains('show')) {
+                        collapseInstance.show();
+                        sectionTitle.classList.remove('collapsed'); // To fix the title icon
+                        sectionTitle.setAttribute('aria-expanded', 'true');
+                        parentSection.classList.remove('collapsed-state'); // Remove collapsed-state class
+                    }
+                }
+            });
+
+            // Update the icon of the toggle all sections button
+            if (shouldCollapseAll) {
+                toggleAllIcon.classList.remove('fa-compress-alt');
+                toggleAllIcon.classList.add('fa-expand-alt'); // All are now collapsed, show expand icon
+            } else {
+                toggleAllIcon.classList.remove('fa-expand-alt');
+                toggleAllIcon.classList.add('fa-compress-alt'); // All are now expanded, show collapse icon
+            }
+        });
+
+        // Set initial icon and collapsed-state class for sections on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstSectionContent = document.getElementById('collapseFirmenadresse');
+            if (firstSectionContent.classList.contains('show')) {
+                toggleAllIcon.classList.remove('fa-expand-alt');
+                toggleAllIcon.classList.add('fa-compress-alt');
+            } else {
+                toggleAllIcon.classList.remove('fa-compress-alt');
+                toggleAllIcon.classList.add('fa-expand-alt');
+            }
+
+            // Apply collapsed-state to sections that are initially collapsed
+            document.querySelectorAll('.form-section').forEach(section => {
+                const collapseElement = section.querySelector('.collapse');
+                if (collapseElement && !collapseElement.classList.contains('show')) {
+                    section.classList.add('collapsed-state');
+                }
+            });
+        });
+
+        // Yeni Kayıt düğmesi mantığı (alttaki düğme için)
+        const newRecordButtonBottom = document.getElementById('new-record-button-bottom');
+        newRecordButtonBottom.addEventListener('click', () => {
+            const form = document.getElementById('customerForm');
+            form.reset(); // Formu temizle
+
+            // Tüm hata mesajlarını gizle
+            const validationMessages = document.querySelectorAll('.validation-message');
+            validationMessages.forEach(msg => {
+                msg.style.display = 'none';
+            });
+
+            // Tüm inputların is-invalid sınıfını kaldır
+            const invalidInputs = document.querySelectorAll('.form-control.is-invalid');
+            invalidInputs.forEach(input => {
+                input.classList.remove('is-invalid');
+            });
+
+            // Dinamik olarak doldurulan alanları da temizle
+            document.getElementById('ekasseTypeText').value = '';
+            document.getElementById('tseTypeText').value = '';
+            document.getElementById('ekasseSoftwareName').value = ''; // Yeni eklenen alan
+
+            // İlk bölümü aç ve diğerlerini kapat (isteğe bağlı, varsayılan davranış)
+            const collapsibleSectionContents = document.querySelectorAll('.form-section .collapse');
+            collapsibleSectionContents.forEach((sectionContent, index) => {
+                const collapseInstance = new bootstrap.Collapse(sectionContent, { toggle: false });
+                const sectionTitle = sectionContent.previousElementSibling;
+                const parentSection = sectionContent.closest('.form-section');
+
+                if (index === 0) { // İlk bölümü aç
+                    collapseInstance.show();
+                    sectionTitle.classList.remove('collapsed');
+                    sectionTitle.setAttribute('aria-expanded', 'true');
+                    parentSection.classList.remove('collapsed-state'); // Remove collapsed-state
+                } else { // Diğerlerini kapat
+                    collapseInstance.hide();
+                    sectionTitle.classList.add('collapsed');
+                    sectionTitle.setAttribute('aria-expanded', 'false');
+                    parentSection.classList.add('collapsed-state'); // Add collapsed-state
+                }
+            });
+
+            // Tümünü aç/kapa düğmesinin ikonunu başlangıç durumuna getir
+            toggleAllIcon.classList.remove('fa-compress-alt');
+            toggleAllIcon.classList.add('fa-expand-alt');
+            showStatusMessage('Form temizlendi.', 'info');
+        });
+
+        // Yeni Kayıt düğmesi mantığı (üstteki yuvarlak düğme için)
+        const newRecordButtonTopRound = document.getElementById('new-record-button-top-round');
+        newRecordButtonTopRound.addEventListener('click', () => {
+            // Alttaki 'Yeni Kayıt' düğmesinin click olayını tetikle
+            newRecordButtonBottom.click();
+        });
+
+
+        // TSE Tipi seçimini dinle ve açıklamayı güncelle
+        document.getElementById('tseTypeSelect').addEventListener('change', function() {
+            console.log('tseTypeSelect change event fired'); // Debug log
+            const selectedValue = this.value;
+            const tseTypeTextInput = document.getElementById('tseTypeText');
+
+            if (selectedValue === '1') {
+                tseTypeTextInput.value = 'SD Karte';
+            } else if (selectedValue === '2') {
+                tseTypeTextInput.value = 'USB Stick';
+            } else {
+                tseTypeTextInput.value = '';
+            }
+        });
+
+        // eKasse Tipi seçimini dinle ve açıklamayı güncelle
+        document.getElementById('ekasseTypeSelect').addEventListener('change', function() {
+            console.log('ekasseTypeSelect change event fired'); // Debug log
+            const selectedValue = this.value;
+            const ekasseTypeTextInput = document.getElementById('ekasseTypeText');
+
+            if (selectedValue === '1') {
+                ekasseTypeTextInput.value = 'Computergestützte/ PC-Kassensysteme';
+            } else if (selectedValue === '2') {
+                ekasseTypeTextInput.value = 'Tablet-/App-Kassen-Systeme';
+            } else if (selectedValue === '3') {
+                ekasseTypeTextInput.value = 'Elektronische Registrierkassen';
+            } else {
+                ekasseTypeTextInput.value = '';
+            }
+        });
+
+        // Form doğrulama fonksiyonu
+        function validateForm() {
+            let isValid = true;
+            const requiredInputs = document.querySelectorAll('#customerForm [required]');
+            requiredInputs.forEach(input => {
+                if (!input.value.trim()) {
+                    input.classList.add('is-invalid');
+                    isValid = false;
+                } else {
+                    input.classList.remove('is-invalid');
+                }
+            });
+
+            // Telefon numarası format doğrulama (e-posta artık zorunlu değil)
+            const phoneNumberInput = document.getElementById('phoneNumber');
+            if (phoneNumberInput && phoneNumberInput.value.trim() && !phoneNumberInput.checkValidity()) {
+                phoneNumberInput.classList.add('is-invalid');
+                isValid = false;
+            } else if (phoneNumberInput) {
+                phoneNumberInput.classList.remove('is-invalid');
+            }
+
+            // TSE Seri Numarası Doğrulama
+            const tseSerialNumberInput = document.getElementById('tseSerialNumber');
+            const tseSerialNumberValidationMessage = document.getElementById('tseSerialNumberValidation');
+
+            const tseSerialNumber = tseSerialNumberInput.value.trim();
+            if (tseSerialNumber.length !== 64) {
+                tseSerialNumberValidationMessage.style.display = 'block';
+                tseSerialNumberInput.classList.add('is-invalid');
+                isValid = false;
+            } else {
+                tseSerialNumberValidationMessage.style.display = 'none';
+                tseSerialNumberInput.classList.remove('is-invalid');
+            }
+
+            return isValid;
+        }
+
+        // Tüm gerekli alanlara ve özel doğrulama alanlarına input event listener ekle
+        // E-posta artık zorunlu olmadığı için listeden çıkarıldı
+        document.querySelectorAll('#customerForm [required], #phoneNumber, #tseSerialNumber').forEach(input => {
+            input.addEventListener('input', () => {
+                if (input.checkValidity() && input.value.trim()) {
+                    input.classList.remove('is-invalid');
+                } else {
+                    input.classList.add('is-invalid');
+                }
+                // TSE özel mesajı için ek kontrol
+                if (input.id === 'tseSerialNumber') {
+                    const tseSerialNumberInput = document.getElementById('tseSerialNumber');
+                    const tseSerialNumberValidationMessage = document.getElementById('tseSerialNumberValidation');
+
+                    if (input.value.length !== 64 && input.value.length > 0) {
+                        tseSerialNumberValidationMessage.style.display = 'block';
+                    } else {
+                        tseSerialNumberValidationMessage.style.display = 'none';
+                    }
+                }
+            });
+        });
+
+
+        // PDF oluşturma ve indirme mantığı (alttaki düğme için)
+        document.getElementById('generate-pdf-button-bottom').addEventListener('click', () => {
+            if (!validateForm()) {
+                showStatusMessage('Bitte füllen Sie alle Pflichtfelder korrekt aus und überprüfen Sie die TSE-Seriennummer.', 'danger');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Form verilerini al
+            const companyName = getValue('companyName') || '';
+            const street = getValue('street') || '';
+            const houseNumber = getValue('houseNumber') || '';
+            const zipCode = getValue('zipCode') || '';
+            const city = getValue('city') || '';
+            const anredeSelect = document.getElementById('anredeSelect');
+            const anredeText = (anredeSelect && anredeSelect.selectedIndex > 0) ? anredeSelect.options[anredeSelect.selectedIndex].text : '';
+            const ownerFirstName = getValue('ownerFirstName');
+            const ownerLastName = getValue('ownerLastName');
+            const taxNumber = getValue('taxNumber');
+            const idNumber = getValue('idNumber');
+            const ekasseTypeText = getValue('ekasseTypeText');
+            const ekasseSoftwareName = getValue('ekasseSoftwareName'); // Yeni eklenen alan
+            const softwareVersion = getValue('softwareVersion');
+            const ekasseSerialNumber = getValue('ekasseSerialNumber');
+            const hardwareManufacturer = getValue('hardwareManufacturer');
+            const hardwareModel = getValue('hardwareModel');
+            const hardwareSerialNumber = getValue('hardwareSerialNumber');
+            // Tarih alanlarını formatla
+            const formattedPurchaseDate = formatDate(getValue('purchaseDate'));
+            const formattedUsageDate = formatDate(getValue('usageDate'));
+            const tseTypeSelectValue = document.getElementById('tseTypeSelect').value; // Get value for PDF label
+            const tseTypeText = getValue('tseTypeText');
+            const bsiCertificateId = getValue('bsiCertificateId');
+            const tseSerialNumberPdf = getValue('tseSerialNumber');
+            const formattedTseUsageDate = formatDate(getValue('tseUsageDate'));
+            const formattedTseValidityDate = formatDate(getValue('tseValidityDate'));
+
+            let y = 12; // Başlangıç Y konumu
+            const lineHeight = 6; // Satır yüksekliği
+            const margin = 12; // Kenar boşlukları
+            const labelX = margin; // Etiketlerin X konumu
+            const valueX = 85; // Değerlerin X konumu
+            const sectionSpacing = 8; // Bölümler arası boşluk
+            const pageWidth = doc.internal.pageSize.getWidth(); // Sayfa genişliği
+            const textMaxWidth = pageWidth - valueX - 20; // Değer metni için maksimum genişlik
+
+            // Başlık
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(18);
+            doc.text('Meldeverfahren', pageWidth / 2, y, { align: 'center' });
+            y += sectionSpacing;
+
+            // Bölüm başlığı eklemek için yardımcı fonksiyon
+            const addSectionTitle = (title) => {
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(12);
+                doc.text(title, margin, y);
+                y += lineHeight;
+                doc.setDrawColor(220, 220, 220); // Açık gri çizgi
+                doc.line(margin, y, pageWidth - margin, y);
+                y += 4;
+            };
+
+            // Alan eklemek için yardımcı fonksiyon (Etiket ve Değer)
+            const addField = (label, value) => {
+                // Sayfa sonu kontrolü
+                if (y > doc.internal.pageSize.getHeight() - 25) {
+                    doc.addPage();
+                    y = margin;
+                }
+                if (!value) return; // Değer boşsa alanı ekleme
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(10);
+                doc.setTextColor(100, 100, 100); // Etiket için gri renk
+                doc.text(label, labelX, y);
+
+                doc.setFont('helvetica', 'bold');
+                doc.setTextColor(0, 0, 0); // Değer için siyah renk
+                const splitValue = doc.splitTextToSize(value, textMaxWidth);
+                doc.text(splitValue, valueX, y);
+                y += (splitValue.length * lineHeight) + 1; // Değerin yüksekliğine göre boşluk bırak
+            };
+
+            // PDF'e bilgileri ekle (Resimdeki sıraya ve formata göre)
+
+            // Firma Bilgileri
+            addSectionTitle('Firmeninformationen');
+            addField('Firmenname:', companyName);
+            addField('Straße, Nr.:', `${street} ${houseNumber}`);
+            addField('PLZ, Ort:', `${zipCode} ${city}`);
+            y += 4;
+
+            // Inhaber Informationen
+            addSectionTitle('Inhaberinformationen');
+            addField('Anrede:', anredeText);
+            addField('Name, Vorname:', `${ownerLastName}, ${ownerFirstName}`);
+            addField('Steuernummer:', taxNumber);
+            addField('Identifikationsnummer:', idNumber);
+            y += 4;
+
+            // eKasse Informationen
+            addSectionTitle('Informationen zum Aufzeichnungssystem (eAS)');
+            addField('Art des eAS:', ekasseTypeText);
+            addField('Software:', ekasseSoftwareName);
+            addField('Software Version:', softwareVersion);
+            addField('Seriennummer des eAS:', ekasseSerialNumber);
+            y += 4;
+
+            // Hardware Informationen
+            addSectionTitle('Hardwareinformationen');
+            addField('Hersteller:', hardwareManufacturer);
+            addField('Modell:', hardwareModel);
+            addField('Seriennummer:', hardwareSerialNumber);
+            addField('Anschaffung:', formattedPurchaseDate);
+            addField('Inbetriebnahme:', formattedUsageDate);
+            y += 4;
+
+            // TSE Informationen
+            addSectionTitle('Informationen zur Technischen Sicherheitseinrichtung (TSE)');
+            addField('Art / Bauform:', `${tseTypeSelectValue} (${tseTypeText})`);
+            addField('BSI-Zert.-ID:', bsiCertificateId);
+            addField('Inbetriebnahme:', formattedTseUsageDate);
+            addField('Gültig bis:', formattedTseValidityDate);
+            addField('TSE Seriennummer:', tseSerialNumberPdf);
+            y += 4; // TSE bölümünden sonra boşluk ekle
+
+            // Alt bilgi metni
+            const footerY = doc.internal.pageSize.getHeight() - 10;
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(9);
+            doc.setTextColor(100); // Biraz daha açık gri
+            doc.text("Dieses Dokument wurde von Kassen Keskin erstellt", pageWidth / 2, footerY, { align: 'center' });
+            doc.setTextColor(0); // Rengi siyaha geri döndür
+
+            // PDF dosya adını firma adı + "TSE-Zertifikat" olarak ayarla
+            const sanitizeFilename = (name) => {
+                if (!name) return '';
+                // Geçersiz dosya adı karakterlerini alt çizgi ile değiştir.
+                // \ / : * ? " < > |
+                return name.replace(/[\\/:*?"<>|]/g, '_');
+            };
+            const fileName = `${sanitizeFilename(companyName)}_Meldeverfahren.pdf`;
+            doc.save(fileName);
+            showStatusMessage('PDF başarıyla oluşturuldu!', 'success');
+        });
+
+        // PDF oluşturma ve indirme mantığı (üstteki yuvarlak düğme için)
+        const generatePdfButtonTopRound = document.getElementById('generate-pdf-button-top-round');
+        generatePdfButtonTopRound.addEventListener('click', () => {
+            // Alttaki 'Zertifikat PDF' düğmesinin click olayını tetikle
+            document.getElementById('generate-pdf-button-bottom').click();
+        });
+
+        // XML Generation Logic (for both top and bottom buttons)
+        const generateXmlButtonBottom = document.getElementById('generate-xml-button-bottom');
+        const generateXmlButtonTopRound = document.getElementById('generate-xml-button-top-round');
+
+        function generateXml() {
+            if (!validateForm()) {
+                showStatusMessage('Bitte füllen Sie alle Pflichtfelder korrekt aus und überprüfen Sie die TSE-Seriennummer.', 'danger');
+                return;
+            }
+
+            const formData = {
+                companyName: getValue('companyName'),
+                street: getValue('street'),
+                houseNumber: getValue('houseNumber'),
+                additionalInfo: getValue('additionalInfo'),
+                zipCode: getValue('zipCode'),
+                city: getValue('city'),
+
+                anredeSelect: getValue('anredeSelect'), // Yeni eklenen alan
+                ownerFirstName: getValue('ownerFirstName'),
+                ownerLastName: getValue('ownerLastName'),
+                birthDate: getValue('birthDate'),
+                taxNumber: getValue('taxNumber'),
+                idNumber: getValue('idNumber'),
+
+                residenceStreet: getValue('residenceStreet'),
+                residenceHouseNumber: getValue('residenceHouseNumber'),
+                residenceAdditionalInfo: getValue('residenceAdditionalInfo'),
+                residenceZipCode: getValue('residenceZipCode'),
+                residenceCity: getValue('residenceCity'),
+
+                ekasseTypeSelect: getValue('ekasseTypeSelect'), // Use value for XML
+                ekasseTypeText: getValue('ekasseTypeText'), // Use description for reference if needed
+                ekasseSoftwareName: getValue('ekasseSoftwareName'), // Yeni eklenen alan
+                softwareVersion: getValue('softwareVersion'),
+                ekasseSerialNumber: getValue('ekasseSerialNumber'),
+
+                hardwareManufacturer: getValue('hardwareManufacturer'),
+                hardwareModel: getValue('hardwareModel'),
+                hardwareSerialNumber: getValue('hardwareSerialNumber'),
+                purchaseDate: getValue('purchaseDate'),
+                usageDate: getValue('usageDate'),
+
+                tseTypeSelect: getValue('tseTypeSelect'), // Use value for XML
+                tseTypeText: getValue('tseTypeText'), // Use description for reference if needed
+                bsiCertificateId: getValue('bsiCertificateId'),
+                tseSerialNumber: getValue('tseSerialNumber'),
+                tseUsageDate: getValue('tseUsageDate'),
+                tseValidityDate: getValue('tseValidityDate')
+            };
+
+            // XML Structure based on provided template
+            const xmlString = `<?xml version="1.0" encoding="UTF-8"?>
+<Aufzeichnung146a xmlns="http://finkonsens.de/elster/elsternachricht/aufzeichnung146a/v1" version="1">
+  <Aufzeichnung146a>
+    <StNr>${formData.taxNumber}</StNr>
+    <AllgAngaben>
+      <NatuerlichePerson>
+        <IdNr>${formData.idNumber}</IdNr>
+        <Anrede>${formData.anredeSelect}</Anrede>
+        <Name>${formData.ownerLastName}</Name>
+        <Vorname>${formData.ownerFirstName}</Vorname>
+        <Geburtsdatum>${formatDate(formData.birthDate)}</Geburtsdatum>
+      </NatuerlichePerson>
+      <Adresse>
+        <AdrInl>
+          <Strasse>${formData.residenceStreet}</Strasse>
+          <Hausnummer>${formData.residenceHouseNumber}</Hausnummer>
+          <Postleitzahl>${formData.residenceZipCode}</Postleitzahl>
+          <Ort>${formData.residenceCity}</Ort>
+        </AdrInl>
+      </Adresse>
+    </AllgAngaben>
+    <AngabenZuBetriebsstaette>
+      <BezeichnungBetriebsstaette>${formData.companyName}</BezeichnungBetriebsstaette>
+      <AnzahlAufzeichnungssysteme/>
+      <Adresse>
+        <Strasse>${formData.street}</Strasse>
+        <Hausnummer>${formData.houseNumber}</Hausnummer>
+        <Anschriftenzusatz>${formData.additionalInfo}</Anschriftenzusatz>
+        <Postleitzahl>${formData.zipCode}</Postleitzahl>
+        <Ort>${formData.city}</Ort>
+      </Adresse>
+    </AngabenZuBetriebsstaette>
+    <AngabenAufzeichnungssystem>
+      <Art>${formData.ekasseTypeSelect}</Art>
+      <Software>${formData.ekasseSoftwareName}</Software>
+      <SoftwareVersion>${formData.softwareVersion}</SoftwareVersion>
+      <SeriennummerAS>${formData.ekasseSerialNumber}</SeriennummerAS>
+      <Hersteller>${formData.hardwareManufacturer}</Hersteller>
+      <Modell>${formData.hardwareModel}</Modell>
+      <SeriennummerTSE>${formData.tseSerialNumber}</SeriennummerTSE>
+      <ArtTSE>${formData.tseTypeSelect}</ArtTSE>
+      <InbetriebnahmeTSE>${formatDate(formData.tseUsageDate)}</InbetriebnahmeTSE>
+      <BSIID>${formData.bsiCertificateId}</BSIID>
+      <AnschaffungAS>${formatDate(formData.purchaseDate)}</AnschaffungAS>
+      <InbetriebnahmeAS>${formatDate(formData.usageDate)}</InbetriebnahmeAS>
+    </AngabenAufzeichnungssystem>
+  </Aufzeichnung146a>
+</Aufzeichnung146a>`;
+
+            const blob = new Blob([xmlString], { type: 'text/xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const sanitizeFilename = (name) => {
+                if (!name) return '';
+                return name.replace(/[\\/:*?"<>|]/g, '_');
+            };
+
+            const fileName = sanitizeFilename(formData.companyName) || 'Neukunde';
+            a.download = `${fileName}_Registrierung.xml`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatusMessage('XML başarıyla oluşturuldu!', 'success');
+        }
+
+        generateXmlButtonBottom.addEventListener('click', generateXml);
+        generateXmlButtonTopRound.addEventListener('click', generateXml);
+
+        // Download Data as JSON file
+        function downloadFormData() {
+            if (!validateForm()) {
+                showStatusMessage('Bitte füllen Sie alle Pflichtfelder korrekt aus und überprüfen Sie die TSE-Seriennummer.', 'danger');
+                return;
+            }
+
+            const formData = {
+                companyName: getValue('companyName'),
+                street: getValue('street'),
+                houseNumber: getValue('houseNumber'),
+                additionalInfo: getValue('additionalInfo'),
+                zipCode: getValue('zipCode'),
+                city: getValue('city'),
+                anredeSelect: getValue('anredeSelect'),
+                ownerFirstName: getValue('ownerFirstName'),
+                ownerLastName: getValue('ownerLastName'),
+                birthDate: getValue('birthDate'),
+                taxNumber: getValue('taxNumber'),
+                idNumber: getValue('idNumber'),
+                residenceStreet: getValue('residenceStreet'),
+                residenceHouseNumber: getValue('residenceHouseNumber'),
+                residenceAdditionalInfo: getValue('residenceAdditionalInfo'),
+                residenceZipCode: getValue('residenceZipCode'),
+                residenceCity: getValue('residenceCity'),
+                // Kontaktinformationen
+                phoneNumber: getValue('phoneNumber'),
+                email: getValue('email'),
+                websiteAnydesk: getValue('websiteAnydesk'),
+                ekasseTypeSelect: getValue('ekasseTypeSelect'),
+                ekasseTypeText: getValue('ekasseTypeText'),
+                ekasseSoftwareName: getValue('ekasseSoftwareName'),
+                softwareVersion: getValue('softwareVersion'),
+                ekasseSerialNumber: getValue('ekasseSerialNumber'),
+                hardwareManufacturer: getValue('hardwareManufacturer'),
+                hardwareModel: getValue('hardwareModel'),
+                hardwareSerialNumber: getValue('hardwareSerialNumber'),
+                purchaseDate: getValue('purchaseDate'),
+                usageDate: getValue('usageDate'),
+                tseTypeSelect: getValue('tseTypeSelect'),
+                tseTypeText: getValue('tseTypeText'),
+                bsiCertificateId: getValue('bsiCertificateId'),
+                tseSerialNumber: getValue('tseSerialNumber'),
+                tseUsageDate: getValue('tseUsageDate'),
+                tseValidityDate: getValue('tseValidityDate')
+            };
+
+            const dataStr = JSON.stringify(formData, null, 2); // Pretty print JSON
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            const sanitizeFilename = (name) => {
+                if (!name) return '';
+                return name.replace(/[\\/:*?"<>|]/g, '_');
+            };
+
+            const fileName = sanitizeFilename(formData.companyName) || 'Neukunde';
+            a.download = `${fileName}_FormVerileri.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+            showStatusMessage('Form verileri JSON olarak indirildi!', 'success');
+        }
+
+        document.getElementById('download-data-button-bottom').addEventListener('click', downloadFormData);
+        document.getElementById('download-data-button-top-round').addEventListener('click', downloadFormData);
+
+        // Upload Data from JSON file
+        const fileInput = document.getElementById('fileInput');
+
+        function triggerFileUpload() {
+            fileInput.click(); // Trigger the hidden file input click
+        }
+
+        fileInput.addEventListener('change', (event) => {
+            const file = event.target.files[0];
+            if (!file) {
+                showStatusMessage('Dosya seçilmedi.', 'info');
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const formData = JSON.parse(e.target.result);
+                    setValue('companyName', formData.companyName);
+                    setValue('street', formData.street);
+                    setValue('houseNumber', formData.houseNumber);
+                    setValue('additionalInfo', formData.additionalInfo);
+                    setValue('zipCode', formData.zipCode);
+                    setValue('city', formData.city);
+                    setValue('anredeSelect', formData.anredeSelect);
+                    setValue('ownerFirstName', formData.ownerFirstName);
+                    setValue('ownerLastName', formData.ownerLastName);
+                    setValue('birthDate', formData.birthDate);
+                    setValue('taxNumber', formData.taxNumber);
+                    setValue('idNumber', formData.idNumber);
+                    setValue('residenceStreet', formData.residenceStreet);
+                    setValue('residenceHouseNumber', formData.residenceHouseNumber);
+                    setValue('residenceAdditionalInfo', formData.residenceAdditionalInfo);
+                    setValue('residenceZipCode', formData.residenceZipCode);
+                    setValue('residenceCity', formData.residenceCity);
+                    setValue('phoneNumber', formData.phoneNumber);
+                    setValue('email', formData.email);
+                    setValue('websiteAnydesk', formData.websiteAnydesk);
+                    setValue('ekasseTypeSelect', formData.ekasseTypeSelect);
+                    // setValue('ekasseTypeText', formData.ekasseTypeText); // Bu satır kaldırıldı, change event'i ile güncellenecek
+                    setValue('softwareVersion', formData.softwareVersion);
+                    setValue('ekasseSerialNumber', formData.ekasseSerialNumber);
+                    setValue('hardwareManufacturer', formData.hardwareManufacturer);
+                    setValue('hardwareModel', formData.hardwareModel);
+                    setValue('hardwareSerialNumber', formData.hardwareSerialNumber);
+                    setValue('purchaseDate', formData.purchaseDate);
+                    setValue('usageDate', formData.usageDate);
+                    setValue('tseTypeSelect', formData.tseTypeSelect);
+                    // setValue('tseTypeText', formData.tseTypeText); // Bu satır kaldırıldı, change event'i ile güncellenecek
+                    setValue('bsiCertificateId', formData.bsiCertificateId);
+                    setValue('tseSerialNumber', formData.tseSerialNumber);
+                    setValue('tseUsageDate', formData.tseUsageDate);
+                    setValue('tseValidityDate', formData.tseValidityDate);
+                    setValue('ekasseSoftwareName', formData.ekasseSoftwareName);
+
+
+                    // Manually trigger change events for select elements to update dependent text fields
+                    document.getElementById('ekasseTypeSelect').dispatchEvent(new Event('change'));
+                    document.getElementById('tseTypeSelect').dispatchEvent(new Event('change'));
+
+                    // Manually trigger input events for PLZ fields to enable street inputs
+                    document.getElementById('zipCode').dispatchEvent(new Event('input'));
+                    document.getElementById('residenceZipCode').dispatchEvent(new Event('input'));
+
+                    // Clear any validation messages after loading
+                    const tseSerialNumberValidationMessage = document.getElementById('tseSerialNumberValidation');
+                    const tseSerialNumberInput = document.getElementById('tseSerialNumber');
+                    if (tseSerialNumberValidationMessage) tseSerialNumberValidationMessage.style.display = 'none';
+                    if (tseSerialNumberInput) tseSerialNumberInput.classList.remove('is-invalid');
+
+                    showStatusMessage('Veriler dosyadan başarıyla yüklendi!', 'success');
+                } catch (error) {
+                    showStatusMessage('Dosya okunurken veya ayrıştırılırken bir hata oluştu: ' + error.message, 'danger');
+                    console.error("File load error:", error);
+                }
+            };
+            reader.onerror = () => {
+                showStatusMessage('Dosya okunamadı.', 'danger');
+            };
+            reader.readAsText(file);
+        });
+
+        document.getElementById('upload-data-button-bottom').addEventListener('click', triggerFileUpload);
+        document.getElementById('upload-data-button-top-round').addEventListener('click', triggerFileUpload);
+
+
+        // Yeni Komple Form PDF Oluşturma Fonksiyonu
+        function generateFullFormPdf() {
+            if (!validateForm()) {
+                showStatusMessage('Bitte füllen Sie alle Pflichtfelder korrekt aus und überprüfen Sie die TSE-Seriennummer.', 'danger');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const formData = {
+                // Firma Bilgileri
+                companyName: getValue('companyName'),
+                street: getValue('street'),
+                houseNumber: getValue('houseNumber'),
+                additionalInfo: getValue('additionalInfo'),
+                zipCode: getValue('zipCode'),
+                city: getValue('city'),
+
+                // İşletme Sahibi Bilgileri
+                anredeSelect: document.getElementById('anredeSelect').options[document.getElementById('anredeSelect').selectedIndex].text,
+                ownerFirstName: getValue('ownerFirstName'),
+                ownerLastName: getValue('ownerLastName'),
+                birthDate: formatDate(getValue('birthDate')),
+                taxNumber: getValue('taxNumber'),
+                idNumber: getValue('idNumber'),
+
+                // İkametgah Adresi
+                residenceStreet: getValue('residenceStreet'),
+                residenceHouseNumber: getValue('residenceHouseNumber'),
+                residenceAdditionalInfo: getValue('residenceAdditionalInfo'),
+                residenceZipCode: getValue('residenceZipCode'),
+                residenceCity: getValue('residenceCity'),
+
+                // İletişim Bilgileri
+                phoneNumber: getValue('phoneNumber'),
+                email: getValue('email'),
+                websiteAnydesk: getValue('websiteAnydesk'),
+
+                // eKasse Bilgileri
+                ekasseTypeSelect: document.getElementById('ekasseTypeSelect').options[document.getElementById('ekasseTypeSelect').selectedIndex].text,
+                ekasseTypeText: getValue('ekasseTypeText'),
+                ekasseSoftwareName: getValue('ekasseSoftwareName'),
+                softwareVersion: getValue('softwareVersion'),
+                ekasseSerialNumber: getValue('ekasseSerialNumber'),
+
+                // Donanım Bilgileri
+                hardwareManufacturer: getValue('hardwareManufacturer'),
+                hardwareModel: getValue('hardwareModel'),
+                hardwareSerialNumber: getValue('hardwareSerialNumber'),
+                purchaseDate: formatDate(getValue('purchaseDate')),
+                usageDate: formatDate(getValue('usageDate')),
+
+                // TSE Bilgileri
+                tseTypeSelect: document.getElementById('tseTypeSelect').options[document.getElementById('tseTypeSelect').selectedIndex].text,
+                tseTypeText: getValue('tseTypeText'),
+                bsiCertificateId: getValue('bsiCertificateId'),
+                tseSerialNumber: getValue('tseSerialNumber'),
+                tseUsageDate: formatDate(getValue('tseUsageDate')),
+                tseValidityDate: formatDate(getValue('tseValidityDate'))
+            };
+
+            let y = 15; // Başlangıç Y konumu (daha az boşluk)
+            const lineHeight = 5; // Satır yüksekliği (daha dar)
+            const margin = 10; // Kenar boşlukları (daha dar)
+            const sectionTitleSize = 12; // Bölüm başlığı fontu (daha küçük)
+            const fieldLabelSize = 8; // Etiket fontu (daha küçük)
+            const fieldValueSize = 9; // Değer fontu (daha küçük)
+            const pageWidth = doc.internal.pageSize.getWidth();
+            const textMaxWidth = pageWidth - (margin * 2) - 50; // Değer metni için maksimum genişlik (ayarlanmış)
+
+            doc.setFont('helvetica', 'bold');
+            doc.setFontSize(16); // Başlık fontu (biraz daha küçük)
+            doc.text("Kundendatenblatt", pageWidth / 2, y, { align: 'center' });
+            y += 10; // Başlıktan sonraki boşluk
+
+            // Helper to add section to PDF
+            const addSectionToPdf = (title, data) => {
+                if (y > doc.internal.pageSize.height - margin - (lineHeight * 4)) { // Sayfa sonuna yakınsa yeni sayfa
+                    doc.addPage();
+                    y = margin;
+                }
+                doc.setFont('helvetica', 'bold');
+                doc.setFontSize(sectionTitleSize);
+                doc.text(title, margin, y);
+                y += lineHeight + 1; // Bölüm başlığından sonraki boşluk
+
+                doc.setFont('helvetica', 'normal');
+                doc.setFontSize(fieldLabelSize);
+
+                for (const key in data) {
+                    const label = `${key}:`;
+                    const value = data[key] || ''; // Ensure value is not null/undefined
+                    
+                    if (y > doc.internal.pageSize.height - margin - (lineHeight * 2)) { // Alan eklemeden önce sayfa sonuna yakınsa yeni sayfa
+                        doc.addPage();
+                        y = margin;
+                        doc.setFont('helvetica', 'bold'); // Sayfa geçişinden sonra fontu tekrar uygula
+                        doc.setFontSize(sectionTitleSize);
+                        doc.text(title + " (devamı)", margin, y); // Devam ettiğini belirt
+                        y += lineHeight + 1;
+                        doc.setFont('helvetica', 'normal');
+                        doc.setFontSize(fieldLabelSize);
+                    }
+
+                    doc.text(label, margin + 2, y); // Etiketi biraz daha içeri al
+                    doc.setFontSize(fieldValueSize);
+                    const splitText = doc.splitTextToSize(value, textMaxWidth - 5); // Metin genişliğini ayarla
+                    doc.text(splitText, margin + 50, y); // Değeri etiketten sonra hizala
+                    y += (splitText.length * lineHeight);
+                    doc.setFontSize(fieldLabelSize);
+                }
+                y += 2; // Bölümden sonraki boşluk
+                doc.line(margin, y, pageWidth - margin, y); // Ayırıcı çizgi
+                y += 4;
+            };
+
+            addSectionToPdf("Firmenadresse", {
+                "Firmenname": formData.companyName,
+                "Straße": `${formData.street} ${formData.houseNumber}`,
+                "Zusatzinformation": formData.additionalInfo,
+                "PLZ": formData.zipCode,
+                "Ort": formData.city
+            });
+
+            addSectionToPdf("Inhaber Informationen", {
+                "Anrede": formData.anredeSelect,
+                "Vorname": formData.ownerFirstName,
+                "Nachname": formData.ownerLastName,
+                "Geburtsdatum": formData.birthDate,
+                "Steuernummer": formData.taxNumber,
+                "Identifikationsnummer": formData.idNumber
+            });
+
+            addSectionToPdf("Wohnadresse", {
+                "Straße": `${formData.residenceStreet} ${formData.residenceHouseNumber}`,
+                "Zusatzinformation": formData.residenceAdditionalInfo,
+                "PLZ": formData.residenceZipCode,
+                "Ort": formData.residenceCity
+            });
+
+            addSectionToPdf("Kontaktinformationen", {
+                "Telefon": formData.phoneNumber,
+                "E-Mail": formData.email,
+                "Web / AnyDesk": formData.websiteAnydesk
+            });
+
+            addSectionToPdf("eKasse Informationen", {
+                "Typ (Auswahl)": formData.ekasseTypeSelect,
+                "Typ (Beschreibung)": formData.ekasseTypeText,
+                "Software des eAS": formData.ekasseSoftwareName,
+                "Software Version": formData.softwareVersion,
+                "Seriennummer": formData.ekasseSerialNumber
+            });
+
+            addSectionToPdf("Hardware Informationen", {
+                "Hersteller": formData.hardwareManufacturer,
+                "Modell": formData.hardwareModel,
+                "Seriennummer": formData.hardwareSerialNumber,
+                "Anschaffungsdatum": formData.purchaseDate,
+                "Inbetriebnahme": formData.usageDate
+            });
+
+            addSectionToPdf("TSE Informationen", {
+                "Typ (Auswahl)": formData.tseTypeSelect,
+                "Typ (Beschreibung)": formData.tseTypeText,
+                "BSI Zertifikat ID": formData.bsiCertificateId,
+                "Seriennummer": formData.tseSerialNumber,
+                "Inbetriebnahme": formData.tseUsageDate,
+                "Gültig bis": formData.tseValidityDate
+            });
+
+            
+            const sanitizeFilename = (name) => {
+                if (!name) return '';
+                return name.replace(/[\\/:*?"<>|]/g, '_');
+            };
+            const fileName = sanitizeFilename(formData.companyName) || 'Neukunde';
+            doc.save(`${fileName}_KompleForm.pdf`);
+            showStatusMessage('Komple Form PDF başarıyla oluşturuldu!', 'success');
+        }
+
+        document.getElementById('generate-full-form-pdf-button-bottom').addEventListener('click', generateFullFormPdf);
+        document.getElementById('generate-full-form-pdf-button-top-round').addEventListener('click', generateFullFormPdf);
+
+        // CSV İndir Fonksiyonu - replaced to match JTL-Import format & ordering from jtlkayit.html
+        function downloadCsvData() {
+            // Validate required fields similar to JTL form rules
+            const requiredFields = {
+                'companyName': 'Firma',
+                'ownerFirstName': 'Vorname',
+                'ownerLastName': 'Nachname',
+                'email': 'E-Mail',
+                'phoneNumber': 'Telefon',
+                'zipCode': 'PLZ',
+                'city': 'Ort',
+                'street': 'Straße',
+                'houseNumber': 'Hausnummer'
+            };
+
+            for (const fieldId in requiredFields) {
+                const el = document.getElementById(fieldId);
+                const val = el ? el.value.trim() : '';
+                if (!val || val === 'API Fehler' || val === 'Ort nicht gefunden') {
+                    alert(`Bitte füllen Sie das Pflichtfeld "${requiredFields[fieldId]}" korrekt aus.`);
+                    if (el) el.focus();
+                    // open the related collapse if necessary
+                    const content = el ? el.closest('.collapse') : null;
+                    if (content) {
+                        const collapseInstance = new bootstrap.Collapse(content, { toggle: false });
+                        // show the collapse
+                        collapseInstance.show();
+                    }
+                    return;
+                }
+            }
+
+            // Collect values and map to JTL CSV columns and order
+            const anrede = (document.getElementById('anredeSelect') && document.getElementById('anredeSelect').options[document.getElementById('anredeSelect').selectedIndex].text) || '';
+            const vorname = getValue('ownerFirstName');
+            const nachname = getValue('ownerLastName');
+            const mail = getValue('email');
+            const telefon = getValue('phoneNumber');
+            const firma = getValue('companyName');
+            const firmenzusatz = getValue('additionalInfo') || '';
+            const ustid = getValue('taxNumber') || '';
+
+            const strasse = getValue('street');
+            const hausnummer = getValue('houseNumber');
+            const tamStrasse = (strasse.trim() + " " + hausnummer.trim()).trim();
+
+            const plz = getValue('zipCode');
+            const ort = getValue('city');
+            const land = 'DE'; // assume DE as in JTL form
+            const bundesland = ''; // not available in this form
+
+            const headers = [
+                "cAnrede", "cVorname", "cNachname", "cMail", "cTelefon",
+                "cFirma", "cFirmenzusatz", "cStrasse",
+                "cPLZ", "cOrt", "cLand", "cUSTID", "cBundesland"
+            ];
+
+            const values = [
+                `"${anrede}"`, `"${vorname}"`, `"${nachname}"`, `"${mail}"`, `"${telefon}"`,
+                `"${firma}"`, `"${firmenzusatz}"`, `"${tamStrasse}"`,
+                `"${plz}"`, `"${ort}"`, `"${land}"`, `"${ustid}"`, `"${bundesland}"`
+            ];
+
+            const delimiter = ";";
+            const csvContent = headers.join(delimiter) + "\n" + values.join(delimiter);
+            const BOM = "\uFEFF";
+            const finalContent = BOM + csvContent;
+
+            const blob = new Blob([finalContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `JTL_Kunde_Import_${new Date().toISOString().slice(0, 10)}.csv`;
+
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            // Do not clear the whole form (keeps original behavior), but show confirmation
+            alert('CSV Datei erfolgreich erstellt und heruntergeladen!');
+        }
+
+        document.getElementById('download-csv-button-bottom').addEventListener('click', downloadCsvData);
+        document.getElementById('download-csv-button-top-round').addEventListener('click', downloadCsvData);
+
+
+        // Fix for residence address IDs - ensure they are unique
+        // The original HTML had duplicate IDs for zipCode and city in Wohnadresse section.
+        // Renamed them to residenceZipCode and residenceCity.
+        // This makes sure the PDF generation correctly picks up the right values.
+        document.addEventListener('DOMContentLoaded', () => {
+            const residenceZipCodeInput = document.querySelector('#collapseWohnadresse input[placeholder="PLZ"]');
+            if (residenceZipCodeInput && residenceZipCodeInput.id !== 'residenceZipCode') {
+                residenceZipCodeInput.id = 'residenceZipCode';
+            }
+            const residenceCityInput = document.querySelector('#collapseWohnadresse input[placeholder="Ort"]');
+            if (residenceCityInput && residenceCityInput.id !== 'residenceCity') {
+                residenceCityInput.id = 'residenceCity';
+            }
+
+            // Initialize Bootstrap Tooltips
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+            // Add event listeners for collapse events to manage 'collapsed-state' class
+            document.querySelectorAll('.form-section .collapse').forEach(collapseElement => {
+                const parentSection = collapseElement.closest('.form-section');
+                if (parentSection) {
+                    collapseElement.addEventListener('hidden.bs.collapse', () => {
+                        parentSection.classList.add('collapsed-state');
+                    });
+                    collapseElement.addEventListener('shown.bs.collapse', () => {
+                        parentSection.classList.remove('collapsed-state');
+                    });
+                }
+            });
+
+            // "Bugün" butonları için event listener ekle
+            document.querySelectorAll('.btn-today').forEach(button => {
+                button.addEventListener('click', function() {
+                    const targetId = this.getAttribute('data-target');
+                    const targetInput = document.getElementById(targetId);
+                    if (targetInput) {
+                        const today = new Date();
+                        const year = today.getFullYear();
+                        const month = String(today.getMonth() + 1).padStart(2, '0');
+                        const day = String(today.getDate()).padStart(2, '0');
+                        targetInput.value = `${year}-${month}-${day}`;
+                    }
+                });
+            });
+
+        });
+
+        // ---------------------------
+        // Address Autocomplete & PLZ lookup (integrated from jtlkayit.html)
+        // Uses openplzapi.org as requested
+        // ---------------------------
+
+        const plzFirmInput = document.getElementById('zipCode');
+        const cityFirmInput = document.getElementById('city');
+        const streetFirmInput = document.getElementById('street');
+        const streetSuggestionsFirm = document.getElementById('streetSuggestionsFirm');
+
+        const plzResInput = document.getElementById('residenceZipCode');
+        const cityResInput = document.getElementById('residenceCity');
+        const streetResInput = document.getElementById('residenceStreet');
+        const streetSuggestionsRes = document.getElementById('streetSuggestionsResidence');
+
+        let streetFetchTimeoutFirm = null;
+        let cityFetchTimeoutFirm = null;
+        let streetFetchTimeoutRes = null;
+        let cityFetchTimeoutRes = null;
+
+        // Generic function to update city by PLZ and enable street input
+        async function updateCityByPlz(plz, cityInput, streetInput, suggestionsElem, cityTimerRefName) {
+            if (!cityInput || !streetInput) return;
+            cityInput.value = '';
+            suggestionsElem && (suggestionsElem.innerHTML = '');
+            streetInput.disabled = true;
+
+            if (plz.length !== 5) {
+                // PLZ 5 haneli değilse, cadde alanının placeholder'ını güncelle ve çık
+                streetInput.placeholder = 'Zuerst PLZ eingeben';
+                return;
+            }
+
+            try {
+                // call after small debounce handled by caller
+                const url = `https://openplzapi.org/de/Localities?postalCode=${encodeURIComponent(plz)}`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (data && data.length > 0) {
+                    const first = data[0];
+                    cityInput.value = first.name || '';
+                    // enable street input
+                    streetInput.placeholder = 'Straße'; // Placeholder'ı normale çevir
+                    streetInput.disabled = false;
+                    streetInput.focus();
+                } else {
+                    cityInput.value = 'Ort nicht gefunden';
+                    streetInput.placeholder = 'Zuerst PLZ eingeben';
+                    streetInput.disabled = true;
+                }
+            } catch (err) {
+                console.error('PLZ lookup error:', err);
+                streetInput.placeholder = 'Zuerst PLZ eingeben';
+                cityInput.value = 'API Fehler';
+                streetInput.disabled = true;
+            }
+        }
+
+        // Generic function to fetch matching streets for given plz + prefix
+        async function fetchStreetsFor(plz, prefix, suggestionsElem) {
+            if (!plz || plz.length !== 5 || !prefix || prefix.length < 1 || !suggestionsElem) {
+                suggestionsElem.innerHTML = '';
+                return;
+            }
+
+            try {
+                suggestionsElem.innerHTML = '';
+                const encodedPrefix = encodeURIComponent(`^${prefix}`);
+                const url = `https://openplzapi.org/de/Streets?postalCode=${plz}&name=${encodedPrefix}&limit=30`;
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (data && data.length > 0) {
+                    data.forEach(st => {
+                        const option = document.createElement('option');
+                        option.value = st.name;
+                        suggestionsElem.appendChild(option);
+                    });
+                }
+            } catch (err) {
+                console.error('Street fetch error:', err);
+            }
+        }
+
+        // Attach events for Firmenadresse PLZ
+        if (plzFirmInput) {
+            plzFirmInput.addEventListener('input', () => {
+                clearTimeout(cityFetchTimeoutFirm);
+                clearTimeout(streetFetchTimeoutFirm);
+                // small debounce
+                cityFetchTimeoutFirm = setTimeout(() => {
+                    updateCityByPlz(plzFirmInput.value.trim(), cityFirmInput, streetFirmInput, streetSuggestionsFirm);
+                }, 300);
+            });
+        }
+
+        if (streetFirmInput) {
+            streetFirmInput.addEventListener('input', () => {
+                clearTimeout(streetFetchTimeoutFirm);
+                streetFetchTimeoutFirm = setTimeout(() => {
+                    fetchStreetsFor(plzFirmInput ? plzFirmInput.value.trim() : '', streetFirmInput.value.trim(), streetSuggestionsFirm);
+                }, 350);
+            });
+        }
+
+        // Attach events for Wohnadresse PLZ
+        if (plzResInput) {
+            plzResInput.addEventListener('input', () => {
+                clearTimeout(cityFetchTimeoutRes);
+                clearTimeout(streetFetchTimeoutRes);
+                cityFetchTimeoutRes = setTimeout(() => {
+                    updateCityByPlz(plzResInput.value.trim(), cityResInput, streetResInput, streetSuggestionsRes);
+                }, 300);
+            });
+        }
+
+        if (streetResInput) {
+            streetResInput.addEventListener('input', () => {
+                clearTimeout(streetFetchTimeoutRes);
+                streetFetchTimeoutRes = setTimeout(() => {
+                    fetchStreetsFor(plzResInput ? plzResInput.value.trim() : '', streetResInput.value.trim(), streetSuggestionsRes);
+                }, 350);
+            });
+        }
+
+        // End of address autocomplete integration
+    </script>
+</body>
+</html>
