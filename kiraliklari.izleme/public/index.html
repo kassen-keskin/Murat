@@ -732,8 +732,10 @@
         }
     </style>
     <link rel="stylesheet" href="/satis.css">
+    <link rel="stylesheet" href="/teslimat.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="/teslimat.js" defer></script>
 </head>
 
 <body>
@@ -796,6 +798,7 @@
             <div id="tabRental" class="tab-item active" onclick="switchTab('rental')">Takipteki Müşteriler</div>
             <div id="tabCustom" class="tab-item" onclick="switchTab('custom')">Tüm Müşteriler</div>
             <div id="tabSatis"  class="tab-item" onclick="switchTab('satis')">🛒 Yeni Satış</div>
+            <div id="tabTeslimat" class="tab-item" onclick="switchTab('teslimat')">📦 Kasa Teslimat</div>
             <div id="tabAylik"  class="tab-item" onclick="switchTab('aylik')">Aylık Fatura</div>
         </div>
 
@@ -949,6 +952,75 @@
 
             </div><!-- /satis-inner -->
         </div><!-- /satisPaneli -->
+
+        <!-- ===== KASA TESLİMAT PROSEDÜRÜ PANELİ ===== -->
+        <div id="teslimatPaneli" class="panel satis-panel" style="display:none;">
+            <!-- Top Bar -->
+            <div class="satis-top-bar">
+                <h2>📦 Kasa Teslimat Prosedürü</h2>
+                <button class="btn-s secondary" onclick="toggleTeslimatAdminPanel()">⚙️ Yönetim Paneli</button>
+            </div>
+
+            <div class="satis-inner">
+                <!-- ADMIN PANEL -->
+                <div id="teslimatAdminPanel" class="admin-panel" style="display:none; flex: 1; min-height: 0; flex-direction: column;">
+                    <div class="admin-panel-hdr">
+                        <h3>⚙️ Yönetim Paneli — Teslimat Aşamaları</h3>
+                    </div>
+                    
+                    <!-- Scrollable body -->
+                    <div class="admin-panel-body" style="padding: 20px; flex: 1; overflow-y: auto; max-height: none;">
+                        <div id="teslimatAdminStepsContainer" style="display: flex; flex-direction: column; gap: 20px;">
+                            <!-- Steps will be dynamically injected here -->
+                        </div>
+                        <button class="btn-s teal" style="margin-top: 15px;" onclick="addTeslimatStep()">+ Yeni Aşama Ekle</button>
+                    </div>
+
+                    <div class="admin-footer" style="flex-shrink: 0; background: var(--surface-color);">
+                        <button class="btn-s success" onclick="saveTeslimatConfig()">💾 Formu Kaydet</button>
+                    </div>
+                </div>
+
+                <!-- CHECKLIST VIEW -->
+                <div class="wizard-wrap" id="teslimatChecklistContainer" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+                    <!-- Forms will be generated here -->
+                </div>
+
+                <!-- İMZA BÖLÜMÜ -->
+                <div id="teslimatImzaSection" class="imza-section" style="max-width: 800px; margin: 20px auto;">
+                    <div class="imza-info">
+                        <div class="imza-info-row">
+                            <div class="imza-lbl">📅 Tarih</div>
+                            <div class="imza-date-val" id="teslimatImzaTarih"></div>
+                        </div>
+                        <div class="imza-info-row">
+                            <div class="imza-lbl">👤 Satış Temsilcisi</div>
+                            <select id="teslimatImzaTemsilci" class="form-ctrl">
+                                <option value="">-- Seçiniz --</option>
+                            </select>
+                        </div>
+                        <div class="imza-info-row">
+                            <div class="imza-lbl">🏢 Müşteri Adı / Ünvanı</div>
+                            <input type="text" id="teslimatImzaMusteriAdi" class="form-ctrl" placeholder="Müşteri adını giriniz..." autocomplete="off">
+                        </div>
+                    </div>
+                    <div class="imza-canvas-wrap">
+                        <div class="imza-lbl">✍️ İlgili Kişi İmzası</div>
+                        <canvas id="teslimatImzaCanvas" class="imza-canvas"></canvas>
+                        <div class="imza-canvas-acts">
+                            <button class="btn-s secondary" onclick="teslimatImzaTemizle()">🗑️ İmzayı Temizle</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- PDF -->
+                <div id="teslimatPdfRow" class="pdf-row" style="max-width: 800px; margin: 0 auto; padding-bottom: 40px; display: flex; gap: 15px; justify-content: center;">
+                    <button class="btn-s secondary lg" onclick="teslimatFormSifirla()">🔄 Formu Sıfırla</button>
+                    <button class="btn-s teal lg" onclick="teslimatPdfOlustur()">📄 PDF Çıktısı Al</button>
+                </div>
+
+            </div>
+        </div><!-- /teslimatPaneli -->
 
     </div><!-- /dashboard-container -->
 
@@ -1168,11 +1240,13 @@
             document.getElementById('tabRental').classList.toggle('active', tab === 'rental');
             document.getElementById('tabCustom').classList.toggle('active', tab === 'custom');
             document.getElementById('tabSatis').classList.toggle('active',  tab === 'satis');
+            document.getElementById('tabTeslimat').classList.toggle('active', tab === 'teslimat');
             document.getElementById('tabAylik').classList.toggle('active',  tab === 'aylik');
 
             const filterPanel = document.querySelector('.filter-panel');
             const listPanel   = document.querySelector('.panel.list-panel');
             const satisPaneli = document.getElementById('satisPaneli');
+            const teslimatPaneli = document.getElementById('teslimatPaneli');
             const aylikControls = document.getElementById('aylikControls');
 
             aylikControls.style.display = tab === 'aylik' ? 'flex' : 'none';
@@ -1180,12 +1254,20 @@
             if (tab === 'satis') {
                 filterPanel.style.display = 'none';
                 listPanel.style.display   = 'none';
+                teslimatPaneli.style.display = 'none';
                 satisPaneli.style.display = 'flex';
                 initSatisTab();
+            } else if (tab === 'teslimat') {
+                filterPanel.style.display = 'none';
+                listPanel.style.display   = 'none';
+                satisPaneli.style.display = 'none';
+                teslimatPaneli.style.display = 'flex';
+                if (typeof initTeslimatTab === 'function') initTeslimatTab();
             } else {
                 filterPanel.style.display = '';
                 listPanel.style.display   = '';
                 satisPaneli.style.display = 'none';
+                teslimatPaneli.style.display = 'none';
                 if (tab === 'aylik') {
                     if (!aylikLoaded) {
                         await fetchAylikData();

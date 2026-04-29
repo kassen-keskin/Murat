@@ -73,6 +73,29 @@ def manage_satis_data():
         except Exception as e:
             return jsonify({"error": str(e)}), 500
 
+TESLIMAT_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'teslimat_config.json')
+
+@app.route('/api/teslimat_config', methods=['GET', 'POST'])
+def manage_teslimat_config():
+    if request.method == 'GET':
+        try:
+            if os.path.exists(TESLIMAT_CONFIG_FILE):
+                with open(TESLIMAT_CONFIG_FILE, 'r', encoding='utf-8') as f:
+                    return jsonify(json.load(f))
+            # Return a default empty structure if file doesn't exist
+            return jsonify({"steps": []})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+            
+    if request.method == 'POST':
+        try:
+            data = request.get_json()
+            with open(TESLIMAT_CONFIG_FILE, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+            return jsonify({"success": True})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
 @app.route('/api/customers')
 def get_customers():
     conn = get_db_connection()

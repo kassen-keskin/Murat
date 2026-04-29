@@ -1,0 +1,133 @@
+{
+    "steps": [
+        {
+            "id": "step_1777454846340_0",
+            "title": "Müsteri Bilgileri",
+            "questions": [
+                {
+                    "id": "q_1777454846340_0_0",
+                    "text": "Firma Ismi, Adresi, Firma Sahibi",
+                    "type": "radio",
+                    "options": [
+                        "Var",
+                        "Eksik"
+                    ]
+                },
+                {
+                    "id": "q_1777454846340_0_1",
+                    "text": "ELSTER yapilacak mi?",
+                    "type": "radio",
+                    "options": [
+                        "Evet",
+                        "Hayir"
+                    ]
+                },
+                {
+                    "id": "q_1777454846340_0_2",
+                    "text": "ESLTER bilgileri TAMAMEN toplandi mi , Bizde mi?",
+                    "type": "radio",
+                    "options": [
+                        "Evet",
+                        "Hayir"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "step_1777454846340_1",
+            "title": "Donanim",
+            "questions": [
+                {
+                    "id": "q_1777454846340_1_0",
+                    "text": "Kasa",
+                    "type": "radio",
+                    "options": [
+                        "Noris / Olympia (Delta-X)",
+                        "Prox (Lotus Pecas / LaCash)",
+                        "RCH",
+                        "Quorion",
+                        "Jassway (Lotus Pecas / LaCash)",
+                        "Elines (Lotus Pecas / LaCash)"
+                    ]
+                },
+                {
+                    "id": "q_1777454846340_1_1",
+                    "text": "Cekmece",
+                    "type": "radio",
+                    "options": [
+                        "Var",
+                        "Yok"
+                    ]
+                },
+                {
+                    "id": "q_1777454846340_1_2",
+                    "text": "Yazici",
+                    "type": "radio",
+                    "options": [
+                        "Var",
+                        "Yok"
+                    ]
+                },
+                {
+                    "id": "q_1777454846340_1_3",
+                    "text": "Yazici Kac tane",
+                    "type": "text",
+                    "options": []
+                }
+            ]
+        },
+        {
+            "id": "step_1777454846340_2",
+            "title": "Müsteriye Anlatilacaklar",
+            "questions": [
+                {
+                    "id": "q_1777454846340_2_0",
+                    "text": "Storno Anlatildi mi?",
+                    "type": "checkbox",
+                    "options": [
+                        "Evet"
+                    ]
+                },
+                {
+                    "id": "q_1777454846340_2_1",
+                    "text": "Retour Anlatildi mi?",
+                    "type": "checkbox",
+                    "options": [
+                        "Evet"
+                    ]
+                },
+                {
+                    "id": "q_1777454846340_2_2",
+                    "text": "Bon Storno Anlatildi mi?",
+                    "type": "checkbox",
+                    "options": [
+                        "Evet"
+                    ]
+                },
+                {
+                    "id": "q_1777454846340_2_3",
+                    "text": "Wechelgeld Anlatildi mi?",
+                    "type": "checkbox",
+                    "options": [
+                        "Evet"
+                    ]
+                }
+            ]
+        },
+        {
+            "id": "step_1777454846340_3",
+            "title": "Yazilim Kontrolleri",
+            "questions": [
+                {
+                    "id": "q_1777454846340_3_0",
+                    "text": "Son sürüm yüklendi mi?",
+                    "type": "radio",
+                    "options": [
+                        "Evet",
+                        "Hayir"
+                    ]
+                }
+            ]
+        }
+    ]
+}

@@ -1,0 +1,222 @@
+/* Teslimat Prosedürü CSS */
+
+#teslimatPaneli {
+    /* reuse some styles from satis.css if needed, but mainly specific stuff */
+}
+
+/* Admin Panel Styles */
+.teslimat-step-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    position: relative;
+}
+
+.teslimat-step-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.teslimat-step-title-input {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    width: 60%;
+}
+
+.teslimat-question-card {
+    background-color: rgba(255, 255, 255, 0.03);
+    border: 1px dashed var(--border-color);
+    border-radius: 6px;
+    padding: 15px;
+    margin-bottom: 15px;
+    margin-left: 20px;
+}
+
+.teslimat-question-header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.teslimat-question-input {
+    flex: 1;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px 12px;
+    border-radius: 4px;
+}
+
+.teslimat-type-select {
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px;
+    border-radius: 4px;
+}
+
+.teslimat-options-container {
+    margin-top: 10px;
+    padding-left: 20px;
+}
+
+.teslimat-option-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.teslimat-option-input {
+    flex: 1;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 6px 10px;
+    border-radius: 4px;
+}
+
+/* Checklist View Styles */
+.checklist-step {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.checklist-step-title {
+    color: var(--primary-color);
+    font-size: 1.4rem;
+    margin-top: 0;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--secondary-color);
+}
+
+.checklist-question {
+    margin-bottom: 20px;
+}
+
+.checklist-question-text {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.checklist-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-left: 10px;
+}
+
+.checklist-option-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    font-size: 1rem;
+    color: var(--text-muted);
+}
+
+.checklist-option-label:hover {
+    color: var(--text-color);
+}
+
+.checklist-option-label input[type="checkbox"],
+.checklist-option-label input[type="radio"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.checklist-text-input {
+    width: 100%;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+}
+
+/* Print Specific Styles */
+@media print {
+    #teslimatPaneli {
+        display: block !important;
+    }
+    .satis-top-bar, .admin-panel, #teslimatPdfRow {
+        display: none !important;
+    }
+    .checklist-step {
+        border: 1px solid #000;
+        background-color: #fff;
+        color: #000;
+        page-break-inside: avoid;
+    }
+    .checklist-step-title {
+        color: #000;
+        border-bottom: 2px solid #000;
+    }
+    .checklist-question-text, .checklist-option-label {
+        color: #000;
+    }
+    .imza-section {
+        background-color: #fff;
+        color: #000;
+        border: 1px solid #000;
+    }
+    .imza-lbl {
+        color: #000;
+    }
+}
+
+/* Drag and Drop Styles */
+.drag-handle {
+    cursor: grab;
+    font-size: 1.6rem;
+    color: var(--text-muted);
+    margin-right: 15px;
+    user-select: none;
+    transition: color 0.2s;
+}
+.drag-handle:hover {
+    color: var(--text-color);
+}
+.drag-handle:active {
+    cursor: grabbing;
+}
+.teslimat-step-card.dragging {
+    opacity: 0.4;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    transform: scale(0.98);
+}
+.teslimat-step-card.drag-over {
+    border: 2px dashed var(--secondary-color);
+    background-color: rgba(3, 218, 198, 0.05);
+}
+
+/* Collapse / Expand Styles */
+.collapse-toggle {
+    margin-right: 10px;
+    font-size: 0.8rem;
+    color: var(--primary-color);
+}
+.teslimat-step-card.collapsed .teslimat-questions-container {
+    display: none;
+}
