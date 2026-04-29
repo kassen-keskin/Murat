@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beyond Admin - Profesyonel Panel</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root { --bg-color: #f4f7f6; --card-bg: #ffffff; --text-color: #2d3436; }
+        [data-bs-theme="dark"] { --bg-color: #1a1a1a; --card-bg: #2d2d2d; --text-color: #f5f6fa; }
+        body { background-color: var(--bg-color); color: var(--text-color); transition: 0.3s; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .card { background-color: var(--card-bg); border: none; box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .suggestion-box { position: absolute; z-index: 1050; width: 100%; background: var(--card-bg); box-shadow: 0 5px 15px rgba(0,0,0,0.2); max-height: 200px; overflow-y: auto; }
+        .sticky-top-menu { background: var(--card-bg); padding: 15px; z-index: 1020; border-bottom: 2px solid #28a745; position: sticky; top: 0; }
+        .accordion-button:not(.collapsed) { background-color: #e8f5e9; color: #2e7d32; }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg sticky-top-menu">
+    <div class="container-fluid">
+        <a class="navbar-brand text-success fw-bold" href="#"><i class="bi bi-file-earmark-check-fill"></i> Beyond Admin</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarTools">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarTools">
+            <div class="d-flex flex-wrap gap-2 mx-auto mt-2 mt-lg-0 justify-content-center align-items-center">
+                <button class="btn btn-outline-dark" onclick="toggleTheme()" title="Tema Değiştir"><i class="bi bi-moon-stars"></i></button>
+                <div class="btn-group">
+                    <button class="btn btn-primary" onclick="toggleAll(true)" title="Hepsini Aç"><i class="bi bi-arrows-expand"></i> <span class="d-none d-md-inline">Aç</span></button>
+                    <button class="btn btn-primary" onclick="toggleAll(false)" title="Hepsini Kapat"><i class="bi bi-arrows-collapse"></i> <span class="d-none d-md-inline">Kapat</span></button>
+                </div>
+                <button class="btn btn-warning" onclick="saveJSON()"><i class="bi bi-download"></i> <span class="d-none d-lg-inline">Yedek</span></button>
+                <label class="btn btn-info text-white mb-0" style="cursor: pointer;">
+                    <i class="bi bi-upload"></i> <span class="d-none d-lg-inline">Yükle</span> <input type="file" hidden onchange="loadJSON(this)">
+                </label>
+                <button class="btn btn-success" onclick="processPDF()"><i class="bi bi-printer"></i> <span class="d-none d-sm-inline">PDF OLUŞTUR</span></button>
+                <button class="btn btn-danger" onclick="clearForm()"><i class="bi bi-trash"></i> <span class="d-none d-lg-inline">TEMİZLE</span></button>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4 mb-5">
+    <form id="adminForm">
+        <div class="accordion" id="formSteps">
+
+            <div class="accordion-item shadow-sm mb-3">
+                <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#step1">
+                        <i class="bi bi-info-circle-fill me-2 text-primary"></i> 1. Müşteri ve Sözleşme Bilgileri
+                    </button>
+                </h2>
+                <div id="step1" class="accordion-collapse collapse show">
+                    <div class="accordion-body row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Müşteri Durumu</label>
+                            <select class="form-select" id="Neukunde_Select">
+                                <option value="Neukunde" selected>Neukunde (Yeni)</option>
+                                <option value="Bestandskunde">Bestandskunde (Mevcut)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Leistungsbeginn (GG.AA.YYYY)</label>
+                            <div class="input-group">
+                                <span class="input-group-text"><i class="bi bi-calendar3"></i></span>
+                                <input type="text" id="Leistungsbeginn" class="form-control" placeholder="31.12.2024" onblur="checkDate(this)" maxlength="10">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Laufzeit (Ay)</label>
+                            <input type="number" id="Laufzeit" class="form-control" value="48">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Firmenname (Resmi Ad)</label>
+                            <input type="text" id="Firmenname" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">Rechtsform (Hukuki Form)</label>
+                            <input type="text" id="Rechtsform" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">Telefon Firma</label>
+                            <input type="text" id="Telefon_Firma" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">St.-Nr.</label>
+                            <input type="text" id="St_Nr" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">HR-Nummer</label>
+                            <input type="text" id="HR_Nummer" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">Registergericht</label>
+                            <input type="text" id="Registergericht" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item shadow-sm mb-3">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step2">
+                        <i class="bi bi-geo-alt-fill me-2 text-danger"></i> 2. Adres Bilgileri (API Otomasyonu)
+                    </button>
+                </h2>
+                <div id="step2" class="accordion-collapse collapse">
+                    <div class="accordion-body row g-3">
+                        <div class="col-4 col-md-2">
+                            <label class="form-label">Firma PLZ</label>
+                            <input type="text" id="Firmen_PLZ" class="form-control" maxlength="5" oninput="fetchCity(this, 'Firmen_Stadt', 'Firmenadresse')">
+                        </div>
+                        <div class="col-8 col-md-4">
+                            <label class="form-label">Firma Stadt</label>
+                            <input type="text" id="Firmen_Stadt" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-5 position-relative">
+                            <label class="form-label">Firma Straße (Cadde)</label>
+                            <input type="text" id="Firmenadresse" class="form-control" oninput="fetchStreets(this, 'Firmen_PLZ')">
+                            <div id="Firmenadresse-list" class="list-group suggestion-box shadow"></div>
+                        </div>
+                        <div class="col-12 col-md-1">
+                            <label class="form-label">Ülke</label>
+                            <input type="text" id="Laendercode_1" class="form-control" value="DEU">
+                        </div>
+                        <hr>
+                        <div class="col-4 col-md-2">
+                            <label class="form-label">Şahıs PLZ</label>
+                            <input type="text" id="Privat_PLZ" class="form-control" maxlength="5" oninput="fetchCity(this, 'Privat_Stadt', 'Privatadresse')">
+                        </div>
+                        <div class="col-8 col-md-4">
+                            <label class="form-label">Şahıs Stadt</label>
+                            <input type="text" id="Privat_Stadt" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-5 position-relative">
+                            <label class="form-label">Şahıs Straße</label>
+                            <input type="text" id="Privatadresse" class="form-control" oninput="fetchStreets(this, 'Privat_PLZ')">
+                            <div id="Privatadresse-list" class="list-group suggestion-box shadow"></div>
+                        </div>
+                        <div class="col-12 col-md-1">
+                            <label class="form-label">Ülke</label>
+                            <input type="text" id="Laendercode_2" class="form-control" value="DEU">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item shadow-sm mb-3">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step3">
+                        <i class="bi bi-person-badge-fill me-2 text-warning"></i> 3. Yetkili / Inhaber Bilgileri
+                    </button>
+                </h2>
+                <div id="step3" class="accordion-collapse collapse">
+                    <div class="accordion-body row g-3">
+                        <div class="col-4 col-md-2">
+                            <label class="form-label">Anrede</label>
+                            <select id="Anrede" class="form-select">
+                                <option value="">Seçiniz</option>
+                                <option value="Herr">Herr</option>
+                                <option value="Frau">Frau</option>
+                            </select>
+                        </div>
+                        <div class="col-8 col-md-3">
+                            <label class="form-label">Vorname (Ad)</label>
+                            <input type="text" id="Inhabervname" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Nachname (Soyad)</label>
+                            <input type="text" id="Inhabernachname" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">E-Mail</label>
+                            <input type="email" id="E_Mail_1" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Geburtsort</label>
+                            <input type="text" id="Geburtsort" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label">Geburtsdatum (GG.AA.YYYY)</label>
+                            <input type="text" id="Geburtsdatum" class="form-control" placeholder="01.01.1980" onblur="checkDate(this)" maxlength="10">
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label">Nationalität</label>
+                            <input type="text" id="Nationalitaet" class="form-control">
+                        </div>
+                        <hr>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Kimlik Tipi</label>
+                            <select id="Ausweis_Type_Select" class="form-select">
+                                <option value="Personalausweis">Personalausweis</option>
+                                <option value="Reisepass">Reisepass</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Nummer</label>
+                            <input type="text" id="Ausweisnummer" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">Ausstellungsdatum</label>
+                            <input type="text" id="Ausstellungsdatum" class="form-control" placeholder="GG.AA.YYYY" onblur="checkDate(this)" maxlength="10">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">Behörde</label>
+                            <input type="text" id="Behoerde" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item shadow-sm mb-3">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step4">
+                        <i class="bi bi-cart-check-fill me-2 text-info"></i> 4. Terminal, Ciro ve Teslimat
+                    </button>
+                </h2>
+                <div id="step4" class="accordion-collapse collapse">
+                    <div class="accordion-body row g-3">
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Terminal Tipi</label>
+                            <select id="Terminatyp" class="form-select" onchange="updateMiete(this.value)">
+                                <option value="">Seçiniz...</option>
+                                <option value="V200c LAN">V200c LAN</option>
+                                <option value="Base Next">Base Next</option>
+                                <option value="Desk 3500">Desk 3500</option>
+                                <option value="Move 3500">Move 3500</option>
+                                <option value="Move 5000">Move 5000</option>
+                                <option value="Mobile Premium">Mobile Premium</option>
+                                <option value="A920">A920</option>
+                            </select>
+                        </div>
+                        <div class="col-6 col-md-2">
+                            <label class="form-label">Anzahl</label>
+                            <input type="number" id="Anzahl" class="form-control" value="1">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">Kira (€)</label>
+                            <input type="text" id="Terminalmiete" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Verbindung</label>
+                            <select id="Conn_Select" class="form-select">
+                                <option value="Lan">LAN</option>
+                                <option value="Mobilfunk">Mobilfunk</option>
+                                <option value="Wlan">WLAN</option>
+                                <option value="Mobil_Wlan">Mobil + WLAN</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-3">
+                            <label class="form-label">Sim Kart Gerekli mi?</label>
+                            <select id="SimKart_Status" class="form-select">
+                                <option value="nein">Nein (Hayır)</option>
+                                <option value="ja">Ja (Evet)</option>
+                            </select>
+                        </div>
+                        <hr>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Yıllık Ciro (€)</label>
+                            <input type="text" id="UmsatzProJahre" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Yıllık İşlem Adedi</label>
+                            <input type="text" id="TransaktionProJahre" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Ø Bon Tutarı</label>
+                            <input type="text" id="BonProTransaktion" class="form-control">
+                        </div>
+                        <hr>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Teslimat Adresi Seçimi</label>
+                            <select id="Liefer_Select" class="form-select" onchange="genLieferText()">
+                                <option value="Bize">Bize Gönderilsin</option>
+                                <option value="Musteri">Müşteriye Gönderilsin</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-8">
+                            <label class="form-label">Oluşturulan Teslimat Notu</label>
+                            <textarea id="Liefer_Preview" class="form-control" rows="4" readonly></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item shadow-sm mb-3">
+                <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#step5">
+                        <i class="bi bi-bank2 me-2 text-dark"></i> 5. Banka ve Ödeme Bilgileri
+                    </button>
+                </h2>
+                <div id="step5" class="accordion-collapse collapse">
+                    <div class="accordion-body row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label">IBAN</label>
+                            <input type="text" id="Iban" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">Banka Adı</label>
+                            <input type="text" id="BankName" class="form-control">
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label">BIC</label>
+                            <input type="text" id="Bic" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">Ödeme Periyodu</label>
+                            <select id="Pay_Select" class="form-select">
+                                <option value="Wöchentlich">Wöchentlich (Haftalık)</option>
+                                <option value="Täglich">Täglich (Günlük)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-md-4">
+                            <label class="form-label">GläubigerID</label>
+                            <input type="text" id="GläubigerID" class="form-control">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+const mietes = { "V200c LAN": "8,95", "Base Next": "9,95", "Desk 3500": "10,65", "Move 3500": "13,95", "Move 5000": "14,95", "Mobile Premium": "14,95", "A920": "15,95" };
+
+function updateMiete(v) { document.getElementById("Terminalmiete").value = mietes[v] || ""; }
+
+async function fetchCity(el, cityId, nextId) {
+    if(el.value.length === 5) {
+        const res = await fetch(`https://openplzapi.org/de/Localities?postalCode=${el.value}`);
+        const data = await res.json();
+        if(data.length > 0) {
+            document.getElementById(cityId).value = data[0].name;
+            document.getElementById(nextId).focus();
+            genLieferText();
+        }
+    }
+}
+
+async function fetchStreets(el, plzId) {
+    const plz = document.getElementById(plzId).value;
+    const list = document.getElementById(el.id + "-list");
+    if(el.value.length > 0 && plz) {
+        const res = await fetch(`https://openplzapi.org/de/Streets?postalCode=${plz}&name=${el.value}`);
+        const data = await res.json();
+        list.innerHTML = "";
+        data.slice(0, 5).forEach(s => {
+            const b = document.createElement("button");
+            b.className = "list-group-item list-group-item-action py-1";
+            b.type = "button";
+            b.textContent = s.name;
+            b.onclick = () => { el.value = s.name; list.innerHTML = ""; genLieferText(); };
+            list.appendChild(b);
+        });
+    } else { list.innerHTML = ""; }
+}
+
+function genLieferText() {
+    const mode = document.getElementById("Liefer_Select").value;
+    const box = document.getElementById("Liefer_Preview");
+    if(mode === "Bize") {
+        box.value = "Bitte das Gerät an unsere Adresse liefern:\nKassen Keskin\nErol Keskin\nPhilippistr. 3\n14059 Berlin";
+    } else {
+        const fn = document.getElementById("Firmenname").value;
+        const iname = (document.getElementById("Inhabervname").value + " " + document.getElementById("Inhabernachname").value).trim();
+        const adr = document.getElementById("Firmenadresse").value;
+        const ps = document.getElementById("Firmen_PLZ").value + " " + document.getElementById("Firmen_Stadt").value;
+        box.value = `Bitte das Gerät an folgende Adresse senden:\n${fn}\n${iname}\n${adr}\n${ps}`;
+    }
+}
+
+document.getElementById("adminForm").addEventListener("input", genLieferText);
+
+function processPDF() {
+    const d = {};
+    const getVal = id => document.getElementById(id).value;
+    
+    document.querySelectorAll("input, select, textarea").forEach(i => d[i.id] = i.value);
+
+    d["Neukunde"] = (getVal("Neukunde_Select") === "Neukunde");
+    d["Bestandskunde"] = (getVal("Neukunde_Select") === "Bestandskunde");
+    
+    const fullName = getVal("Inhabervname") + " " + getVal("Inhabernachname");
+    d["Inhabername_Full"] = fullName;
+    d["KontoInhaber"] = fullName;
+    d["Inhaber_Sign_1"] = fullName;
+    d["Inhabervname_2"] = getVal("Inhabervname");
+    d["Inhabernachname_2"] = getVal("Inhabernachname");
+
+    d["Telefon_Inhaber_1"] = getVal("Telefon_Firma");
+    d["Telefon_Inhaber_2"] = getVal("Telefon_Firma");
+    d["E_Mail_2"] = getVal("E_Mail_1");
+
+    d["Bon_Firmenname"] = getVal("Firmenname");
+    d["Bon_Firmenadresse"] = getVal("Firmenadresse");
+    d["Bon_PLZ_Stadt"] = getVal("Firmen_PLZ") + " " + getVal("Firmen_Stadt");
+
+    d["10-Lieferadresse"] = getVal("Liefer_Preview");
+
+    const conn = getVal("Conn_Select");
+    ["Lan", "Mobilfunk", "Wlan", "Mobil_Wlan"].forEach(id => d[id] = (id === conn));
+    
+    d["SimKart"] = (getVal("SimKart_Status") === "ja");
+
+    const pay = getVal("Pay_Select");
+    ["Täglich", "Wöchentlich"].forEach(id => d[id] = (id === pay));
+
+    const aus = getVal("Ausweis_Type_Select");
+    d["o_Personalausweis"] = (aus === "Personalausweis");
+    d["o_Reisepass"] = (aus === "Reisepass");
+    d["Ausweis_Type"] = aus;
+
+    const today = new Date().toLocaleDateString('de-DE');
+    d["OrtDatum_1"] = today;
+    d["OrtDatum_2"] = today;
+    d["OrtDatum_3"] = "Berlin, " + today;
+
+    localStorage.setItem('formVerisi', JSON.stringify(d));
+    window.open('index.html', '_blank');
+}
+
+function toggleTheme() { document.documentElement.setAttribute("data-bs-theme", document.documentElement.getAttribute("data-bs-theme") === "dark" ? "light" : "dark"); }
+function toggleAll(show) { document.querySelectorAll('.accordion-collapse').forEach(el => show ? el.classList.add('show') : el.classList.remove('show')); }
+function saveJSON() {
+    const data = {};
+    document.querySelectorAll("#adminForm input, #adminForm select, #adminForm textarea").forEach(el => {
+        if (el.id) data[el.id] = el.value;
+    });
+    const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    
+    let filename = "Forum_Backup";
+    const firmaVal = document.getElementById("Firmenname").value.trim();
+    if(firmaVal) filename = firmaVal.replace(/\s+/g, "_");
+    
+    a.download = filename + ".json"; a.click();
+}
+function checkDate(el) {
+    let v = el.value.replace(/[^0-9.]/g, '');
+    if (v.length === 8 && !v.includes('.')) {
+        v = v.substring(0, 2) + '.' + v.substring(2, 4) + '.' + v.substring(4, 8);
+    }
+    el.value = v;
+    if (v !== "" && !/^(\d{2})\.(\d{2})\.(\d{4})$/.test(v)) {
+        alert("Hatalı Tarih Formatı! Lütfen GG.AA.YYYY formatında giriniz (Örn: 01.01.2024).");
+    }
+}
+function clearForm() { if(confirm("Tüm veriler silinecek?")) { document.getElementById("adminForm").reset(); genLieferText(); } }
+function loadJSON(i) {
+    const r = new FileReader();
+    r.onload = e => {
+        const data = JSON.parse(e.target.result);
+        Object.keys(data).forEach(k => { if(document.getElementById(k)) document.getElementById(k).value = data[k]; });
+        genLieferText();
+    };
+    r.readAsText(i.files[0]);
+}
+</script>
+</body>
+</html>

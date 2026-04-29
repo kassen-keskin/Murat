@@ -800,6 +800,7 @@
             <div id="tabSatis"  class="tab-item" onclick="switchTab('satis')">🛒 Yeni Satış</div>
             <div id="tabTeslimat" class="tab-item" onclick="switchTab('teslimat')">📦 Kasa Teslimat</div>
             <div id="tabAylik"  class="tab-item" onclick="switchTab('aylik')">Aylık Fatura</div>
+            <div id="tabFormHub" class="tab-item" onclick="switchTab('formhub')">📄 Dokümanlar</div>
         </div>
 
         <div id="aylikControls" class="aylik-controls" style="display:none; gap:10px; margin-top:12px;">
@@ -1022,6 +1023,11 @@
             </div>
         </div><!-- /teslimatPaneli -->
 
+        <!-- ===== FORM HUB PANELİ ===== -->
+        <div id="formHubPaneli" class="panel" style="display:none; padding:0; flex:1; overflow:hidden;">
+            <iframe src="/formhub/dashboard.html" style="width:100%; height:100%; border:none;"></iframe>
+        </div>
+
     </div><!-- /dashboard-container -->
 
     <!-- Hidden Print Area -->
@@ -1242,11 +1248,13 @@
             document.getElementById('tabSatis').classList.toggle('active',  tab === 'satis');
             document.getElementById('tabTeslimat').classList.toggle('active', tab === 'teslimat');
             document.getElementById('tabAylik').classList.toggle('active',  tab === 'aylik');
+            document.getElementById('tabFormHub').classList.toggle('active', tab === 'formhub');
 
             const filterPanel = document.querySelector('.filter-panel');
             const listPanel   = document.querySelector('.panel.list-panel');
             const satisPaneli = document.getElementById('satisPaneli');
             const teslimatPaneli = document.getElementById('teslimatPaneli');
+            const formHubPaneli = document.getElementById('formHubPaneli');
             const aylikControls = document.getElementById('aylikControls');
 
             aylikControls.style.display = tab === 'aylik' ? 'flex' : 'none';
@@ -1255,19 +1263,28 @@
                 filterPanel.style.display = 'none';
                 listPanel.style.display   = 'none';
                 teslimatPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'none';
                 satisPaneli.style.display = 'flex';
                 initSatisTab();
             } else if (tab === 'teslimat') {
                 filterPanel.style.display = 'none';
                 listPanel.style.display   = 'none';
                 satisPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'none';
                 teslimatPaneli.style.display = 'flex';
                 if (typeof initTeslimatTab === 'function') initTeslimatTab();
+            } else if (tab === 'formhub') {
+                filterPanel.style.display = 'none';
+                listPanel.style.display   = 'none';
+                satisPaneli.style.display = 'none';
+                teslimatPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'flex';
             } else {
                 filterPanel.style.display = '';
                 listPanel.style.display   = '';
                 satisPaneli.style.display = 'none';
                 teslimatPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'none';
                 if (tab === 'aylik') {
                     if (!aylikLoaded) {
                         await fetchAylikData();

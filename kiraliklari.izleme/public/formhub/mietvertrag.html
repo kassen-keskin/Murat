@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Miet-Generator PRO v8.6</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        :root { 
+            --sidebar-w: 600px; 
+            --accent: #2563eb;
+            
+            /* Light Theme Defaults */
+            --bg-body: #f3f4f6;
+            --bg-sidebar: #ffffff;
+            --border-color: #e5e7eb;
+            --preview-bg: #64748b;
+            --text-color: #212529;
+            --acc-btn-bg: #f8fafc;
+            --acc-btn-color: #4b5563;
+            --acc-active-bg: #eff6ff;
+            --item-border: #f3f4f6;
+            --handle-color: #d1d5db;
+            --box-bg: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] {
+            --bg-body: #121212;
+            --bg-sidebar: #212529;
+            --border-color: #373b3e;
+            --preview-bg: #1a1a1a;
+            --text-color: #e0e0e0;
+            --acc-btn-bg: #2c3034;
+            --acc-btn-color: #adb5bd;
+            --acc-active-bg: #0d6efd26;
+            --item-border: #373b3e;
+            --handle-color: #6c757d;
+            --box-bg: #2b3035;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-body); color: var(--text-color); height: 100vh; overflow: hidden; }
+        
+        .app-container { display: flex; height: 100vh; }
+        .sidebar { width: var(--sidebar-w); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 10; }
+        .preview { flex-grow: 1; background: var(--preview-bg); padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+        .sidebar-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-sidebar); }
+        .sidebar-scroll { flex: 1; overflow-y: auto; padding: 1rem; }
+        
+        .accordion-item { border: 1px solid var(--border-color); border-radius: 8px !important; margin-bottom: 1rem; overflow: hidden; background-color: var(--bg-sidebar); }
+        .accordion-button { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--acc-btn-color); background: var(--acc-btn-bg); }
+        .accordion-button:not(.collapsed) { background: var(--acc-active-bg); color: var(--accent); }
+
+        .item-row { display: flex; gap: 4px; padding: 6px; border-bottom: 1px solid var(--item-border); align-items: center; }
+        .drag-handle { cursor: grab; color: var(--handle-color); }
+
+        .document-page { width: 210mm; min-height: 297mm; background: white; padding: 15mm 20mm; color: black; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin-bottom: 20px; }
+        .mieter-table { width: 100%; margin-top: 5px; }
+        .mieter-table td { font-size: 13px; padding: 1px 0; }
+        .mieter-label { font-weight: 800; width: 130px; }
+        
+        .doc-table { width: 100%; margin-top: 15px; border: 1.5px solid #000; border-collapse: collapse; }
+        .doc-table th { background: #f8fafc; border: 1px solid #000; padding: 8px; font-size: 12px; }
+        .doc-table td { border: 1px solid #000; padding: 5px; font-size: 12px; }
+
+        .section-text { font-size: 12px; white-space: pre-wrap; margin-top: 5px; min-height: 20px; }
+
+        /* Yeni Madde Hizalaması (Tab İçeriden) */
+        .indent-section { margin-left: 30px; margin-top: 5px; font-size: 12px; line-height: 1.4; text-align: justify; }
+
+        #v_approval_list { display: block; margin-top: 5px; line-height: 1.4; }
+
+        .custom-box { background-color: var(--box-bg); border: 1px solid var(--border-color) !important; }
+
+        /* Print Layout Helpers */
+        .print-table { width: 100%; border-collapse: collapse; border: none; }
+        .print-table > tbody > tr > td, 
+        .print-table > thead > tr > td, 
+        .print-table > tfoot > tr > td { padding: 0; border: none; }
+        .print-header, .print-footer { display: none; }
+        .print-header-space { height: 15mm; }
+        .print-footer-space { height: 15mm; }
+
+        @media print {
+            @page { size: auto; margin: 0mm; }
+            body { overflow: visible !important; height: auto !important; }
+            .sidebar, .no-print { display: none !important; }
+            .preview { padding: 0 !important; background: white !important; overflow: visible !important; display: block !important; }
+            .document-page { box-shadow: none !important; margin: 0 !important; width: 100% !important; border: none !important; page-break-after: always; padding: 0 20mm !important; }
+            h6 { page-break-after: avoid; break-after: avoid; }
+            .indent-section, .section-text { page-break-inside: avoid; break-inside: avoid; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            .print-table tr { page-break-inside: auto; }
+            thead { display: table-header-group; }
+            .print-header { display: table-header-group; }
+            .print-footer { display: table-footer-group; }
+            ::-webkit-scrollbar { display: none !important; }
+        }
+    </style>
+</head>
+<body data-bs-theme="light">
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h6 class="mb-0 fw-bold text-primary">Miet-Generator PRO v8.6</h6>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light btn-sm border" onclick="toggleTheme()"><i class="bi bi-moon-stars"></i></button>
+                <button class="btn btn-outline-primary btn-sm" onclick="exportData()"><i class="bi bi-download"></i></button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('importFile').click()"><i class="bi bi-upload"></i></button>
+                <input type="file" id="importFile" hidden onchange="importData(event)">
+            </div>
+        </div>
+
+        <div class="sidebar-scroll">
+            <div class="accordion" id="formAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#colMieter">Mieterinformationen</button></h2>
+                    <div id="colMieter" class="accordion-collapse collapse show" data-bs-parent="#formAccordion">
+                        <div class="accordion-body">
+                            <div class="mb-2"><label class="small fw-bold">Kundennummer</label><input type="text" id="f_knd" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="mb-2"><label class="small fw-bold">Firmenname</label><input type="text" id="f_firma" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="mb-2"><label class="small fw-bold">Inhaber/in</label><input type="text" id="f_inhaber" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="mb-2"><label class="small fw-bold">Gewerbeadresse</label><input type="text" id="f_adr_gew" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="mb-2"><label class="small fw-bold">Privatadresse</label><input type="text" id="f_adr_priv" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="row g-2">
+                                <div class="col-6"><label class="small fw-bold">E-Mail</label><input type="text" id="f_ust" class="form-control form-control-sm" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">Telefon</label><input type="text" id="f_tel" class="form-control form-control-sm" oninput="sync()"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#colItems">Artikelliste</button></h2>
+                    <div id="colItems" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                        <div class="accordion-body px-1">
+                            <div id="item-container"></div>
+                            <button class="btn btn-primary btn-sm w-100 mt-2" onclick="addItem()">+ Artikel hinzufügen</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#colFinance">Konditionen & Regelungen</button></h2>
+                    <div id="colFinance" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                        <div class="accordion-body">
+                            <div class="row g-2 mb-3">
+                                <div class="col-6"><label class="small fw-bold">Einmalig (€)</label><input type="number" id="f_aus" class="form-control form-control-sm" value="0" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">Miete Netto (€)</label><input type="number" id="f_netto" class="form-control form-control-sm" value="0" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">Beginn</label><input type="date" id="f_start" class="form-control form-control-sm" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">Dauer (Monate)</label><input type="number" id="f_sure" class="form-control form-control-sm" value="24" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">TSE Laufzeit (Jahre)</label><input type="number" id="f_tse" class="form-control form-control-sm" value="5" oninput="sync()"></div>
+                            </div>
+                            <div class="mb-3"><label class="small fw-bold">Schadenersatz (€)</label><input type="number" id="f_schaden" class="form-control form-control-sm" value="5455.00" oninput="sync()"></div>
+                            <div class="mb-3">
+                                <label class="small fw-bold">§ 3 Sonderregelung</label>
+                                <textarea id="f_sonder" class="form-control form-control-sm" rows="3" oninput="sync()" placeholder="Sondervereinbarungen hier eingeben..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small fw-bold">§ 4 Info</label>
+                                <textarea id="f_info" class="form-control form-control-sm" rows="3" oninput="sync()" placeholder="Kaufoption und zusätzliche Informationen..."></textarea>
+                            </div>
+                            <div class="custom-box p-2 rounded">
+                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_gew" onchange="sync()"> <label>Gewerbebescheinigung</label></div>
+                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_anm" onchange="sync()"> <label>Anmeldebescheinigung</label></div>
+                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_id" onchange="sync()"> <label>Personalausweis</label></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 border-top"><button class="btn btn-success w-100 py-3 fw-bold" onclick="handlePrint()">DRUCKEN / PDF</button></div>
+    </aside>
+
+    <main class="preview">
+        <div class="document-page" id="print-area">
+            <table class="print-table">
+                <thead class="print-header"><tr><td><div class="print-header-space"></div></td></tr></thead>
+                <tfoot class="print-footer"><tr><td><div class="print-footer-space"></div></td></tr></tfoot>
+                <tbody><tr><td>
+            <div class="d-flex align-items-end border-bottom border-dark border-3 pb-2 mb-4">
+                <div style="flex: 1;"></div>
+                <div class="text-center" style="flex: 2;"><h1 class="fw-bold mb-0" style="font-size: 2rem;">MIETVERTRAG</h1></div>
+                <div class="text-end" style="flex: 1;"><span class="small">Datum: <strong id="v_tarih">--.--.----</strong></span></div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-5">
+                    <h6 class="fw-bold border-bottom border-dark pb-1">Vermieter</h6>
+                    <p class="small">
+                        Erol Keskin<br>
+                        Kassen Keskin<br>
+                        Philippistr. 3 Berlin<br>
+                        Bearbeiter: Erol keskin<br>
+                        Telefon: 030/23571527<br>
+                        Mobil: 0176/22204117<br>
+                        E-Mail: info@kassen-keskin.de
+                    </p>
+                </div>
+                <div class="col-7">
+                    <h6 class="fw-bold border-bottom border-dark pb-1">Mieter</h6>
+                    <table class="mieter-table">
+                        <tr><td class="mieter-label">Kundennummer:</td><td id="v_knd">__________</td></tr>
+                        <tr><td class="mieter-label">Firma:</td><td id="v_firma">__________</td></tr>
+                        <tr><td class="mieter-label">Inhaber/in:</td><td id="v_inhaber">__________</td></tr>
+                        <tr><td class="mieter-label">Gewerbeadr.:</td><td id="v_adr_gew">__________</td></tr>
+                        <tr><td class="mieter-label">Privatadr.:</td><td id="v_adr_priv">__________</td></tr>
+                        <tr><td class="mieter-label">E-Mail:</td><td id="v_ust">__________</td></tr>
+                        <tr><td class="mieter-label">Telefon:</td><td id="v_tel">__________</td></tr>
+                    </table>
+                    <div id="v_approval" class="mt-2 p-1 border border-success rounded text-success fw-bold" style="display:none; width:100%; font-size: 10px;">
+                        <i class="bi bi-check2-circle"></i> GEPRÜFTE UNTERLAGEN:
+                        <div id="v_approval_list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <h6 class="fw-bold">§ 1 Mietgegenstände</h6>
+            <table class="doc-table">
+                <thead><tr><th width="40">Anz.</th><th>Typ</th><th>Marke</th><th>Modell</th><th>Seriennummer (SN)</th></tr></thead>
+                <tbody id="v_items_body"></tbody>
+            </table>
+
+            <h6 class="fw-bold mt-3">§ 2 Mietzeit und Kosten</h6>
+            <p class="small mb-1">Beginn: <strong id="v_start">--.--.----</strong> | Mindestlaufzeit: <strong id="v_sure">24</strong> Monate.</p>
+            <p class="small mb-1" id="v_einmalig_line">Einmalig <strong id="v_aus_val">0,00 €</strong> Netto (inkl TSE für <strong id="v_tse_val">5</strong> Jahre)</p>
+            <div style="width: 280px; margin-left: auto;">
+                <div class="d-flex justify-content-between py-1 small"><span>Miete (Netto):</span><span id="v_netto">0,00 €</span></div>
+                <div class="d-flex justify-content-between py-1 small border-bottom"><span>MwSt. (19%):</span><span id="v_mwst">0,00 €</span></div>
+                <div class="d-flex justify-content-between fw-bold pt-1"><span>Gesamt (Brutto):</span><span id="v_brutto">0,00 €</span></div>
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 3 Sonderregelung</h6>
+            <div class="section-text" id="v_sonder">Keine Sonderregelungen vereinbart.</div>
+
+            <h6 class="fw-bold mt-3">§ 4 Info</h6>
+            <div class="section-text" id="v_info">Keine weiteren Informationen hinterlegt.</div>
+
+            <h6 class="fw-bold mt-3">§ 5 Instandhaltung, Schadenersatz und Haftung</h6>
+            <div class="indent-section">
+                (1) Das Kassensystem wird in betriebsfähigem, technisch und optisch einwandfreiem Zustand übergeben. Während der Mietzeit gewährleistet Kassen Keskin einen Fullservice mit Geräteaustauschoption im Falle eines Defektes.<br>
+                (2) Im Schadensfall verständigt der Mieter den Vermieter unverzüglich. Eine spätere Reklamation veya Rücksendung des Mietgegenstandes, ohne dass der Vermieter vorher informiert wurde, kann nicht akzeptiert werden.<br>
+                (3) Schäden und Verschleiß aufgrund anormaler, schwerer Betriebsbedingungen an den Mietgeräten (z.B. Schäden durch Wasser, Hitze, Unglücksfälle, Nachlässigkeit veya Nichtbeachtung der Betriebsanleitung) gehen zu Lasten des Mieters. Der Mieter hat die Mietgeräte sorgfältig zu behandeln. Die Gefahr des zufälligen Verlustes, Diebstahls ve der Beschädigung der Mietgeräte – aus welchem Grund auch immer – trägt der Mieter. Der Mieter ist auch in diesen Fällen zur Vertragserfüllung verpflichtet, insbesondere zur Fortzahlung der vereinbarten Mietraten.<br>
+                (4) Der Mieter darf die Geräte nur durch Mitarbeiter des Vermieters öffnen veya reparieren lassen. Alle durch Nichtbeachten dieser Vorschriften entstehenden Kosten gehen zu Lasten des Mieters.<br>
+                (5) Dem Mieter wird empfohlen, eine Sachschadenversicherung abzuschließen.<br>
+                (6) Bei Nichtrückgabe wird Schadenersatz in Höhe von <span id="v_schaden">5.455,00 €</span> netto berechnet.<br>
+                (7) Serviceeinsätze, die auf Grund unsachgemäßer Behandlung wie z.B. schlechter Stromversorgung veya beschädigtem Drucker, durch falsch eingelegtes Papier usw. geleistet werden müssen, werden nach Zeitaufwand in Rechnung gestellt. Das Kassensystem muss unter Beachtung der Bedienungsanleitung sowie der Hinweise bei der Übergabe betrieben werden.<br>
+                (8) Bei Störung bzw. Ausfall des Kassensystems übernimmt der Vermieter keine Haftung für Folgeschäden (wie z.B. Umsatzeinbuße) ve kann nicht regresspflichtig gemacht werden.<br>
+                (9) Werden die Systeme durch den Vermieter programmiert, muss die Programmierung vom Mieter kontrolliert werden. Der Vermieter übernimmt keine Gewähr für die Richtigkeit.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 6 Besondere Pflichten des Mieters</h6>
+            <div class="indent-section">
+                (1) Die Weitervermietung des Gerätes ve die Abtretung von Rechten aus diesem Vertrag sind dem Mieter nicht gestattet.<br>
+                (2) Die Veränderung des zwischen Vermieter ve Mieter vereinbarten Standortes bedarf der schriftlichen Genehmigung des Vermieters. Andernfalls hat der Vermieter das Recht, den Mietgegenstand sofort (ohne Nachfristsetzung) abzuholen. Dabei hat der Mieter die Pflicht, den neuen Standort sofort bekanntzugeben.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 7 Eigentumsvorbehalt</h6>
+            <div class="indent-section">
+                (1) Bis zur vollständigen Zahlung bleiben alle gelieferten Waren unser Eigentum. Dies betrifft sowohl Handelsware, als auch Ersatzteile für Reparaturen. Die Ware bleibt unser Eigentum, bis alle Forderungen aus dem gesamten Geschäftsverhältnis bezahlt sind.<br>
+                (2) Die Verpfändung veya Sicherheitsübereignung an den unter Eigentumsvorbehalt gelieferten Waren ist dem Mieter untersagt.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 8 Service ve Hotline</h6>
+            <div class="indent-section" style="margin-left:0;">
+                Für die Dauer der Vermietung stehen dem Mieter die eingangs erwähnten Kommunikationsmöglichkeiten im Störungsfall kostenlos zur Verfügung.<br>
+                <div style="margin-left: 30px;">(1) Wir bemühen uns, unter diesen Rufnummern auch an den Wochenenden ve Nachtstunden erreichbar zu sein. Ein Anspruch auf Erreichbarkeit besteht nicht.</div>
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 9 Kündigung</h6>
+            <div class="indent-section">
+                (1) Eine vorzeitige Kündigung ist nicht gestattet (außer bei Gewerbeabmeldung). Im Falle einer Insolvenz veya Gewerbeabmeldung werden die bisher gezahlten Mieten nicht zurückerstattet. Sonst muss die Kasse umgehend ohne Mängel zurück an Kassen Keskin aushändigen veya per Post zurück schicken.<br>
+                (2) Die Kündigung hat in Textform zu erfolgen.<br>
+                (3) Das Recht zur fristlosen Kündigung aus wichtigem Grund bleibt für beide Seiten hiervon unberührt.<br>
+                (4) Kündigungsfrist nach zwei Jahren ist monatlich.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 10 Miete</h6>
+            <div class="indent-section">
+                (1) zu mieten, ist er, sofern er bilanzierungspflichtig ist, verpflichtet, den Vertragsgegenstand in seiner Bilanz zu aktivieren.<br>
+                (2) Die Kasse bleibt bis zur letzten Rate Eigentum von Kassen Keskin. Die verlängert sich automatisch um ein Jahr, wenn es nicht gekündigt wird.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 11 Sicherungsübereignung</h6>
+            <div class="indent-section">
+                (1) Ungeachtet der Regelung gem. § 10 sind sich die Parteien darüber einig, dass das Eigentum an dem Mietgegenstand mit allen Bestandteilen ve Zubehör zur Sicherung aller weiteren Ansprüche des Vermieters– auch künftiger ve bedingter Ansprüche aus weiteren Verträgen – dient.<br>
+                (2) Nach Befriedigung der gesicherten Ansprüche wird der Vermieter die ihm gestellten Sicherheiten zurückübertragen ve einen etwaigen Übererlös aus der Verwertung herausgeben.<br>
+                (3) Die Rückübertragung des Objektes geschieht in dem Zustand, in dem es sich befindet.<br>
+                (4) Die Vermieter wird die Sicherheiten an einen Dritten übertragen, wenn er hierzu verpflichtet ist.<br>
+                (5) Vor vollständiger Befriedigung durch die Sicherungsübereignung gesicherten Ansprüche ist der Vermieter verpflichtet, auf Verlangen das ihm übertragene Objekt bzw. andere ihm gestellte Sicherheiten nach seinem billigen Ermessen ganz veya teilweise freizugeben, sofern der realisierbare Wert sämtlicher Sicherheiten – abgestellt auf den Zeitpunkt der Kündigung – 110% der gesicherten Ansprüche des Vermieters nicht nur vorübergehend überschreitet.<br>
+                (6) Der Vermieter wird bei den freizugebenden Sicherheiten die berechtigten Interessen des Mieters berücksichtigen. Besteht Streit über die Werthaltigkeit, gilt eine 150% Grenze. Der Wert der Sicherheiten wird durch einen öffentlich bestellten ve vereidigten Sachverständigen bestimmt. Die Kosten hierfür werden geteilt.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 12 Schlussbestimmungen</h6>
+            <div class="indent-section">
+                (1) Mündliche bzw. telefonische Absprachen haben keine Gültigkeit.<br>
+                (2) Änderungen/Absprachen/Terminvereinbarungen haben in Textform zu erfolgen. Sie erhalten erst dann Gültigkeit, wenn sie von uns bestätigt worden sind.<br>
+                (3) Erfüllungsort für Lieferungen ve Zahlungen sowie Gerichtsstand für beide Teile ist Berlin.<br>
+                (4) Sollten einzelne Bestimmungen dieses Vertrages unwirksam sein, so wird die Wirksamkeit der übrigen Vereinbarungen nicht berührt. Die unwirksame Bestimmung wird durch die gesetzliche Regelung ersetzt.<br>
+                (5) Kassen Keskin darf auf die Kasse zugreifen, wenn Wartung erforderlich ist veya um eventuel den Lizenzzeitraum zu verlängern.<br>
+                (6) Der Mieter ist verpflichtet, das gemietete Kassensystem samt Zubehör nach Beendigung des Mietverhältnisses unverzüglich ve vollständig an den Vermieter zurückzugeben.<br>
+                Falls der Mieter sich bei veya nach Vertragsende weigert, das Kassensystem zurückzugeben, wird dies mit der Seriennummer [§ 1 Mietgegenstände ] umgehend als Unterschlagung veya Diebstahl bei der zuständigen Polizeibehörde gemeldet. Zusätzlich behält sich der Vermieter die Geltendmachung weiterer zivilrechtlicher Schritte ve Schadensersatzansprüche vor.<br>
+                (7) Im Falle der Gewerbeabmeldung veya Gewerbewechsel ist der Mieter rechtzeitig verpflichtet sich zu melden. Die durch die Gewerbeummeldung anfallenden Kosten (wie z.B. Kasse zurücksetzen/neu programmieren, neue TSE installieren, neue Menükarte eintragen ve Kasse beim Finanzamt anmelden) trägt der Mieter bzw. sein Nachfolger
+            </div>
+
+            <div class="mt-4 small">
+                Allgemeinen Geschäftsbedingungen (AGB) der Kassen Keskin: http://kassensysteme-keskin.de/AGB<br>
+                Datenschutzerklärung der Kassen Keskin: http://kassensysteme-keskin.de/Datenschutzerklärung
+            </div>
+
+            <div class="mt-5 pt-3">
+                <table style="width: 100%; text-align: center; font-size: 12px;">
+                    <tr>
+                        <td style="width: 50%;">Für den Vermieter<br>Berlin, den ....................<br><br><br>...........................................<br>(Unterschrift)</td>
+                        <td style="width: 50%;">Für den Mieter<br>Berlin, den ....................<br><br><br>...........................................<br>(Unterschrift)</td>
+                    </tr>
+                </table>
+            </div>
+            <div class="mt-4 small text-muted">Rechstanwalt Norbert Mösch</div>
+            </td></tr></tbody></table>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function sync() {
+        // Mieter Alanları
+        ['knd', 'firma', 'inhaber', 'adr_gew', 'adr_priv', 'ust', 'tel', 'sure', 'sonder', 'info'].forEach(f => {
+            const val = document.getElementById('f_'+f).value;
+            const target = document.getElementById('v_'+f);
+            if(f === 'sonder' || f === 'info') {
+                target.innerText = val || (f === 'sonder' ? 'Keine Sonderregelungen.' : 'Keine Infos.');
+            } else {
+                target.innerText = val || '__________';
+            }
+        });
+
+        // Tarih ve Finans
+        const start = document.getElementById('f_start').value;
+        document.getElementById('v_start').innerText = start ? start.split('-').reverse().join('.') : '--.--.----';
+        document.getElementById('v_tarih').innerText = new Date().toLocaleDateString('de-DE');
+
+        const net = parseFloat(document.getElementById('f_netto').value) || 0;
+        const aus = parseFloat(document.getElementById('f_aus').value) || 0;
+        const tse = document.getElementById('f_tse').value || 5;
+        const mwst = net * 0.19;
+
+        document.getElementById('v_netto').innerText = net.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+        document.getElementById('v_aus_val').innerText = aus.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+        document.getElementById('v_tse_val').innerText = tse;
+        document.getElementById('v_mwst').innerText = mwst.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+        document.getElementById('v_brutto').innerText = (net + mwst).toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+
+        const schaden = parseFloat(document.getElementById('f_schaden').value) || 0;
+        document.getElementById('v_schaden').innerText = schaden.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+
+        // Evrak Listesi Güncellendi
+        const gewOk = document.getElementById('check_gew').checked;
+        const anmOk = document.getElementById('check_anm').checked;
+        const idOk = document.getElementById('check_id').checked;
+        
+        document.getElementById('v_approval').style.display = (gewOk || anmOk || idOk) ? 'block' : 'none';
+        
+        let listHtml = "";
+        if(gewOk) listHtml += "• Gewerbebescheinigung (Geprüft)<br>";
+        if(anmOk) listHtml += "• Anmeldebescheinigung (Geprüft)<br>";
+        if(idOk) listHtml += "• Personalausweis (Kopie erhalten)";
+        document.getElementById('v_approval_list').innerHTML = listHtml;
+
+        renderItems();
+    }
+
+    function addItem(data = {}) {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+            <span class="drag-handle"><i class="bi bi-grip-vertical"></i></span>
+            <input type="text" class="form-control form-control-sm in-anz" style="width:40px" value="${data.anz || 1}" oninput="sync()">
+            <input type="text" class="form-control form-control-sm in-typ flex-grow-1" placeholder="Typ" value="${data.typ || ''}" oninput="sync()">
+            <input type="text" class="form-control form-control-sm in-mar" placeholder="Marke" value="${data.mar || ''}" oninput="sync()">
+            <input type="text" class="form-control form-control-sm in-mod" placeholder="Modell" value="${data.mod || ''}" oninput="sync()">
+            <input type="text" class="form-control form-control-sm in-sn" placeholder="SN" value="${data.sn || ''}" oninput="sync()">
+            <button class="btn btn-link text-danger p-1" onclick="this.parentElement.remove(); sync();"><i class="bi bi-trash"></i></button>
+        `;
+        document.getElementById('item-container').appendChild(row);
+        sync();
+    }
+
+    function renderItems() {
+        const tbody = document.getElementById('v_items_body');
+        tbody.innerHTML = '';
+        document.querySelectorAll('.item-row').forEach(row => {
+            const typ = row.querySelector('.in-typ').value;
+            if(typ) {
+                tbody.innerHTML += `<tr><td>${row.querySelector('.in-anz').value}x</td><td>${typ}</td><td>${row.querySelector('.in-mar').value}</td><td>${row.querySelector('.in-mod').value}</td><td><b>${row.querySelector('.in-sn').value}</b></td></tr>`;
+            }
+        });
+    }
+
+    function toggleTheme() {
+        const b = document.body;
+        b.setAttribute('data-bs-theme', b.getAttribute('data-bs-theme') === 'light' ? 'dark' : 'light');
+    }
+
+    function exportData() {
+        const data = {
+            mieter: { knd: f_knd.value, firma: f_firma.value, inhaber: f_inhaber.value, adr_gew: f_adr_gew.value, adr_priv: f_adr_priv.value, ust: f_ust.value, tel: f_tel.value },
+            finanz: { netto: f_netto.value, aus: f_aus.value, start: f_start.value, sure: f_sure.value, sonder: f_sonder.value, info: f_info.value, schaden: f_schaden.value, tse: f_tse.value },
+            items: Array.from(document.querySelectorAll('.item-row')).map(r => ({
+                anz: r.querySelector('.in-anz').value, typ: r.querySelector('.in-typ').value, mar: r.querySelector('.in-mar').value, mod: r.querySelector('.in-mod').value, sn: r.querySelector('.in-sn').value
+            }))
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MietBackup_${f_firma.value || 'v86'}.json`; a.click();
+    }
+
+    function importData(e) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = JSON.parse(event.target.result);
+            const m = data.mieter || {}; 
+            f_knd.value = m.knd||''; f_firma.value = m.firma||''; f_inhaber.value = m.inhaber||''; f_adr_gew.value = m.adr_gew||''; f_adr_priv.value = m.adr_priv||''; f_ust.value = m.ust||''; f_tel.value = m.tel||'';
+            const f = data.finanz || {}; 
+            f_netto.value = f.netto||0; f_aus.value = f.aus||0; f_start.value = f.start||''; f_sure.value = f.sure||24; f_sonder.value = f.sonder||''; f_info.value = f.info||''; f_schaden.value = f.schaden||'5455.00'; f_tse.value = f.tse||5;
+            document.getElementById('item-container').innerHTML = ''; (data.items || []).forEach(i => addItem(i)); sync();
+        };
+        reader.readAsText(e.target.files[0]);
+    }
+
+    function handlePrint() { 
+        if(!check_id.checked || !check_gew.checked || !check_anm.checked) alert("Bitte bestätigen Sie die Unterlagen.");
+        else window.print(); 
+    }
+
+    new Sortable(document.getElementById('item-container'), { animation: 150, handle: '.drag-handle', onEnd: sync });
+    window.onload = () => { addItem(); sync(); };
+</script>
+</body>
+</html>

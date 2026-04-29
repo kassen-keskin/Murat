@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Beyond PDF - Akıllı Yazdırma</title>
+    <style>
+        body { 
+            margin: 0; padding: 0; background-color: #525659; 
+            display: flex; flex-direction: column; align-items: center; 
+        }
+        .header-menu { 
+            position: sticky; top: 0; width: 100%; background: #333; 
+            padding: 15px; text-align: center; z-index: 9999; 
+        }
+        .btn-print { 
+            padding: 12px 30px; cursor: pointer; background: #28a745; 
+            color: white; border: none; border-radius: 5px; font-weight: bold; 
+        }
+        .page-container {
+            position: relative;
+            width: 1241px; 
+            aspect-ratio: 1241 / 1755;
+            background-color: white; 
+            margin: 20px 0;
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
+            page-break-after: always;
+        }
+        .bg-img { width: 100%; height: 100%; display: block; position: absolute; top: 0; left: 0; }
+        .form-input {
+            position: absolute;
+            background: rgba(255, 0, 0, 0.15); 
+            border: none;
+            font-size: 1.3vw; 
+            font-family: Arial, sans-serif;
+            outline: none;
+            color: black;
+            z-index: 100;
+            padding: 0;
+            text-align: center;
+        }
+        
+        .form-input.filled {
+            background: rgba(0, 255, 0, 0.15);
+        }
+
+        /* Checkbox Ortak Stil */
+        .dot-checkbox, .x-checkbox {
+            appearance: none;
+            -webkit-appearance: none;
+            cursor: pointer;
+            background-color: transparent !important;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1 / 1 !important;
+            height: auto !important;
+            
+        }
+
+        /* Yuvarlak ve Noktalı */
+        /*.dot-checkbox { border: 1.5px solid black !important; border-radius: 50% !important; }*/
+
+        /* Kare ve X */
+        /*.x-checkbox { border: 1.5px solid black !important; border-radius: 0% !important; }*/
+
+        /* İşaretlendiğinde metin 'X'ini kaldırıp SVG tabanlı 'X' kullan (Daha temiz ve kaymaz) */
+        .dot-checkbox:checked::before,
+        .x-checkbox:checked::before {
+            content: "" !important; /* Metin 'X'ini tamamen kaldırıyoruz */
+        }
+        .dot-checkbox:checked,
+        .x-checkbox:checked {
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 8 8'%3e%3cpath fill='none' stroke='black' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M1 1l6 6m0-6L1 7'/%3e%3c/svg%3e") !important;
+            background-size: 80% 80%; /* Kutunun içinde biraz boşluk bırakmak için */
+            background-repeat: no-repeat;
+            background-position: center;
+            -webkit-print-color-adjust: exact; /* Chrome/Edge: Arka planı yazdırmaya zorlar */
+            print-color-adjust: exact;         /* Firefox/Standart: Arka planı yazdırmaya zorlar */
+        }
+
+        @media print {
+            @page { size: A4; margin: 0; }
+            .no-print { display: none; }
+            body { background: white; }
+            .page-container {
+                margin: 0;
+                box-shadow: none;
+                /* Sayfanın yazdırılabilir alanına tam sığması ve küçülmemesi için genişliği 100% yapıyoruz.
+                   Yükseklik, 'aspect-ratio' özelliği sayesinde orantılı olarak ayarlanacaktır.
+                   Bu, tarayıcının sayfayı küçültmesini engelleyerek alanlardaki kaymaları önler. */
+                width: 100%;
+                height: auto;
+            }
+            .form-input { background: transparent !important; font-size: 10pt; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header-menu no-print">
+        <button class="btn-print" onclick="window.print()">YAZDIR / PDF OLUŞTUR</button>
+    </div>
+
+    <div class="page-container" id="page1">
+        <img src="beyond-1.png" class="bg-img">
+        /*Neukunde default olarak checked kalacak ama form sayfasinda degistirile bilir durumda olacak*/
+        <input type="checkbox" id="Neukunde" name="kunde_group" class="form-input dot-checkbox" style="top: 11.62%; left: 7.65%; width: 1.77%;" checked>
+        <input type="checkbox" id="Bestandskunde" name="kunde_group" class="form-input dot-checkbox" style="top: 11.62%; left: 17.0%; width: 1.77%;" >
+        /*Leistungsbeginn Tarih formatinda olacak tarih formati DD.MM.YYYY seklinde olacak manuel yazila bilecek ama bir butun ile takvim eklene bilir Form sayfasinda butlaka olacak*/
+        <input type="text" id="Leistungsbeginn" class="form-input" style="top: 13.67%; left: 44.72%; width: 12.57%; height: 1.42%;">
+        /*Laufzeit default olarak 48 olacak form tarafinda degistirile bilir olacak*/
+        <input type="text" id="Laufzeit" class="form-input" style="top: 13.67%; left: 88.87%; width: 4.02%; height: 1.42%;" value="48">
+        <input type="text" id="Firmenname" class="form-input sync-firmaname" style="top: 21.08%; left: 8.13%; width: 27.63%; height: 1.42%;">
+        /*Inhabername_Full bu alan otomatik dolacak buraya Inhabervname + Inhabernachname degerleri gelecek form sayfasinda bulunmasina gerek yok*/
+        <input type="text" id="Inhabername_Full" class="form-input" style="top: 21.08%; left: 36.74%; width: 39.08%; height: 1.42%;">
+        /*Rechtsform form sayfasinda bulunacak*/
+        <input type="text" id="Rechtsform" class="form-input" style="top: 21.08%; left: 76.95%; width: 15.95%; height: 1.42%;">
+         /*Telefon_Firma form sayfasinda bulunacak*/
+        <input type="text" id="Telefon_Firma" class="form-input" style="top: 25.92%; left: 8.05%; width: 23.28%; height: 1.42%;">
+         /*St_Nr form sayfasinda bulunacak*/
+        <input type="text" id="St_Nr" class="form-input" style="top: 25.92%; left: 32.31%; width: 18.77%; height: 1.42%;">
+         /*HR_Nummer form sayfasinda bulunacak*/
+        <input type="text" id="HR_Nummer" class="form-input" style="top: 25.92%; left: 52.21%; width: 12.81%; height: 1.42%;">
+            /*Registergericht form sayfasinda bulunacak*/
+        <input type="text" id="Registergericht" class="form-input" style="top: 25.92%; left: 66.00%; width: 27.00%; height: 1.42%;">
+            /*Firma Adres form sayfasinda bulunacak*/
+        <input type="text" id="Firmenadresse" class="form-input sync-firma-adr" style="top: 30.48%; left: 8.05%; width: 34.56%; height: 1.42%;">
+            /*Firma PLZ ve Stadt form sayfasinda bulunacak*/
+        <input type="text" id="Firmen_PLZ" class="form-input sync-firma-plz" style="top: 30.48%; left: 43.83%; width: 14.18%; height: 1.42%;">
+            /*Firma Stadt form sayfasinda bulunacak*/
+        <input type="text" id="Firmen_Stadt" class="form-input sync-firma-stadt" style="top: 30.48%; left: 59.14%; width: 25.54%; height: 1.42%;">
+            /*Laendercode form sayfasinda bulunacak default DEU olacak*/
+        <input type="text" id="Laendercode_1" class="form-input" style="top: 30.48%; left: 85.49%; width: 7.33%; height: 1.42%;" value="DEU">
+        /*Inhabervname ve Inhabernachname form sayfasinda bulunacak bu iki alan degistiginde diger ilgili alanlarda otomatik degisecek*/
+        <input type="text" id="Inhabervname" class="form-input sync-vname" style="top: 39.60%; left: 7.97%; width: 19.17%; height: 1.42%;">
+        <input type="text" id="Inhabernachname" class="form-input sync-nname" style="top: 39.60%; left: 28.20%; width: 22.88%; height: 1.42%;">
+            /*E_Mail_1  form sayfasinda bulunacak*/
+        <input type="text" id="E_Mail_1" class="form-input" style="top: 39.60%; left: 52.21%; width: 22.72%; height: 1.42%;">
+        /*Telefon_Inhaber_1 buraya Telefon_Firma degeri gelecek*/
+        <input type="text" id="Telefon_Inhaber_1" class="form-input" style="top: 39.60%; left: 76.06%; width: 16.68%; height: 1.42%;">
+            /*GläubigerID formda yer alacak*/
+        <input type="text" id="GläubigerID" class="form-input" style="top: 42.17%; left: 19.18%; width: 32.07%; height: 1.42%;">
+        /*Forumda yer almasina gerek yok*/
+        <input type="text" id="Lieferadresse" class="form-input" style="top: 42.05%; left: 61.00%; width: 31.75%; height: 1.37%;" value="Abeichende Adresse siehe Punkt 10">
+
+        /*Anrede Form kisminda acila bilir menü olacak ve 3 secenek olacak Default olarak Bos olacak Herr, Frau secenekleri olacak*/
+        <input type="text" id="Anrede" class="form-input" style="top: 49.57%; left: 16.35%; width: 8.70%; height: 1.42%;">
+            /*Inhabervname_2= Inhabervname Inhabernachname_2=Inhabernachname formda yer almasina gerek yok ortak alan*/
+        <input type="text" id="Inhabervname_2" class="form-input sync-vname" style="top: 49.57%; left: 33.92%; width: 17.40%; height: 1.42%;">
+        <input type="text" id="Inhabernachname_2" class="form-input sync-nname" style="top: 49.57%; left: 59.38%; width: 33.27%; height: 1.42%;">
+        /*Geburtsort, Geburtsdatum tarih formatinda  yukaridaki tarih formati ve secenekleri burasi icinde gecerli, Nationalitaet formda mecbur bulunmasi gerekiyor*/
+        <input type="text" id="Geburtsort" class="form-input" style="top: 52.13%; left: 18.85%; width: 23.61%; height: 1.42%;">
+        <input type="text" id="Geburtsdatum" class="form-input" style="top: 52.13%; left: 53.26%; width: 13.21%; height: 1.42%;">
+        <input type="text" id="Nationalitaet" class="form-input" style="top: 52.13%; left: 75.74%; width: 17.08%; height: 1.42%;">
+        /*Privatadresse, Privat_PLZ, Privat_Stadt form sayfasinda bulunacak*/
+        <input type="text" id="Privatadresse" class="form-input" style="top: 56.41%; left: 11.28%; width: 31.50%; height: 1.42%;">
+        <input type="text" id="Privat_PLZ" class="form-input" style="top: 56.41%; left: 43.91%; width: 14.34%; height: 1.42%;">
+        <input type="text" id="Privat_Stadt" class="form-input" style="top: 56.41%; left: 59.38%; width: 24.81%; height: 1.42%;">
+            /*Laendercode_2 form sayfasinda bulunacak default DEU olacak*/
+        <input type="text" id="Laendercode_2" class="form-input" style="top: 56.41%; left: 85.33%; width: 7.57%; height: 1.42%;" value="DEU">
+        <!-- Anrede Form kisminda acila bilir menü olacak ve 2 secenek oacak 1.Personalausweis 2.Reisepass* secilen secenek ilgili alana atanacak -->
+        <input type="text" id="Ausweis_Type" class="form-input" style="top: 60.68%; left: 11.44%; width: 20.70%; height: 1.42%;">
+        /*Ausweisnummer forumda yer alacak*/
+        <input type="text" id="Ausweisnummer" class="form-input" style="top: 60.68%; left: 33.03%; width: 18.21%; height: 1.42%;">
+        /*Ausstellungsdatum forumda yer alacak*/
+        <input type="text" id="Ausstellungsdatum" class="form-input" style="top: 60.68%; left: 52.37%; width: 14.26%; height: 1.42%;">
+        /*Behoerde forumda yer alacak*/
+        <input type="text" id="Behoerde" class="form-input" style="top: 60.68%; left: 67.52%; width: 25.30%; height: 1.42%;">
+        /*E_Mail_2 forumda yer almasina gerek yok buranin degeri yukaridaki E_Mail_1 degeri olacak*/
+        <input type="text" id="E_Mail_2" class="form-input" style="top: 64.10%; left: 37.63%; width: 29.00%; height: 1.42%;">
+        /*Telefon_Inhaber_2 forumda yer almasina gerek yok buranin degeri yukaridaki Telefon_Inhaber_1 degeri olacak*/
+        <input type="text" id="Telefon_Inhaber_2" class="form-input" style="top: 64.10%; left: 79.12%; width: 13.85%; height: 1.42%;">
+            /*Forumda yer almasina gerek yok */
+        <input type="checkbox" id="alan_34" class="form-input dot-checkbox" style="top: 66.15%; left: 12.40%; width: 1.77%;" checked>
+        /*NatürlichePerson forumda yer almayacak*/
+        <input type="checkbox" id="natürlichePerson" class="form-input dot-checkbox" style="top:45.60%; left:8.00%; width:1.93%; height:1.31%;" checked>
+
+    </div>
+
+    <div class="page-container" id="page2">
+        <img src="beyond-2.png" class="bg-img">
+            /*Formda yer almasina gerek yok*/
+        <input type="checkbox" id="Personalausweis" class="form-input x-checkbox" style="top:73.82%; left:7.65%; width:2.10%;" checked>
+        /*Formda yer almasina gerek yok*/
+        <input type="checkbox" id="Reisepass" class="form-input x-checkbox" style="top:76.90%; left:7.65%; width:2.10%;" checked>
+            /o_Personalausweis, *o_Reisepass* sadece ikisinden biri secile bilecek sekilde ayarlanacak/
+        <input type="checkbox" id="o_Personalausweis" name="ausweis_group" class="form-input dot-checkbox" style="top:75.77%; left:49.60%; width:2.10%;">
+        <input type="checkbox" id="o_Reisepass" name="ausweis_group" class="form-input dot-checkbox" style="top:78.25%; left:49.60%; width:2.10%;" checked>
+        /*Formda yer almasina gerek yok*/
+        <input type="checkbox" id="Gewerbeanmeldung" class="form-input x-checkbox" style="top:85.88%; left:7.65%; width:2.10%;" checked>
+    </div>
+
+    <div class="page-container" id="page3">
+        <img src="beyond-3.png" class="bg-img">
+        /*
+            Terminatyp acilir menü olacak menü icinde ki degerler 
+            "V200c LAN", 
+            "Base Next", 
+            "Desk 3500", 
+            "Move 3500", 
+            "Move 5000", 
+            "Mobile Premium", 
+            "A920"
+        */
+        <input type="text" id="Terminatyp" class="form-input" style="top:15.10%; left:7.98%; width:16.60%; height:2.34%;">
+        /*Anzahl Forumda olsun defauld 1 olacak*/
+        <input type="text" id="Anzahl" class="form-input" style="top:15.10%; left:25.38%; width:5.24%; height:2.34%;" value="1">
+        /*
+            Miete bu alan Terminatyp degeri 
+            "V200c LAN", ise 8,95
+            "Base Next", ise 9,95
+            "Desk 3500", ise 10,65
+            "Move 3500", ise 13,95
+            "Move 5000", ise 14,95
+            "Mobile Premium", ise 14,95
+            "A920"   ise 15,95
+            yazilacak forumda yer alsin degistire bilsin ama Terminatyp degistiginde bu alan otomatik degissin
+        */
+        <input type="text" id="Terminalmiete" class="form-input" style="top:14.81%; left:42.79%; width:7.74%; height:1.82%;">
+        /*Formda olsun defauld 4,00 */
+        <input type="text" id="Servicepauschale" class="form-input" style="top:14.70%; left:84.93%; width:6.53%; height:1.88%;" value="4,00">
+         /*Formda olsun defauld 4,00 */
+        <input type="text" id="Transaktionpreis" class="form-input" style="top:22.62%; left:20.15%; width:8.86%; height:1.71%;" value="0,05">
+         /*Formda olsun defauld 4,00 */
+        <input type="text" id="Freischaltung" class="form-input" style="top:22.56%; left:40.53%; width:9.75%; height:1.77%;" value="10,00">
+         /*Formda olsun defauld 4,00 */
+        <input type="text" id="Serviceentgeld" class="form-input" style="top:23.08%; left:73.41%; width:19.34%; height:1.82%;" value="0,05">
+        /*Forumda olsun */
+        <input type="checkbox" id="SimKart" class="form-input x-checkbox" style="top:28.63%; left:48.07%; width:1.53%;">
+        /*Baglanti grubu olarak 4 secenek olacak bunlardan sadece biri secile bilecek sekilde ayarlanacak*/
+        <input type="checkbox" id="Lan" name="conn_group" class="form-input dot-checkbox" style="top:33.70%; left:14.77%; width:2.01%;" checked>
+        <input type="checkbox" id="Mobilfunk" name="conn_group" class="form-input dot-checkbox" style="top:33.70%; left:20.52%; width:1.93%;">
+        <input type="checkbox" id="Wlan" name="conn_group" class="form-input dot-checkbox" style="top:33.70%; left:29.54%; width:2.01%;">
+        <input type="checkbox" id="Mobil_Wlan" name="conn_group" class="form-input dot-checkbox" style="top:33.70%; left:36.20%; width:1.85%;">
+        /*
+            Bon_Firmenname = Firmenname
+            Bon_Firmenadresse = Firmenadresse
+            Bon_PLZ_Stadt = Firmen_PLZ + " " + Firmen_Stadt
+            Form da yer almasina gerek yok otomatik eklesin    
+        */
+        <input type="text" id="Bon_Firmenname" class="form-input sync-firmaname" style="top:35.56%; left:24.98%; width:28.77%; height:1.60%;">
+        <input type="text" id="Bon_Firmenadresse" class="form-input sync-firma-adr" style="top:37.49%; left:24.90%; width:28.61%; height:1.65%;">
+        <input type="text" id="Bon_PLZ_Stadt" class="form-input" style="top:39.60%; left:25.14%; width:28.61%; height:1.54%;">
+        /*Bon_Steuernummer formda olmasina gerek yok otomatik dolmak zorunda da degil*/
+        <input type="text" id="Bon_Steuernummer" class="form-input" style="top:41.60%; left:25.06%; width:28.44%; height:1.77%;">
+            /*email_check formda olmasina gerek yok default isaretli gelecek*/
+        <input type="checkbox" id="email_check" class="form-input dot-checkbox" style="top:47.30%; left:54.19%; width:1.85%;" checked>
+        /*
+            UmsatzProJahre, TransaktionProJahre, BonProTransaktion
+            Formda yer alacak
+        */
+        <input type="text" id="UmsatzProJahre" class="form-input" style="top:63.30%; left:7.90%; width:15.95%; height:2.56%;">
+        <input type="text" id="TransaktionProJahre" class="form-input" style="top:63.36%; left:24.58%; width:16.04%; height:2.45%;">
+        <input type="text" id="BonProTransaktion" class="form-input" style="top:63.36%; left:41.50%; width:16.04%; height:2.39%;">
+            /*checkbox formda yer almasina gerek yok */
+        <input type="checkbox" id="alan_59" class="form-input x-checkbox" style="top:72.26%; left:7.90%; width:1.61%;" checked>
+        /*
+            Acilir menü olacak 2 deger olacak
+            Bize degeri secilirse 
+            Bitte das Gerät an unsere Adresse liefern:
+            Kassen Keskin
+            Erol Keskin
+            Philippistr. 3, 
+            14059 Berlin
+            
+
+            Müsteriye degeri secilirse
+            Bitte das Gerät an folgende Adresse liefern:
+            Firmenname
+            Inhabername_Full
+            Firmenadresse
+            Firmen_PLZ + " " + Firmen_Stadt
+
+        
+        */
+        <textarea id="10-Lieferadresse" class="form-input" style="top:86.50%; left:8.06%; width:42%; height:7.41%; border:none; background:transparent; resize:none; overflow:hidden; text-align: left;"></textarea>
+        <textarea id="10-Sonstiges" class="form-input" style="top:86.50%; left:50.35%; width:42%; height:7.41%; border:none; background:transparent; resize:none; overflow:hidden; text-align: left;"></textarea>
+    </div>
+
+    <div class="page-container" id="page4">
+        <img src="beyond-4.png" class="bg-img">
+        /*KontoInhaber bu alan otomatik dolacak Inhabervname + Inhabernachname gelecek formda yer almasina gerek yok*/
+        <input type="text" id="KontoInhaber" class="form-input" style="top:13.73%; left:17.16%; width:34.65%; height:1.60%;">
+            /*Iban forumda yer alacak*/
+        <input type="text" id="Iban" class="form-input" style="top:13.68%; left:56.57%; width:36.26%; height:1.60%;">
+            /*BankName, Bic formda yer alacak*/
+        <input type="text" id="BankName" class="form-input" style="top:15.84%; left:18.37%; width:33.52%; height:1.37%;">
+        <input type="text" id="Bic" class="form-input" style="top:15.90%; left:56.65%; width:36.10%; height:1.37%;">
+            /*
+                OrtDatum_1 bu alan otomatik olarak güncel tarihini alacak 
+                tarih formati DD.MM.YYYY seklinde olacak manuel yazila bilecek 
+                ama bir buton ile takvim eklene bilir Form sayfasinda butlaka olacak
+            */
+        <input type="text" id="OrtDatum_1" class="form-input current-date-auto" style="top:17.89%; left:60.35%; width:32.23%; height:1.48%;">
+            /* Forumda yer alsin  defauld degerleri ile gelsin *%
+        <input type="text" id="Master" class="form-input" style="top:40.57%; left:36.50%; width:12.97%; height:1.82%;" value="0,99 %">
+        <input type="text" id="Visa" class="form-input" style="top:40.63%; left:50.60%; width:13.05%; height:1.77%;" value="0,99 %">
+        <input type="text" id="Maestro" class="form-input" style="top:40.68%; left:64.95%; width:13.30%; height:1.65%;" value="0,89 %">
+        <input type="text" id="VPay" class="form-input" style="top:40.68%; left:79.13%; width:13.70%; height:1.71%;" value="0,89 %">
+        /*OrtDatum_2 forumda yer almasina gerek yok degeri OrtDatum_1 in degeri olsun*/
+        <input type="text" id="OrtDatum_2" class="form-input current-date-auto" style="top:61.82%; left:8.06%; width:21.27%; height:4.79%;">
+            /*Inhaber_Sign_1 degeri Inhabername_Full olsun formda yer almasina gerek yok*/
+        <input type="text" id="Inhaber_Sign_1" class="form-input" style="top:61.88%; left:29.98%; width:22.72%; height:4.79%;">
+        /*
+            OrtDatum_3 bu alanin degeri Berlin, + güncel tarih olacak
+            tarih formati DD.MM.YYYY seklinde olacak manuel yazila bilecek ama bir buton ile takvim eklene bilir Form sayfasinda butlaka olacak
+        */
+        <input type="text" id="OrtDatum_3" class="form-input current-date-auto" style="top:81.54%; left:8.46%; width:20.71%; height:3.70%; text-align: left;" value="Berlin, ">
+        <input type="text" id="Inhaber_Sign_2" class="form-input" style="top:81.60%; left:30.38%; width:22.48%; height:3.53%;" value="Erol Keskin">
+        
+        /*Ödeme periyodu olarak iki secenek olacak sadece biri secile bilecek sekilde ayarlanacak*/
+        <input type="checkbox" id="Täglich" name="pay_group" class="form-input dot-checkbox" style="top:38.55%; left:9.95%; width:1.45%;" >
+        <input type="checkbox" id="Wöchentlich" name="pay_group" class="form-input dot-checkbox" style="top:38.69%; left:23.60%; width:1.69%;" checked>
+    </div>
+
+    <script>
+    const mieteMap = {
+        "V200c LAN": "8,95", "Base Next": "9,95", "Desk 3500": "10,65", 
+        "Move 3500": "13,95", "Move 5000": "14,95", "Mobile Premium": "14,95", "A920": "15,95"
+    };
+
+    window.onload = function() {
+        const today = new Date().toLocaleDateString('de-DE');
+        document.querySelectorAll('.current-date-auto').forEach(el => {
+            if(!el.value || el.value === "Berlin, ") el.value = "Berlin, " + today;
+        });
+
+        const setupGroup = (name) => {
+            const cbx = document.querySelectorAll(`input[name="${name}"]`);
+            cbx.forEach(c => c.addEventListener('click', () => {
+                cbx.forEach(other => { if(other !== c) other.checked = false; });
+            }));
+        };
+        setupGroup("ausweis_group");
+        setupGroup("conn_group");
+        setupGroup("pay_group");
+        setupGroup("kunde_group");
+
+        document.addEventListener('input', (e) => {
+            const id = e.target.id;
+            const val = e.target.value;
+
+            if(id === "Inhabervname" || id === "Inhabernachname") {
+                const full = document.getElementById("Inhabervname").value + " " + document.getElementById("Inhabernachname").value;
+                document.getElementById("KontoInhaber").value = full;
+                document.getElementById("Inhaber_Sign_1").value = full;
+                document.querySelectorAll(".sync-vname").forEach(el => el.value = document.getElementById("Inhabervname").value);
+                document.querySelectorAll(".sync-nname").forEach(el => el.value = document.getElementById("Inhabernachname").value);
+            }
+
+            if(e.target.classList.contains("sync-firmaname")) {
+                document.querySelectorAll(".sync-firmaname").forEach(el => el.value = val);
+            }
+
+            if(id === "Terminatyp") {
+                document.getElementById("Terminalmiete").value = mieteMap[val] || "";
+            }
+
+            if (e.target.classList.contains('form-input') && e.target.type !== 'checkbox') {
+                if (e.target.value.trim() !== '') {
+                    e.target.classList.add('filled');
+                } else {
+                    e.target.classList.remove('filled');
+                }
+            }
+        });
+
+        const data = JSON.parse(localStorage.getItem('formVerisi') || '{}');
+        Object.keys(data).forEach(key => {
+            const el = document.getElementById(key);
+            if (el) {
+                if (el.type === "checkbox") el.checked = (data[key] === true || data[key] === "on");
+                else el.value = data[key];
+            }
+        });
+
+        document.querySelectorAll('.form-input').forEach(el => {
+            if (el.type !== 'checkbox' && el.value.trim() !== '') {
+                el.classList.add('filled');
+            }
+        });
+
+    };
+    </script>
+</body>
+</html>
