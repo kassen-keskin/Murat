@@ -528,22 +528,9 @@
                 </h3>
                 <div id="collapseFirmenadresse" class="collapse show">
                     <div class="row g-3">
-                        <div class="col-md-6">
+                        <div class="col-12">
                             <label for="companyName" class="form-label">Firmenname</label>
                             <input type="text" class="form-control" id="companyName" placeholder="Firmenname" required>
-                        </div>
-                        <div class="col-md-4">
-                            <label for="street" class="form-label">Straße</label>
-                            <input type="text" class="form-control" id="street" placeholder="Zuerst PLZ eingeben" list="streetSuggestionsFirm" required disabled>
-                            <datalist id="streetSuggestionsFirm"></datalist>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="houseNumber" class="form-label">Hausnummer</label>
-                            <input type="text" class="form-control" id="houseNumber" placeholder="Nr." required>
-                        </div>
-                        <div class="col-12">
-                            <label for="additionalInfo" class="form-label">Zusatzinformation (c/o, Etage, Appartment etc.)</label>
-                            <input type="text" class="form-control" id="additionalInfo" placeholder="Zusatzinformation">
                         </div>
                         <div class="col-md-4">
                             <label for="zipCode" class="form-label">PLZ</label>
@@ -552,6 +539,19 @@
                         <div class="col-md-8">
                             <label for="city" class="form-label">Ort</label>
                             <input type="text" class="form-control" id="city" placeholder="Ort" required>
+                        </div>
+                        <div class="col-md-9">
+                            <label for="street" class="form-label">Straße</label>
+                            <input type="text" class="form-control" id="street" placeholder="Zuerst PLZ eingeben" list="streetSuggestionsFirm" required disabled>
+                            <datalist id="streetSuggestionsFirm"></datalist>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="houseNumber" class="form-label">Hausnummer</label>
+                            <input type="text" class="form-control" id="houseNumber" placeholder="Nr." required>
+                        </div>
+                        <div class="col-12">
+                            <label for="additionalInfo" class="form-label">Zusatzinformation (c/o, Etage, Appartment etc.)</label>
+                            <input type="text" class="form-control" id="additionalInfo" placeholder="Zusatzinformation">
                         </div>
                     </div>
                 </div>
@@ -608,19 +608,6 @@
                 </h3>
                 <div id="collapseWohnadresse" class="collapse">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label for="residenceStreet" class="form-label">Straße</label>                            
-                            <input type="text" class="form-control" id="residenceStreet" placeholder="Zuerst PLZ eingeben" list="streetSuggestionsResidence" disabled>
-                            <datalist id="streetSuggestionsResidence"></datalist>
-                        </div>
-                        <div class="col-md-2">
-                            <label for="residenceHouseNumber" class="form-label">Hausnummer</label>
-                            <input type="text" class="form-control" id="residenceHouseNumber" placeholder="Nr." >
-                        </div>
-                        <div class="col-12">
-                            <label for="residenceAdditionalInfo" class="form-label">Zusatzinformation (c/o, Etage, Appartment etc.)</label>
-                            <input type="text" class="form-control" id="residenceAdditionalInfo" placeholder="Zusatzinformation">
-                        </div>
                         <div class="col-md-4">
                             <label for="residenceZipCode" class="form-label">PLZ</label>
                             <input type="text" class="form-control" id="residenceZipCode" placeholder="PLZ" >
@@ -628,6 +615,19 @@
                         <div class="col-md-8">
                             <label for="residenceCity" class="form-label">Ort</label>
                             <input type="text" class="form-control" id="residenceCity" placeholder="Ort" >
+                        </div>
+                        <div class="col-md-9">
+                            <label for="residenceStreet" class="form-label">Straße</label>                            
+                            <input type="text" class="form-control" id="residenceStreet" placeholder="Zuerst PLZ eingeben" list="streetSuggestionsResidence" disabled>
+                            <datalist id="streetSuggestionsResidence"></datalist>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="residenceHouseNumber" class="form-label">Hausnummer</label>
+                            <input type="text" class="form-control" id="residenceHouseNumber" placeholder="Nr." >
+                        </div>
+                        <div class="col-12">
+                            <label for="residenceAdditionalInfo" class="form-label">Zusatzinformation (c/o, Etage, Appartment etc.)</label>
+                            <input type="text" class="form-control" id="residenceAdditionalInfo" placeholder="Zusatzinformation">
                         </div>
                     </div>
                 </div>
@@ -923,24 +923,23 @@
             }
         });
 
-        // Set initial icon and collapsed-state class for sections on page load
+        // Set initial icon and open all sections on page load
         document.addEventListener('DOMContentLoaded', () => {
-            const firstSectionContent = document.getElementById('collapseFirmenadresse');
-            if (firstSectionContent.classList.contains('show')) {
-                toggleAllIcon.classList.remove('fa-expand-alt');
-                toggleAllIcon.classList.add('fa-compress-alt');
-            } else {
-                toggleAllIcon.classList.remove('fa-compress-alt');
-                toggleAllIcon.classList.add('fa-expand-alt');
-            }
-
-            // Apply collapsed-state to sections that are initially collapsed
-            document.querySelectorAll('.form-section').forEach(section => {
-                const collapseElement = section.querySelector('.collapse');
-                if (collapseElement && !collapseElement.classList.contains('show')) {
-                    section.classList.add('collapsed-state');
+            // Open all sections by default
+            document.querySelectorAll('.form-section .collapse').forEach(collapseElement => {
+                collapseElement.classList.add('show');
+                const sectionTitle = collapseElement.previousElementSibling;
+                if (sectionTitle) {
+                    sectionTitle.classList.remove('collapsed');
+                    sectionTitle.setAttribute('aria-expanded', 'true');
+                }
+                const parentSection = collapseElement.closest('.form-section');
+                if (parentSection) {
+                    parentSection.classList.remove('collapsed-state');
                 }
             });
+            toggleAllIcon.classList.remove('fa-expand-alt');
+            toggleAllIcon.classList.add('fa-compress-alt');
         });
 
         // Yeni Kayıt düğmesi mantığı (alttaki düğme için)
@@ -966,23 +965,20 @@
             document.getElementById('tseTypeText').value = '';
             document.getElementById('ekasseSoftwareName').value = ''; // Yeni eklenen alan
 
-            // İlk bölümü aç ve diğerlerini kapat (isteğe bağlı, varsayılan davranış)
+            // Tüm bölümleri açık bırak
             const collapsibleSectionContents = document.querySelectorAll('.form-section .collapse');
             collapsibleSectionContents.forEach((sectionContent, index) => {
                 const collapseInstance = new bootstrap.Collapse(sectionContent, { toggle: false });
                 const sectionTitle = sectionContent.previousElementSibling;
                 const parentSection = sectionContent.closest('.form-section');
 
-                if (index === 0) { // İlk bölümü aç
-                    collapseInstance.show();
+                collapseInstance.show();
+                if (sectionTitle) {
                     sectionTitle.classList.remove('collapsed');
                     sectionTitle.setAttribute('aria-expanded', 'true');
-                    parentSection.classList.remove('collapsed-state'); // Remove collapsed-state
-                } else { // Diğerlerini kapat
-                    collapseInstance.hide();
-                    sectionTitle.classList.add('collapsed');
-                    sectionTitle.setAttribute('aria-expanded', 'false');
-                    parentSection.classList.add('collapsed-state'); // Add collapsed-state
+                }
+                if (parentSection) {
+                    parentSection.classList.remove('collapsed-state');
                 }
             });
 
@@ -1844,6 +1840,69 @@
                         targetInput.value = `${year}-${month}-${day}`;
                     }
                 });
+            });
+
+            // Seriennummer synchronization
+            const serialInputs = ['ekasseSerialNumber', 'hardwareSerialNumber'];
+            serialInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('input', (e) => {
+                        const val = e.target.value;
+                        serialInputs.forEach(otherId => {
+                            if (otherId !== id) {
+                                const otherEl = document.getElementById(otherId);
+                                if (otherEl) otherEl.value = val;
+                            }
+                        });
+                    });
+                }
+            });
+
+            // Anschaffungsdatum synchronization
+            const purchaseDateInput = document.getElementById('purchaseDate');
+            if (purchaseDateInput) {
+                purchaseDateInput.addEventListener('change', (e) => {
+                    const val = e.target.value;
+                    const usageDateInput = document.getElementById('usageDate');
+                    const tseUsageDateInput = document.getElementById('tseUsageDate');
+                    if (usageDateInput) usageDateInput.value = val;
+                    if (tseUsageDateInput) tseUsageDateInput.value = val;
+                });
+            }
+
+            // Combobox logic for accumulating fields
+            const comboboxFields = ['ekasseSoftwareName', 'softwareVersion', 'hardwareManufacturer', 'hardwareModel'];
+            comboboxFields.forEach(id => {
+                const input = document.getElementById(id);
+                if (input) {
+                    const datalistId = id + 'List';
+                    input.setAttribute('list', datalistId);
+                    const datalist = document.createElement('datalist');
+                    datalist.id = datalistId;
+                    input.parentNode.appendChild(datalist);
+
+                    const saved = JSON.parse(localStorage.getItem(datalistId)) || [];
+                    saved.forEach(val => {
+                        const option = document.createElement('option');
+                        option.value = val;
+                        datalist.appendChild(option);
+                    });
+
+                    input.addEventListener('change', (e) => {
+                        const val = e.target.value.trim();
+                        if (val) {
+                            let currentSaved = JSON.parse(localStorage.getItem(datalistId)) || [];
+                            if (!currentSaved.includes(val)) {
+                                currentSaved.push(val);
+                                localStorage.setItem(datalistId, JSON.stringify(currentSaved));
+                                const option = document.createElement('option');
+                                option.value = val;
+                                datalist.appendChild(option);
+                            }
+                        }
+                    });
+                }
             });
 
         });
