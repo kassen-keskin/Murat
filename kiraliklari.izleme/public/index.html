@@ -1853,6 +1853,11 @@
             const visibleKeys = ['Kundennummer', 'K_Firma', 'Artikelnummer', 'Brutto-VK'];
             const finalKeys = keys.filter(k => visibleKeys.includes(k)).length > 0 ? visibleKeys.filter(k => keys.includes(k)).concat(keys.filter(k => !visibleKeys.includes(k))) : keys;
 
+            const noTh = document.createElement('th');
+            noTh.textContent = '#';
+            noTh.style.width = '40px';
+            headerRow.appendChild(noTh);
+
             finalKeys.forEach(key => {
                 const th = document.createElement('th');
                 th.textContent = key;
@@ -1894,6 +1899,7 @@
                 }
             });
 
+            let siraNo = 1;
             Object.keys(grouped).forEach(groupKey => {
                 const group = grouped[groupKey];
                 const visibleRow = group.visible || group.hidden[0];
@@ -1902,6 +1908,12 @@
                 const tr = document.createElement('tr');
                 tr.className = 'list-row aylik-main-row';
                 tr.style.cursor = 'pointer';
+
+                const noTd = document.createElement('td');
+                noTd.textContent = siraNo++;
+                noTd.style.fontWeight = 'bold';
+                noTd.style.color = 'var(--text-muted)';
+                tr.appendChild(noTd);
 
                 const kundeId = getKundeIdForAylikRow(visibleRow);
                 const displayTitle = `${visibleRow['Kundennummer'] || visibleRow['KundenNr'] || ''} - ${visibleRow['K_Firma'] || visibleRow['Firma'] || ''}`.trim();
@@ -1956,7 +1968,7 @@
                     detailTr.style.display = aylikExpandedGroups[groupKey] ? 'table-row' : 'none';
 
                     const detailTd = document.createElement('td');
-                    detailTd.colSpan = finalKeys.length + 1;
+                    detailTd.colSpan = finalKeys.length + 2;
                     detailTd.style.padding = '8px 16px';
                     detailTd.style.background = 'rgba(255,255,255,0.04)';
                     detailTd.style.borderBottom = '1px solid var(--border-color)';
@@ -1985,12 +1997,12 @@
 
             const tfoot = document.createElement('tfoot');
             const totalTr = document.createElement('tr');
-            const totalCells = finalKeys.length + 1;
+            const totalCells = finalKeys.length + 2;
             for (let i = 0; i < totalCells; i++) {
                 const td = document.createElement('td');
                 td.style.borderTop = '1px solid var(--border-color)';
                 td.style.padding = '8px 10px';
-                if (i === finalKeys.indexOf('Brutto-VK')) {
+                if (i === finalKeys.indexOf('Brutto-VK') + 1) {
                     td.style.textAlign = 'right';
                     td.style.fontWeight = '700';
                     td.textContent = `Toplam Brutto-VK: ${data.reduce((sum, row) => {
@@ -2376,14 +2388,14 @@
         function startAutoRefresh() {
             if (refreshInterval) clearInterval(refreshInterval);
             refreshInterval = setInterval(() => {
-                if (!document.hidden) {
+                if (!document.hidden && currentTab !== 'aylik') {
                     refreshCurrentTabData();
                 }
             }, REFRESH_RATE);
         }
 
         document.addEventListener('visibilitychange', () => {
-            if (!document.hidden) {
+            if (!document.hidden && currentTab !== 'aylik') {
                 refreshCurrentTabData();
             }
         });
