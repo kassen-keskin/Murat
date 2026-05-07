@@ -387,7 +387,12 @@
 <body data-theme="dark">
 
     <div class="app-container">
-        <div class="no-print" style="text-align: right; margin-bottom: 10px;">
+        <div class="no-print" style="text-align: right; margin-bottom: 10px; display: flex; justify-content: flex-end; gap: 8px;">
+            <button onclick="document.getElementById('importFile').click()" style="cursor:pointer; padding: 4px 8px; background: #10b981; color: white; border: none; border-radius: 4px; font-weight: bold;">📥 IMPORT</button>
+            <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
+            
+            <button onclick="exportData()" style="cursor:pointer; padding: 4px 8px; background: #f59e0b; color: white; border: none; border-radius: 4px; font-weight: bold;">📤 EXPORT</button>
+
             <button onclick="toggleTheme()" style="cursor:pointer; padding: 4px 8px;">🌓 Theme</button>
             <button onclick="window.print()"
                 style="cursor:pointer; background: var(--primary); color: white; border:none; padding: 5px 15px; border-radius:4px; font-weight:bold;">🖨️
@@ -399,7 +404,7 @@
                 <h1>Service-Protokoll</h1>
                 <small style="color: var(--primary); font-weight: bold;">Kassen Keskin - Point of Sale Solutions</small>
             </div>
-            <input type="text" value="26.02.2026" style="width:80px; text-align:right; border:none; font-weight:bold;">
+            <input type="text" id="currentDate" style="width:80px; text-align:right; border:none; font-weight:bold;">
         </header>
 
         <div class="section">
@@ -659,6 +664,17 @@
     </div>
 
     <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dateInput = document.getElementById('currentDate');
+            if (dateInput && !dateInput.value) {
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0'); // January is 0!
+                const yyyy = today.getFullYear();
+                dateInput.value = dd + '.' + mm + '.' + yyyy;
+            }
+        });
+
         function toggleTheme() {
             const b = document.body;
             b.setAttribute('data-theme', b.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
@@ -730,6 +746,170 @@
         function removeEinzelhandelWarengruppe(el) {
             const row = el.closest('tr');
             if (row) row.remove();
+        }
+
+        function exportData() {
+            const data = {
+                date: document.querySelector('header input').value,
+                betrieb: document.querySelector('input[placeholder="Betriebsname"]').value,
+                inhaber: document.querySelector('input[placeholder="Name des Inhabers"]').value,
+                anschrift: document.querySelector('input[placeholder="Strasse, PLZ, Stadt"]').value,
+                modell: document.querySelector('input[placeholder="Kassendetails"]').value,
+                branche: document.getElementById('brancheSelect').value,
+                gastroCheckboxes: Array.from(document.querySelectorAll('#gastroWaren tbody input[type="checkbox"]')).map(cb => cb.checked),
+                checkWarenListe: document.getElementById('checkWarenListe').checked,
+                
+                einzelhandelWaren: Array.from(document.querySelectorAll('#einzelhandelWarenTable tbody tr')).map(tr => {
+                    const inputs = tr.querySelectorAll('input');
+                    return { name: inputs[0].value, mwst: inputs[1].value, ok: inputs[2].checked };
+                }),
+                checkEinzelhandelWaren: document.getElementById('checkEinzelhandelWaren').checked,
+
+                dienstWaren: Array.from(document.querySelectorAll('#dienstWarenTable tbody tr')).map(tr => {
+                    const inputs = tr.querySelectorAll('input');
+                    return { name: inputs[0].value, mwst: inputs[1].value, ok: inputs[2].checked };
+                }),
+                check19: document.getElementById('check19').checked,
+
+                funcChoice: document.querySelector('#func-container .choice-item.selected')?.innerText.trim() || '',
+                stdChoice: document.querySelector('#std-container .choice-item.selected')?.innerText.trim() || '',
+
+                users: Array.from(document.querySelectorAll('#userTable tbody tr')).map(tr => {
+                    const inputs = tr.querySelectorAll('input');
+                    return { name: inputs[0].value, pin: inputs[1].value, active: inputs[2].checked };
+                }),
+
+                notes: document.querySelector('.section textarea').value,
+
+                pageTwo: Array.from(document.querySelectorAll('.page-two input')).map(inp => inp.value)
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            
+            const filename = data.betrieb ? `checklist_${data.betrieb.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json` : "checklist_export.json";
+            downloadAnchorNode.setAttribute("download", filename);
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function importData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    
+                    if(data.date !== undefined) document.querySelector('header input').value = data.date;
+                    if(data.betrieb !== undefined) document.querySelector('input[placeholder="Betriebsname"]').value = data.betrieb;
+                    if(data.inhaber !== undefined) document.querySelector('input[placeholder="Name des Inhabers"]').value = data.inhaber;
+                    if(data.anschrift !== undefined) document.querySelector('input[placeholder="Strasse, PLZ, Stadt"]').value = data.anschrift;
+                    if(data.modell !== undefined) document.querySelector('input[placeholder="Kassendetails"]').value = data.modell;
+                    
+                    if(data.branche !== undefined) {
+                        document.getElementById('brancheSelect').value = data.branche;
+                        onBrancheChange();
+                    }
+
+                    if(data.gastroCheckboxes) {
+                        const cbs = document.querySelectorAll('#gastroWaren tbody input[type="checkbox"]');
+                        data.gastroCheckboxes.forEach((checked, i) => { if(cbs[i]) cbs[i].checked = checked; });
+                    }
+                    if(data.checkWarenListe !== undefined) document.getElementById('checkWarenListe').checked = data.checkWarenListe;
+
+                    if(data.einzelhandelWaren) {
+                        const tbody = document.querySelector('#einzelhandelWarenTable tbody');
+                        tbody.innerHTML = '';
+                        data.einzelhandelWaren.forEach(item => {
+                            addEinzelhandelWarengruppe();
+                            const tr = tbody.lastElementChild;
+                            const inputs = tr.querySelectorAll('input');
+                            inputs[0].value = item.name;
+                            inputs[1].value = item.mwst;
+                            inputs[2].checked = item.ok;
+                        });
+                    }
+                    if(data.checkEinzelhandelWaren !== undefined) document.getElementById('checkEinzelhandelWaren').checked = data.checkEinzelhandelWaren;
+
+                    if(data.dienstWaren) {
+                        const tbody = document.querySelector('#dienstWarenTable tbody');
+                        tbody.innerHTML = '';
+                        data.dienstWaren.forEach(item => {
+                            addWarengruppe();
+                            const tr = tbody.lastElementChild;
+                            const inputs = tr.querySelectorAll('input');
+                            inputs[0].value = item.name;
+                            inputs[1].value = item.mwst;
+                            inputs[2].checked = item.ok;
+                        });
+                    }
+                    if(data.check19 !== undefined) document.getElementById('check19').checked = data.check19;
+
+                    if (data.funcChoice !== undefined) {
+                        const items = document.querySelectorAll('#func-container .choice-item');
+                        document.getElementById('func-container').classList.remove('has-selection');
+                        items.forEach(el => el.classList.remove('selected'));
+                        
+                        items.forEach(el => {
+                            if(el.innerText.trim() === data.funcChoice) {
+                                el.classList.add('selected');
+                                document.getElementById('func-container').classList.add('has-selection');
+                                const stdSection = document.getElementById('std-modus-section');
+                                if (data.funcChoice === 'Deaktiviert') {
+                                    stdSection.classList.add('hidden');
+                                } else {
+                                    stdSection.classList.remove('hidden');
+                                }
+                            }
+                        });
+                    }
+
+                    if (data.stdChoice !== undefined) {
+                        const items = document.querySelectorAll('#std-container .choice-item');
+                        document.getElementById('std-container').classList.remove('has-selection');
+                        items.forEach(el => el.classList.remove('selected'));
+                        
+                        items.forEach(el => {
+                            if(el.innerText.trim() === data.stdChoice) {
+                                el.classList.add('selected');
+                                document.getElementById('std-container').classList.add('has-selection');
+                            }
+                        });
+                    }
+
+                    if(data.users) {
+                        const tbody = document.querySelector('#userTable tbody');
+                        tbody.innerHTML = '';
+                        data.users.forEach(item => {
+                            addUser();
+                            const tr = tbody.lastElementChild;
+                            const inputs = tr.querySelectorAll('input');
+                            inputs[0].value = item.name;
+                            inputs[1].value = item.pin;
+                            inputs[2].checked = item.active;
+                        });
+                    }
+
+                    if(data.notes !== undefined) document.querySelector('.section textarea').value = data.notes;
+
+                    if(data.pageTwo) {
+                        const inputs = document.querySelectorAll('.page-two input');
+                        data.pageTwo.forEach((val, i) => {
+                            if(inputs[i]) inputs[i].value = val;
+                        });
+                    }
+
+                } catch (err) {
+                    console.error("Error parsing JSON:", err);
+                    alert("Fehler beim Importieren der Datei.");
+                }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
         }
     </script>
 
