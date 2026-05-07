@@ -2094,6 +2094,7 @@
                 return;
             }
             const keys = [
+                'Sira',
                 'Kundennummer',
                 'K_Firma',
                 'Auftragsnummer',
@@ -2102,8 +2103,9 @@
                 'Brutto-VK'
             ];
 
-            const getPdfValue = (row, key) => {
+            const getPdfValue = (row, key, globalIndex) => {
                 switch (key) {
+                    case 'Sira': return String(globalIndex);
                     case 'Kundennummer': return row['Kundennummer'] || row['KundenNr'] || '';
                     case 'K_Firma': return row['K_Firma'] || row['Firma'] || '';
                     case 'Auftragsnummer': return row['Auftragsnummer'] || '';
@@ -2117,7 +2119,7 @@
             const printArea = document.getElementById('aylikPdfPrintArea');
             printArea.innerHTML = '';
             printArea.style.visibility = 'visible';
-            printArea.style.padding = '20px';
+            printArea.style.padding = '0';
             printArea.style.background = '#ffffff';
             printArea.style.color = '#000000';
             printArea.style.width = '210mm';
@@ -2131,120 +2133,104 @@
             }, 0);
             const totalText = total.toLocaleString('de-DE', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
-            const title = document.createElement('div');
-            title.style.fontSize = '18px';
-            title.style.fontWeight = '700';
-            title.style.marginBottom = '6px';
-            title.textContent = `Aylık Fatura PDF - ${formattedDate}`;
-            printArea.appendChild(title);
-
-            const info = document.createElement('div');
-            info.style.display = 'flex';
-            info.style.justifyContent = 'space-between';
-            info.style.fontSize = '12px';
-            info.style.fontWeight = '600';
-            info.style.marginBottom = '12px';
-            info.innerHTML = `<span>Satır sayısı: ${visibleRows.length}</span><span>Toplam Brutto-VK: ${totalText}</span>`;
-            printArea.appendChild(info);
-
-            const table = document.createElement('table');
-            table.style.width = '100%';
-            table.style.borderCollapse = 'collapse';
-            table.style.fontSize = '11px';
-            table.style.marginBottom = '12px';
-
-            const thead = document.createElement('thead');
-            const headerRow = document.createElement('tr');
-            headerRow.style.borderBottom = '1px solid #333';
-            keys.forEach(key => {
-                const th = document.createElement('th');
-                th.textContent = key;
-                th.style.padding = '6px 8px';
-                th.style.border = '1px solid #333';
-                th.style.background = '#f2f2f2';
-                th.style.textAlign = key === 'Brutto-VK' ? 'right' : 'left';
-                th.style.fontWeight = '700';
-                th.style.whiteSpace = 'nowrap';
-                th.style.overflow = 'hidden';
-                th.style.textOverflow = 'ellipsis';
-                headerRow.appendChild(th);
-            });
-            thead.appendChild(headerRow);
-            table.appendChild(thead);
-
-            const tbody = document.createElement('tbody');
-            visibleRows.forEach(row => {
-                const tr = document.createElement('tr');
-                keys.forEach(key => {
-                    const td = document.createElement('td');
-                    td.textContent = getPdfValue(row, key);
-                    td.style.padding = '6px 8px';
-                    td.style.border = '1px solid #333';
-                    td.style.textAlign = key === 'Brutto-VK' ? 'right' : 'left';
-                    td.style.verticalAlign = 'top';
-                    tr.appendChild(td);
-                });
-                tbody.appendChild(tr);
-            });
-            table.appendChild(tbody);
-            printArea.appendChild(table);
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            
+            const CHUNK_SIZE = 36;
+            const chunks = [];
+            for (let i = 0; i < visibleRows.length; i += CHUNK_SIZE) {
+                chunks.push(visibleRows.slice(i, i + CHUNK_SIZE));
+            }
 
             try {
-                const canvas = await html2canvas(printArea, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-                const W = 210;
-                const H = 297;
-                const pageHeightPx = Math.floor((H / W) * canvas.width);
-                const printRect = printArea.getBoundingClientRect();
-                const scaleFactor = canvas.width / printRect.width;
+                for (let i = 0; i < chunks.length; i++) {
+                    const chunk = chunks[i];
+                    
+                    const pageDiv = document.createElement('div');
+                    pageDiv.style.padding = '20px';
+                    pageDiv.style.width = '210mm';
+                    pageDiv.style.minHeight = '297mm';
+                    pageDiv.style.boxSizing = 'border-box';
+                    pageDiv.style.background = '#ffffff';
+                    
+                    const title = document.createElement('div');
+                    title.style.fontSize = '18px';
+                    title.style.fontWeight = '700';
+                    title.style.marginBottom = '6px';
+                    title.textContent = `Aylık Fatura PDF - ${formattedDate}`;
+                    pageDiv.appendChild(title);
 
-                const rows = Array.from(printArea.querySelectorAll('tr'));
-                const rowBounds = rows.map(rowEl => {
-                    const rect = rowEl.getBoundingClientRect();
-                    return {
-                        top: (rect.top - printRect.top) * scaleFactor,
-                        bottom: (rect.bottom - printRect.top) * scaleFactor
-                    };
-                });
+                    const info = document.createElement('div');
+                    info.style.display = 'flex';
+                    info.style.justifyContent = 'space-between';
+                    info.style.fontSize = '12px';
+                    info.style.fontWeight = '600';
+                    info.style.marginBottom = '12px';
+                    info.innerHTML = `<span>Sayfa: ${i + 1} / ${chunks.length} | Toplam Kayıt: ${visibleRows.length}</span><span>Genel Toplam Brutto-VK: ${totalText}</span>`;
+                    pageDiv.appendChild(info);
 
-                let position = 0;
-                let pageIndex = 0;
-                while (position < canvas.height - 1) {
-                    let sliceEnd = position + pageHeightPx;
-                    const nextRow = rowBounds.find(rb => rb.top < sliceEnd && rb.bottom > sliceEnd);
-                    if (nextRow) {
-                        sliceEnd = nextRow.bottom;
-                    } else {
-                        const lastRowBefore = [...rowBounds].reverse().find(rb => rb.bottom <= sliceEnd);
-                        if (lastRowBefore && lastRowBefore.bottom > position) {
-                            sliceEnd = lastRowBefore.bottom;
-                        }
-                    }
-                    if (sliceEnd <= position) {
-                        sliceEnd = Math.min(position + pageHeightPx, canvas.height);
-                    }
-                    if (sliceEnd > canvas.height - 1) {
-                        sliceEnd = canvas.height;
-                    }
-                    const sliceHeight = Math.min(sliceEnd - position, canvas.height - position);
-                    if (sliceHeight < 5) break;
+                    const table = document.createElement('table');
+                    table.style.width = '100%';
+                    table.style.borderCollapse = 'collapse';
+                    table.style.fontSize = '11px';
+                    table.style.marginBottom = '12px';
 
-                    if (pageIndex > 0) {
+                    const thead = document.createElement('thead');
+                    const headerRow = document.createElement('tr');
+                    headerRow.style.borderBottom = '1px solid #333';
+                    keys.forEach(key => {
+                        const th = document.createElement('th');
+                        if (key === 'Sira') th.textContent = 'Sıra';
+                        else if (key === 'Kundennummer') th.textContent = 'Kunden Nr.';
+                        else th.textContent = key;
+                        th.style.padding = '6px 8px';
+                        th.style.border = '1px solid #333';
+                        th.style.background = '#f2f2f2';
+                        th.style.textAlign = (key === 'Brutto-VK' || key === 'Sira') ? 'right' : 'left';
+                        th.style.fontWeight = '700';
+                        th.style.whiteSpace = 'nowrap';
+                        th.style.overflow = 'hidden';
+                        th.style.textOverflow = 'ellipsis';
+                        headerRow.appendChild(th);
+                    });
+                    thead.appendChild(headerRow);
+                    table.appendChild(thead);
+
+                    const tbody = document.createElement('tbody');
+                    const baseIndex = i * CHUNK_SIZE;
+                    chunk.forEach((row, rowIndex) => {
+                        const globalIndex = baseIndex + rowIndex + 1;
+                        const tr = document.createElement('tr');
+                        keys.forEach(key => {
+                            const td = document.createElement('td');
+                            td.textContent = getPdfValue(row, key, globalIndex);
+                            td.style.padding = '6px 8px';
+                            td.style.border = '1px solid #333';
+                            td.style.textAlign = (key === 'Brutto-VK' || key === 'Sira') ? 'right' : 'left';
+                            td.style.verticalAlign = 'top';
+                            tr.appendChild(td);
+                        });
+                        tbody.appendChild(tr);
+                    });
+                    table.appendChild(tbody);
+                    pageDiv.appendChild(table);
+                    
+                    printArea.appendChild(pageDiv);
+
+                    const canvas = await html2canvas(pageDiv, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+                    
+                    if (i > 0) {
                         pdf.addPage();
                     }
-
-                    const tmpCanvas = document.createElement('canvas');
-                    tmpCanvas.width = canvas.width;
-                    tmpCanvas.height = sliceHeight;
-                    tmpCanvas.getContext('2d').drawImage(canvas, 0, position, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
-
-                    const sliceHeightMM = (sliceHeight * W) / canvas.width;
-                    pdf.addImage(tmpCanvas.toDataURL('image/png'), 'PNG', 0, 0, W, sliceHeightMM);
-
-                    position = sliceEnd;
-                    pageIndex += 1;
+                    
+                    const imgData = canvas.toDataURL('image/png');
+                    const w = 210;
+                    const h = (canvas.height * w) / canvas.width;
+                    pdf.addImage(imgData, 'PNG', 0, 0, w, h);
+                    
+                    printArea.innerHTML = '';
                 }
+
                 pdf.save(`AylikFatura_${new Date().toISOString().slice(0,10)}.pdf`);
             } catch (error) {
                 alert('PDF oluşturma sırasında hata oluştu: ' + error.message);
