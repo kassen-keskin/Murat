@@ -1,0 +1,54 @@
+{
+    "musteri-kayit": {
+        "companyName": "Firma",
+        "zipCode": "PLZ",
+        "city": "Ort",
+        "street": "FirmaStrasse",
+        "houseNumber": "FirmaNo",
+        "anredeSelect": "Anrede",
+        "ownerFirstName": "cVorname",
+        "ownerLastName": "cName",
+        "birthDate": "Geburtstag",
+        "taxNumber": "SteuerNr",
+        "idNumber": "IDNr",
+        "residenceZipCode": "PrivatPLZ",
+        "residenceCity": "PrivatOrt",
+        "residenceStreet": "PrivatStrasse",
+        "residenceHouseNumber": "PrivatNo",
+        "phoneNumber": "Tel",
+        "email": "Mail",
+        "websiteAnydesk": "Web"
+    },
+    "mietvertrag": {
+        "f_knd": "KundenNr",
+        "f_firma": "Firma",
+        "f_inhaber": "InhabeName",
+        "f_adr_gew": "FirmaAdress",
+        "f_adr_priv": "PrivatAdress",
+        "f_tel": "Tel"
+    },
+    "beyond-form": {
+        "Firmenname": "Firma",
+        "Telefon_Firma": "Tel",
+        "St_Nr": "SteuerNr",
+        "HR_Nummer": "IDNr",
+        "Firmen_PLZ": "PLZ",
+        "Firmen_Stadt": "Ort",
+        "Firmenadresse": "FirmaAdress",
+        "Privat_PLZ": "PrivatPLZ",
+        "Privat_Stadt": "PrivatOrt",
+        "Privatadresse": "PrivatStrasse",
+        "Anrede": "Anrede",
+        "Inhabervname": "cVorname",
+        "Inhabernachname": "cName",
+        "E_Mail_1": "Mail",
+        "Geburtsort": "PrivatOrt",
+        "Geburtsdatum": "Geburtstag"
+    },
+    "checklist": {
+        "betriebsname": "Firma",
+        "inhaber": "InhabeName",
+        "anschrift": "FirmaAdress",
+        "brancheSelect": "InhabeName"
+    }
+}

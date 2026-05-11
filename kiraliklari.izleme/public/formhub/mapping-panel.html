@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eşleşme Yönetim Paneli</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8f9fa;
+            padding: 20px;
+        }
+        .container {
+            max-width: 900px;
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .header-title {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #0d6efd;
+            padding-bottom: 10px;
+        }
+        .table th {
+            background-color: #f1f3f5;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2 class="header-title"><i class="fas fa-cogs"></i> Eşleşme Yönetim Paneli</h2>
+    <p class="text-muted">Form: <strong id="formNameDisplay"></strong></p>
+    <p>Bu panelden formunuzdaki giriş alanlarını, veritabanı (<b>[Custom].[Kunde]</b>) kolonlarıyla eşleştirebilirsiniz.</p>
+
+    <div id="alertPlaceholder"></div>
+
+    <form id="mappingForm">
+        <table class="table table-bordered table-hover align-middle mt-4">
+            <thead>
+                <tr>
+                    <th style="width: 30%;">Form Alanı (Label)</th>
+                    <th style="width: 25%;">HTML ID</th>
+                    <th style="width: 15%;">Tip</th>
+                    <th style="width: 30%;">Veritabanı Kolonu [Custom].[Kunde]</th>
+                </tr>
+            </thead>
+            <tbody id="mappingTableBody">
+                <tr><td colspan="4" class="text-center">Yükleniyor...</td></tr>
+            </tbody>
+        </table>
+        <div class="d-flex justify-content-end gap-2 mt-4">
+            <button type="button" class="btn btn-secondary" onclick="window.close()">Kapat</button>
+            <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Kaydet</button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const formId = urlParams.get('form');
+
+        if (!formId) {
+            showAlert('Form ID bulunamadı!', 'danger');
+            return;
+        }
+
+        document.getElementById('formNameDisplay').textContent = formId + '.html';
+
+        // Read field definitions from localStorage
+        const fieldsRaw = localStorage.getItem(`mapping_fields_${formId}`);
+        if (!fieldsRaw) {
+            showAlert('Alan bilgileri bulunamadı. Lütfen formu kapatıp tekrar Eşleşme Paneli butonuna tıklayın.', 'danger');
+            return;
+        }
+        const fields = JSON.parse(fieldsRaw);
+
+        try {
+            // Fetch columns
+            const resCols = await fetch('/api/kunde_columns');
+            if (!resCols.ok) throw new Error('Kolonlar alınamadı.');
+            const columns = await resCols.json();
+
+            // Fetch existing mapping
+            const resMapping = await fetch(`/api/mappings/${formId}`);
+            let existingMapping = {};
+            if (resMapping.ok) {
+                existingMapping = await resMapping.json();
+            }
+
+            // Render table
+            const tbody = document.getElementById('mappingTableBody');
+            tbody.innerHTML = '';
+
+            fields.forEach(field => {
+                const tr = document.createElement('tr');
+                
+                // Select HTML
+                let selectHtml = `<select class="form-select mapping-select" data-field-id="${field.id}">
+                    <option value="">-- Eşleştirilmedi --</option>`;
+                
+                columns.forEach(col => {
+                    const isSelected = (existingMapping[field.id] === col) ? 'selected' : '';
+                    selectHtml += `<option value="${col}" ${isSelected}>${col}</option>`;
+                });
+                selectHtml += `</select>`;
+
+                tr.innerHTML = `
+                    <td>${field.label || '<span class="text-muted">İsimsiz Alan</span>'}</td>
+                    <td><code>${field.id}</code></td>
+                    <td><span class="badge bg-info text-dark">${field.type}</span></td>
+                    <td>${selectHtml}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+
+        } catch (error) {
+            console.error(error);
+            showAlert('Veriler yüklenirken hata oluştu: ' + error.message, 'danger');
+        }
+
+        // Save logic
+        document.getElementById('mappingForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const newMapping = {};
+            document.querySelectorAll('.mapping-select').forEach(select => {
+                if (select.value) {
+                    newMapping[select.getAttribute('data-field-id')] = select.value;
+                }
+            });
+
+            try {
+                const res = await fetch(`/api/mappings/${formId}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(newMapping)
+                });
+
+                if (res.ok) {
+                    showAlert('Eşleştirmeler başarıyla kaydedildi!', 'success');
+                } else {
+                    throw new Error('Kaydedilemedi');
+                }
+            } catch (error) {
+                showAlert('Kaydetme hatası: ' + error.message, 'danger');
+            }
+        });
+    });
+
+    function showAlert(message, type) {
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = [
+            `<div class="alert alert-${type} alert-dismissible" role="alert">`,
+            `   <div>${message}</div>`,
+            '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+            '</div>'
+        ].join('');
+        document.getElementById('alertPlaceholder').append(wrapper);
+    }
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

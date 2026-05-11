@@ -39,10 +39,12 @@
             --box-bg: #2b3035;
         }
 
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-body); color: var(--text-color); height: 100vh; overflow: hidden; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-body); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
         
-        .app-container { display: flex; height: 100vh; }
-        .sidebar { width: var(--sidebar-w); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 10; }
+        .top-header { height: 60px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 0 1rem; z-index: 20; }
+        .app-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: var(--sidebar-w); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 10; transition: width 0.3s ease, min-width 0.3s ease, opacity 0.2s ease; overflow: hidden; }
+        .sidebar.collapsed { width: 0; min-width: 0; border-right: none; opacity: 0; }
         .preview { flex-grow: 1; background: var(--preview-bg); padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 20px; }
 
         .sidebar-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-sidebar); }
@@ -101,6 +103,13 @@
     </style>
 </head>
 <body data-bs-theme="dark">
+
+<header class="top-header no-print">
+    <button class="btn btn-outline-secondary btn-sm me-3" onclick="document.querySelector('.sidebar').classList.toggle('collapsed')">
+        <i class="bi bi-list fs-5"></i>
+    </button>
+    <div class="kunden-search-target flex-grow-1"></div>
+</header>
 
 <div class="app-container">
     <aside class="sidebar">
@@ -441,5 +450,6 @@
     new Sortable(document.getElementById('item-container'), { animation: 150, handle: '.drag-handle', onEnd: sync });
     window.onload = () => { addItem(); sync(); };
 </script>
+<script src="kunden_integration.js"></script>
 </body>
 </html>

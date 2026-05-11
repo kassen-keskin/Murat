@@ -245,5 +245,79 @@ def get_details(id):
     finally:
         conn.close()
 
+KUNDEN_MAPPINGS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kunden_mappings.json')
+
+@app.route('/api/kunde_columns')
+def get_kunde_columns():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT TOP 1 * FROM [Custom].[Kunde]")
+        columns = [column[0] for column in cursor.description]
+        return jsonify(columns)
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/kunde/<kunden_nr>')
+def get_kunde(kunden_nr):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    cursor = conn.cursor()
+    try:
+        query = "SELECT * FROM [Custom].[Kunde] WHERE KundenNr = ?"
+        cursor.execute(query, (kunden_nr,))
+        
+        columns = [column[0] for column in cursor.description]
+        row = cursor.fetchone()
+        
+        if row:
+            result = dict(zip(columns, row))
+            return jsonify(result)
+        else:
+            return jsonify({"error": "Not found"}), 404
+            
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/mappings/<form_id>', methods=['GET', 'POST'])
+def manage_mappings(form_id):
+    if request.method == 'GET':
+        try:
+            if os.path.exists(KUNDEN_MAPPINGS_FILE):
+                with open(KUNDEN_MAPPINGS_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+                    return jsonify(data.get(form_id, {}))
+            return jsonify({})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+            
+    if request.method == 'POST':
+        try:
+            new_mapping = request.get_json()
+            data = {}
+            if os.path.exists(KUNDEN_MAPPINGS_FILE):
+                with open(KUNDEN_MAPPINGS_FILE, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            
+            data[form_id] = new_mapping
+            
+            with open(KUNDEN_MAPPINGS_FILE, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=4)
+            return jsonify({"success": True})
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=False, port=3000)
+

@@ -410,12 +410,12 @@
         <div class="section">
             <h2>01 Stammdaten</h2>
             <div class="grid">
-                <div class="input-group"><label>BETRIEB / FIRMA</label><input type="text" placeholder="Betriebsname">
+                <div class="input-group"><label>BETRIEB / FIRMA</label><input type="text" id="betriebsname" placeholder="Betriebsname">
                 </div>
-                <div class="input-group"><label>INHABER</label><input type="text" placeholder="Name des Inhabers"></div>
-                <div class="input-group full-width"><label>ANSCHRIFT / BETRIEBSSTÄTTE</label><input type="text"
+                <div class="input-group"><label>INHABER</label><input type="text" id="inhaber" placeholder="Name des Inhabers"></div>
+                <div class="input-group full-width"><label>ANSCHRIFT / BETRIEBSSTÄTTE</label><input type="text" id="anschrift"
                         placeholder="Strasse, PLZ, Stadt"></div>
-                <div class="input-group"><label>MODELL / SERIENNR.</label><input type="text"
+                <div class="input-group"><label>MODELL / SERIENNR.</label><input type="text" id="modell_seriennr"
                         placeholder="Kassendetails"></div>
                 <div class="input-group">
                     <label>BRANCHE</label>
@@ -633,15 +633,15 @@
         <div class="form-fields">
             <div class="field-row">
                 <label>Ort / Datum:</label>
-                <input type="text">
+                <input type="text" id="page2_ort_datum">
             </div>
             <div class="field-row">
                 <label>Firmenname:</label>
-                <input type="text">
+                <input type="text" id="page2_firmenname">
             </div>
             <div class="field-row">
                 <label>Name des Verantwortlichen:</label>
-                <input type="text">
+                <input type="text" id="page2_verantwortlicher">
             </div>
             <div class="field-row">
                 <label>Unterschrift / Stempel:</label>
@@ -912,6 +912,7 @@
             event.target.value = '';
         }
     </script>
+    <script src="kunden_integration.js"></script>
 
 </body>
 
