@@ -43,7 +43,7 @@ class LieferandoScraperApp:
         frame_tree = tk.Frame(self.root, padx=10, pady=10)
         frame_tree.pack(fill=tk.BOTH, expand=True)
         
-        columns = ("Kategori", "Artikel", "Fiyat")
+        columns = ("Kategori", "Artikel", "Fiyat", "Pfand")
         self.tree = ttk.Treeview(frame_tree, columns=columns, show="headings", style="Custom.Treeview")
         
         # Tablo Sütun Ayarları
@@ -51,10 +51,13 @@ class LieferandoScraperApp:
         self.tree.column("Kategori", width=200)
         
         self.tree.heading("Artikel", text="Artikel (Menü / Ürün Adı)")
-        self.tree.column("Artikel", width=350)
+        self.tree.column("Artikel", width=300)
         
         self.tree.heading("Fiyat", text="Fiyat (€)")
         self.tree.column("Fiyat", width=100, anchor=tk.E)
+
+        self.tree.heading("Pfand", text="Pfand (€)")
+        self.tree.column("Pfand", width=100, anchor=tk.E)
             
         scrollbar = ttk.Scrollbar(frame_tree, orient=tk.VERTICAL, command=self.tree.yview)
         self.tree.configure(yscroll=scrollbar.set)
@@ -133,20 +136,30 @@ class LieferandoScraperApp:
                         if item_info:
                             item_name = item_info.get('name', 'Bilinmeyen Artikel')
                             variations = item_info.get('variations', [])
+                            price = 0.0
+                            pfand = 0.0
+                            
                             if variations:
                                 price = variations[0].get('basePrice', 0.0)
+                                init_info = variations[0].get('initialProductInformation')
+                                if init_info and 'deposit' in init_info:
+                                    pfand = init_info['deposit'].get('value', 0.0)
                             else:
-                                price = 0.0
+                                init_info = item_info.get('initialProductInformation')
+                                if init_info and 'deposit' in init_info:
+                                    pfand = init_info['deposit'].get('value', 0.0)
                                 
                             price_str = f"{price:.2f} €"
+                            pfand_str = f"{pfand:.2f} €" if pfand > 0 else "-"
                             
                             self.scraped_data.append({
                                 'Kategori': cat_name,
                                 'Artikel': item_name,
-                                'Fiyat (€)': price
+                                'Fiyat (€)': price,
+                                'Pfand (€)': pfand if pfand > 0 else None
                             })
                             
-                            self.tree.insert('', tk.END, values=(cat_name, item_name, price_str))
+                            self.tree.insert('', tk.END, values=(cat_name, item_name, price_str, pfand_str))
             
             self.add_valid_url(url)
             
