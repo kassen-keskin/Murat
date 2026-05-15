@@ -88,7 +88,7 @@
             const columns = await resCols.json();
 
             // Fetch existing mapping
-            const resMapping = await fetch(`/api/mappings/${formId}`);
+            const resMapping = await fetch(`/api/mappings/${formId}?_=${new Date().getTime()}`);
             let existingMapping = {};
             if (resMapping.ok) {
                 existingMapping = await resMapping.json();

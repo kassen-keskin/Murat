@@ -17,7 +17,12 @@
         "residenceHouseNumber": "PrivatNo",
         "phoneNumber": "Tel",
         "email": "Mail",
-        "websiteAnydesk": "Web"
+        "websiteAnydesk": "Web",
+        "ekasseSoftwareName": "KundenKategorie",
+        "softwareVersion": "KundenKategorie",
+        "ekasseSerialNumber": "KassenNo",
+        "hardwareSerialNumber": "KassenNo",
+        "tseSerialNumber": "TSENo"
     },
     "mietvertrag": {
         "f_knd": "KundenNr",

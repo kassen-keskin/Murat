@@ -642,7 +642,7 @@
                     <div class="row g-3">
                         <div class="col-md-4">
                             <label for="phoneNumber" class="form-label">Telefon</label>
-                            <input type="tel" class="form-control" id="phoneNumber" placeholder="Telefonnummer" pattern="[0-9+\s()-]*" title="Lütfen geçerli bir telefon numarası girin.">
+                            <input type="tel" class="form-control" id="phoneNumber" placeholder="Telefonnummer" pattern="[0-9+\s\(\)\-]*" title="Lütfen geçerli bir telefon numarası girin.">
                         </div>
                         <div class="col-md-4">
                             <label for="email" class="form-label">E-Mail</label>
@@ -763,9 +763,6 @@
                         <div class="col-12">
                             <label for="tseSerialNumber" class="form-label">Seriennummer</label>
                             <input type="text" class="form-control" id="tseSerialNumber" placeholder="Seriennummer" maxlength="64">
-                            <div id="tseSerialNumberValidation" class="validation-message">
-                                Die TSE Seriennummer muss genau 64 Zeichen lang sein.
-                            </div>
                         </div>
                         <div class="col-md-6">
                             <label for="tseUsageDate" class="form-label">Inbetriebnahme</label>
@@ -941,6 +938,20 @@
             toggleAllIcon.classList.add('fa-compress-alt');
         });
 
+        function setDefaultDates() {
+            const today = new Date().toISOString().split('T')[0];
+            const dateFieldsToDefault = ['purchaseDate', 'usageDate', 'tseUsageDate'];
+            dateFieldsToDefault.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.value = today;
+                }
+            });
+        }
+        
+        // Form yüklendiğinde tarihleri bugünün tarihi yap
+        setDefaultDates();
+
         // Yeni Kayıt düğmesi mantığı (alttaki düğme için)
         const newRecordButtonBottom = document.getElementById('new-record-button-bottom');
         newRecordButtonBottom.addEventListener('click', () => {
@@ -984,6 +995,10 @@
             // Tümünü aç/kapa düğmesinin ikonunu başlangıç durumuna getir
             toggleAllIcon.classList.remove('fa-compress-alt');
             toggleAllIcon.classList.add('fa-expand-alt');
+            
+            // Tarihleri tekrar varsayılan (bugün) yap
+            setDefaultDates();
+            
             showStatusMessage('Form temizlendi.', 'info');
         });
 
@@ -1049,42 +1064,19 @@
                 phoneNumberInput.classList.remove('is-invalid');
             }
 
-            // TSE Seri Numarası Doğrulama
-            const tseSerialNumberInput = document.getElementById('tseSerialNumber');
-            const tseSerialNumberValidationMessage = document.getElementById('tseSerialNumberValidation');
 
-            const tseSerialNumber = tseSerialNumberInput.value.trim();
-            if (tseSerialNumber.length !== 64) {
-                tseSerialNumberValidationMessage.style.display = 'block';
-                tseSerialNumberInput.classList.add('is-invalid');
-                isValid = false;
-            } else {
-                tseSerialNumberValidationMessage.style.display = 'none';
-                tseSerialNumberInput.classList.remove('is-invalid');
-            }
 
             return isValid;
         }
 
         // Tüm gerekli alanlara ve özel doğrulama alanlarına input event listener ekle
         // E-posta artık zorunlu olmadığı için listeden çıkarıldı
-        document.querySelectorAll('#customerForm [required], #phoneNumber, #tseSerialNumber').forEach(input => {
+        document.querySelectorAll('#customerForm [required], #phoneNumber').forEach(input => {
             input.addEventListener('input', () => {
                 if (input.checkValidity() && input.value.trim()) {
                     input.classList.remove('is-invalid');
                 } else {
                     input.classList.add('is-invalid');
-                }
-                // TSE özel mesajı için ek kontrol
-                if (input.id === 'tseSerialNumber') {
-                    const tseSerialNumberInput = document.getElementById('tseSerialNumber');
-                    const tseSerialNumberValidationMessage = document.getElementById('tseSerialNumberValidation');
-
-                    if (input.value.length !== 64 && input.value.length > 0) {
-                        tseSerialNumberValidationMessage.style.display = 'block';
-                    } else {
-                        tseSerialNumberValidationMessage.style.display = 'none';
-                    }
                 }
             });
         });
@@ -1500,11 +1492,7 @@
                     document.getElementById('zipCode').dispatchEvent(new Event('input'));
                     document.getElementById('residenceZipCode').dispatchEvent(new Event('input'));
 
-                    // Clear any validation messages after loading
-                    const tseSerialNumberValidationMessage = document.getElementById('tseSerialNumberValidation');
-                    const tseSerialNumberInput = document.getElementById('tseSerialNumber');
-                    if (tseSerialNumberValidationMessage) tseSerialNumberValidationMessage.style.display = 'none';
-                    if (tseSerialNumberInput) tseSerialNumberInput.classList.remove('is-invalid');
+
 
                     showStatusMessage('Veriler dosyadan başarıyla yüklendi!', 'success');
                 } catch (error) {

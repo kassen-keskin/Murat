@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showMessage('Aranıyor...', 'orange');
         try {
             // 1. Fetch Kunde Data
-            const resKunde = await fetch(`/api/kunde/${kundenNr}`);
+            const resKunde = await fetch(`/api/kunde/${kundenNr}?_=${new Date().getTime()}`);
             if (!resKunde.ok) {
                 showMessage('Kunde bulunamadı!', 'red');
                 return;
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const kundeData = await resKunde.json();
 
             // 2. Fetch Mappings
-            const resMapping = await fetch(`/api/mappings/${formId}`);
+            const resMapping = await fetch(`/api/mappings/${formId}?_=${new Date().getTime()}`);
             const mappingData = await resMapping.json();
 
             if (Object.keys(mappingData).length === 0) {
