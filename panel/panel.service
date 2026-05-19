@@ -1,0 +1,14 @@
+[Unit]
+Description=Panel Web App Service
+After=network.target
+
+[Service]
+User=root
+# Projenin LXC içindeki tam yolunu buraya yazın (örnek: /opt/panel)
+WorkingDirectory=/opt/panel
+# Sanal ortam kullanıyorsanız python3 yolunu venv/bin/python olarak güncelleyin
+ExecStart=/opt/panel/venv/bin/python app.py
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
