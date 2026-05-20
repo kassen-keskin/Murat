@@ -1532,7 +1532,7 @@
         function getDisplayKeys(dataRow) {
             if (currentTab === 'aylik' && dataRow) {
                 const keys = Object.keys(dataRow);
-                const preferred = ['Kundennummer', 'KundenNr', 'K_Firma', 'Firma', 'Artikelnummer', 'Brutto-VK'];
+                const preferred = ['Kundennummer', 'KassenKunde', 'KundenNr', 'K_Firma', 'Firma', 'Artikelnummer', 'Brutto-VK'];
                 const ordered = [...new Set([...preferred, ...keys])];
                 return ordered.filter(key => keys.includes(key));
             }
@@ -1821,7 +1821,7 @@
         }
 
         function getAylikDisplayKeys(dataRow) {
-            if (!dataRow) return ['Kundennummer', 'K_Firma', 'Artikelnummer', 'Brutto-VK'];
+            if (!dataRow) return ['Kundennummer', 'KassenKunde', 'K_Firma', 'Artikelnummer', 'Brutto-VK'];
             const keys = getDisplayKeys(dataRow);
             return keys;
         }
@@ -1850,7 +1850,7 @@
             thead.className = 'list-header';
             const headerRow = document.createElement('tr');
 
-            const visibleKeys = ['Kundennummer', 'K_Firma', 'Artikelnummer', 'Brutto-VK'];
+            const visibleKeys = ['Kundennummer', 'KassenKunde', 'K_Firma', 'Artikelnummer', 'Brutto-VK'];
             const finalKeys = keys.filter(k => visibleKeys.includes(k)).length > 0 ? visibleKeys.filter(k => keys.includes(k)).concat(keys.filter(k => !visibleKeys.includes(k))) : keys;
 
             const noTh = document.createElement('th');
