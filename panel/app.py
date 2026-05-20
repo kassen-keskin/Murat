@@ -234,7 +234,7 @@ def get_lotus_lisans():
         query = """
         SELECT *
         FROM [Custom].[LotusKundenLisans] WITH (NOLOCK)
-        ORDER BY [KundenNr]
+        ORDER BY [kKunde] DESC
         """
         cursor.execute(query)
         columns = [column[0] for column in cursor.description]

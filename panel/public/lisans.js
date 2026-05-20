@@ -1,15 +1,43 @@
 let lisansData = [];
-let matchedPairs = {}; // slotIndex -> KundenNr
+let matchedPairs = {}; // slotKey -> KundenNr
 const LISANS_MATCH_STORAGE_KEY = 'lisansMatchedPairs';
 let lisansScrollSyncInitialized = false;
 let lisansScrollSyncActive = false;
+
+function getSlotKey(item) {
+    if (!item) return '';
+    const l = item.LisansNo || '';
+    const k = item.KundenNr || '';
+    const f = (item.Firma || '').replace(/\|/g, '');
+    return `L:${l}|K:${k}|F:${f}`;
+}
 
 function loadLisansMatches() {
     try {
         const stored = localStorage.getItem(LISANS_MATCH_STORAGE_KEY);
         if (!stored) return {};
         const parsed = JSON.parse(stored);
-        return parsed && typeof parsed === 'object' ? parsed : {};
+        if (!parsed || typeof parsed !== 'object') return {};
+
+        // Migrate old numeric-indexed storage to new slot-keyed storage
+        const hasNumericKeys = Object.keys(parsed).some(k => /^\d+$/.test(k));
+        if (hasNumericKeys && Array.isArray(lisansData) && lisansData.length > 0) {
+            const migrated = {};
+            for (const key of Object.keys(parsed)) {
+                if (/^\d+$/.test(key)) {
+                    const idx = Number(key);
+                    const item = lisansData[idx];
+                    if (item) {
+                        migrated[getSlotKey(item)] = parsed[key];
+                    }
+                } else {
+                    migrated[key] = parsed[key];
+                }
+            }
+            return migrated;
+        }
+
+        return parsed;
     } catch (error) {
         console.error('Failed to load saved lisans matches:', error);
         return {};
@@ -76,11 +104,12 @@ function renderLisans() {
     leftCol.innerHTML = '';
     rightCol.innerHTML = '';
 
-    const matchedKundenNrs = Object.values(matchedPairs);
+    const matchedKundenNrs = Object.values(matchedPairs).map(v => String(v).toLowerCase());
 
     lisansData.forEach((item, index) => {
+        const slotKey = getSlotKey(item);
         // --- Left Card Logic ---
-        const isMatched = matchedKundenNrs.includes(item.KundenNr);
+        const isMatched = matchedKundenNrs.includes(String(item.KundenNr).toLowerCase());
         const showLeft = true;
 
         if (showLeft) {
@@ -106,17 +135,18 @@ function renderLisans() {
         // --- Right Slot Logic ---
         // Render exactly one slot per original data record so "ayni ölcude sanki kuyruk eslesmesi gibi"
         const slot = document.createElement('div');
-        const matchedKundenNrForSlot = matchedPairs[index];
-        const matchedItem = matchedKundenNrForSlot ? lisansData.find(d => d.KundenNr === matchedKundenNrForSlot) : null;
+        const matchedKundenNrForSlot = matchedPairs[slotKey];
+        const matchedItem = matchedKundenNrForSlot ? lisansData.find(d => String(d.KundenNr).toLowerCase() === String(matchedKundenNrForSlot).toLowerCase()) : null;
 
         slot.className = `lisans-slot ${matchedItem ? 'filled' : ''}`;
         
+        const safeSlotKey = String(slotKey).replace(/'/g, "\\'");
         slot.innerHTML = `
             <div class="lisans-slot-header">
                 <label>Eşleştirilecek Kunden Nr:</label>
                 <input type="text" class="lisans-slot-input" placeholder="KundenNr yazıp Enter'a basın..." 
                        value="${matchedItem ? matchedItem.KundenNr : ''}" 
-                       onchange="handleLisansMatch(this, ${index})">
+                       onchange="handleLisansMatch(this, '${safeSlotKey}')">
             </div>
             <div class="lisans-slot-body">
                 ${matchedItem ? `
@@ -136,12 +166,12 @@ function renderLisans() {
     });
 }
 
-function handleLisansMatch(inputEl, slotIndex) {
+function handleLisansMatch(inputEl, slotKey) {
     const val = inputEl.value.trim();
-    
+
     // If empty, remove the match
     if (!val) {
-        delete matchedPairs[slotIndex];
+        delete matchedPairs[slotKey];
         renderLisans();
         return;
     }
@@ -152,17 +182,17 @@ function handleLisansMatch(inputEl, slotIndex) {
     
     if (found) {
         // Remove this KundenNr from any other slot to avoid duplicates
-        for (let idx in matchedPairs) {
-            if (matchedPairs[idx] === found.KundenNr) {
-                delete matchedPairs[idx];
+        for (let k in matchedPairs) {
+            if (matchedPairs[k] === found.KundenNr) {
+                delete matchedPairs[k];
             }
         }
-        // Assign to current slot
-        matchedPairs[slotIndex] = found.KundenNr;
+        // Assign to current slot key
+        matchedPairs[slotKey] = found.KundenNr;
     } else {
         alert('KundenNr bulunamadı! Lütfen geçerli bir KundenNr girin.');
         inputEl.value = '';
-        delete matchedPairs[slotIndex];
+        delete matchedPairs[slotKey];
     }
     
     renderLisans();
