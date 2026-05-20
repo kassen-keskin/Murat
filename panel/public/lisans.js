@@ -143,7 +143,7 @@ function renderLisans() {
         const safeSlotKey = String(slotKey).replace(/'/g, "\\'");
         slot.innerHTML = `
             <div class="lisans-slot-header">
-                <label>Eşleştirilecek Kunden Nr:</label>
+                <label>Iptal Edilecek Lisans Kunden Nr</label>
                 <input type="text" class="lisans-slot-input" placeholder="KundenNr yazıp Enter'a basın..." 
                        value="${matchedItem ? matchedItem.KundenNr : ''}" 
                        onchange="handleLisansMatch(this, '${safeSlotKey}')">

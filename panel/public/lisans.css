@@ -3,7 +3,7 @@
     flex: 1;
     height: 100%;
     overflow: hidden;
-    padding: 20px;
+    padding: 0 20px 20px;
     background-color: var(--bg-color);
     min-height: 0;
 }
@@ -11,10 +11,9 @@
 .lisans-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 30px;
+    gap: 20px;
     flex: 1;
     overflow: hidden;
-    grid-template-rows: auto 1fr;
     min-height: 0;
 }
 
@@ -99,6 +98,7 @@
     transition: all 0.3s ease;
     box-sizing: border-box;
     overflow: hidden;
+    font-size: 0.9rem;
 }
 
 .lisans-slot.filled {
@@ -109,11 +109,11 @@
 
 .lisans-slot-header {
     background-color: rgba(0, 0, 0, 0.2);
-    padding: 10px 15px;
+    padding: 5px 8px;
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    gap: 10px;
+    gap: 5px;
 }
 
 .lisans-slot.filled .lisans-slot-header {
@@ -122,10 +122,11 @@
 }
 
 .lisans-slot-header label {
-    font-size: 0.85rem;
+    font-size: 0.72rem;
     color: var(--text-muted);
     font-weight: 600;
     white-space: nowrap;
+    line-height: 1.2;
 }
 
 .lisans-slot-input {
@@ -133,10 +134,11 @@
     background-color: var(--bg-color);
     border: 1px solid var(--border-color);
     color: var(--text-color);
-    padding: 6px 10px;
+    padding: 4px 6px;
     border-radius: 4px;
     outline: none;
-    font-size: 0.9rem;
+    font-size: 0.78rem;
+    line-height: 1.2;
     transition: border-color 0.2s;
 }
 
@@ -145,13 +147,13 @@
 }
 
 .lisans-slot-body {
-    padding: 15px;
+    padding: 8px 10px 10px;
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
-    gap: 8px;
-    justify-content: center;
+    gap: 6px;
+    justify-content: flex-start;
 }
 
 .lisans-slot-empty-msg {
@@ -176,6 +178,20 @@
     padding-bottom: 5px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     margin-bottom: 5px;
+}
+
+.lisans-slot .l-card-title {
+    font-size: 0.95rem;
+}
+
+.lisans-slot .l-card-subtitle {
+    font-size: 0.82rem;
+    padding-bottom: 1px;
+    margin-bottom: 1px;
+}
+
+.lisans-slot .l-card-row-bottom .l-compact-val {
+    font-size: 0.68rem;
 }
 
 .l-card-row {
@@ -214,9 +230,10 @@
 .l-card-row-bottom {
     display: flex;
     gap: 6px;
-    margin-top: 4px;
+    margin-top: 1px;
     flex-wrap: wrap;
     align-items: center;
+    line-height: 1.2;
 }
 
 .l-compact-val {
