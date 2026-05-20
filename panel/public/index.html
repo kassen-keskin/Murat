@@ -733,9 +733,11 @@
     </style>
     <link rel="stylesheet" href="/satis.css">
     <link rel="stylesheet" href="/teslimat.css">
+    <link rel="stylesheet" href="/lisans.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="/teslimat.js" defer></script>
+    <script src="/lisans.js" defer></script>
 </head>
 
 <body>
@@ -801,6 +803,7 @@
             <div id="tabFormHub" class="tab-item" onclick="switchTab('formhub')">📄 Dokümanlar</div>
             <div id="tabSatis"  class="tab-item" onclick="switchTab('satis')">🛒 Yeni Satış</div>
             <div id="tabTeslimat" class="tab-item" onclick="switchTab('teslimat')">📦 Kasa Teslimat</div>
+            <div id="tabLisans" class="tab-item" onclick="switchTab('lisans')">🔗 Lisans Eşleştirme</div>
         </div>
 
         <div id="aylikControls" class="aylik-controls" style="display:none; gap:10px; margin-top:12px;">
@@ -1028,6 +1031,33 @@
             <iframe src="/formhub/dashboard.html" style="width:100%; height:100%; border:none;"></iframe>
         </div>
 
+        <!-- ===== LİSANS EŞLEŞTİRME PANELİ ===== -->
+        <div id="lisansPaneli" class="panel lisans-panel" style="display:none; flex:1; flex-direction:column;">
+            <div class="satis-top-bar">
+                <h2>🔗 Lisans Eşleştirme</h2>
+                <div style="flex:1;"></div>
+                <button class="btn-s success" onclick="saveLisansMatch()">💾 Eşleşmeleri Kaydet</button>
+            </div>
+            <div class="lisans-inner">
+                <div class="lisans-grid">
+                    <div class="lisans-col-header">
+                        <h3>📋 Eşleşmemiş Lisanslar</h3>
+                    </div>
+                    <div class="lisans-col-header">
+                        <h3>🔗 Eşleşme Alanı</h3>
+                        <div class="lisans-search-wrap" style="opacity: 0;">&nbsp;</div>
+                    </div>
+
+                    <div class="lisans-col-body" id="lisansLeftCol">
+                        <!-- Sol taraftaki kartlar JS ile doldurulacak -->
+                    </div>
+                    <div class="lisans-col-body" id="lisansRightCol">
+                        <!-- Sağ taraftaki slotlar JS ile doldurulacak -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /dashboard-container -->
 
     <!-- Hidden Print Area -->
@@ -1249,12 +1279,14 @@
             document.getElementById('tabTeslimat').classList.toggle('active', tab === 'teslimat');
             document.getElementById('tabAylik').classList.toggle('active',  tab === 'aylik');
             document.getElementById('tabFormHub').classList.toggle('active', tab === 'formhub');
+            document.getElementById('tabLisans').classList.toggle('active', tab === 'lisans');
 
             const filterPanel = document.querySelector('.filter-panel');
             const listPanel   = document.querySelector('.panel.list-panel');
             const satisPaneli = document.getElementById('satisPaneli');
             const teslimatPaneli = document.getElementById('teslimatPaneli');
             const formHubPaneli = document.getElementById('formHubPaneli');
+            const lisansPaneli = document.getElementById('lisansPaneli');
             const aylikControls = document.getElementById('aylikControls');
 
             aylikControls.style.display = tab === 'aylik' ? 'flex' : 'none';
@@ -1264,6 +1296,7 @@
                 listPanel.style.display   = 'none';
                 teslimatPaneli.style.display = 'none';
                 formHubPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'none';
                 satisPaneli.style.display = 'flex';
                 initSatisTab();
             } else if (tab === 'teslimat') {
@@ -1271,6 +1304,7 @@
                 listPanel.style.display   = 'none';
                 satisPaneli.style.display = 'none';
                 formHubPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'none';
                 teslimatPaneli.style.display = 'flex';
                 if (typeof initTeslimatTab === 'function') initTeslimatTab();
             } else if (tab === 'formhub') {
@@ -1278,13 +1312,23 @@
                 listPanel.style.display   = 'none';
                 satisPaneli.style.display = 'none';
                 teslimatPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'none';
                 formHubPaneli.style.display = 'flex';
+            } else if (tab === 'lisans') {
+                filterPanel.style.display = 'none';
+                listPanel.style.display   = 'none';
+                satisPaneli.style.display = 'none';
+                teslimatPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'flex';
+                if (typeof initLisansTab === 'function') initLisansTab();
             } else {
                 filterPanel.style.display = '';
                 listPanel.style.display   = '';
                 satisPaneli.style.display = 'none';
                 teslimatPaneli.style.display = 'none';
                 formHubPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'none';
                 if (tab === 'aylik') {
                     if (!aylikLoaded) {
                         await fetchAylikData();

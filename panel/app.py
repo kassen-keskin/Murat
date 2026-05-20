@@ -219,6 +219,37 @@ def get_aylik_fatura():
     finally:
         conn.close()
 
+@app.route('/api/lotus-lisans')
+def get_lotus_lisans():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        cached = get_cached_data('lotus_lisans')
+        if cached is not None:
+            return make_cached_response(cached, 'HIT')
+
+        query = """
+        SELECT *
+        FROM [Custom].[LotusKundenLisans] WITH (NOLOCK)
+        ORDER BY [KundenNr]
+        """
+        cursor.execute(query)
+        columns = [column[0] for column in cursor.description]
+        results = []
+        for row in cursor.fetchall():
+            results.append(dict(zip(columns, row)))
+
+        set_cached_data('lotus_lisans', results)
+        return make_cached_response(results, 'MISS')
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/details/<int:id>')
 def get_details(id):
     conn = get_db_connection()

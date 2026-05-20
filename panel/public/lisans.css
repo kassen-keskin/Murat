@@ -1,0 +1,246 @@
+.lisans-inner {
+    display: flex;
+    flex: 1;
+    height: 100%;
+    overflow: hidden;
+    padding: 20px;
+    background-color: var(--bg-color);
+    min-height: 0;
+}
+
+.lisans-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    flex: 1;
+    overflow: hidden;
+    grid-template-rows: auto 1fr;
+    min-height: 0;
+}
+
+.lisans-col-header {
+    border-bottom: 2px solid var(--border-color);
+    padding-bottom: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lisans-col-header h3 {
+    margin: 0;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+.lisans-col-body {
+    overflow-y: auto;
+    padding-right: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    min-height: 0;
+    height: 100%;
+}
+
+/* Scrollbar Styling for lisans columns */
+.lisans-col-body::-webkit-scrollbar {
+    width: 6px;
+}
+.lisans-col-body::-webkit-scrollbar-track {
+    background: transparent;
+}
+.lisans-col-body::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 3px;
+}
+.lisans-col-body::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+.lisans-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: all 0.3s ease;
+    min-height: 120px;
+    box-sizing: border-box;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+.lisans-card:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+}
+
+.lisans-card.matched-left {
+    opacity: 0.2;
+    pointer-events: none;
+    filter: grayscale(100%);
+    border: 1px dashed var(--border-color);
+    box-shadow: none;
+    transform: none;
+}
+
+.lisans-slot {
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 2px dashed var(--border-color);
+    border-radius: 8px;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.lisans-slot.filled {
+    border: 2px solid var(--secondary-color);
+    background-color: rgba(3, 218, 198, 0.05); /* very light secondary */
+    box-shadow: 0 0 15px rgba(3, 218, 198, 0.1);
+}
+
+.lisans-slot-header {
+    background-color: rgba(0, 0, 0, 0.2);
+    padding: 10px 15px;
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lisans-slot.filled .lisans-slot-header {
+    background-color: rgba(3, 218, 198, 0.1);
+    border-bottom-color: rgba(3, 218, 198, 0.3);
+}
+
+.lisans-slot-header label {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.lisans-slot-input {
+    flex: 1;
+    background-color: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 6px 10px;
+    border-radius: 4px;
+    outline: none;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+
+.lisans-slot-input:focus {
+    border-color: var(--primary-color);
+}
+
+.lisans-slot-body {
+    padding: 15px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    justify-content: center;
+}
+
+.lisans-slot-empty-msg {
+    color: var(--text-muted);
+    font-style: italic;
+    margin: auto;
+    font-size: 0.9rem;
+    opacity: 0.5;
+}
+
+/* Card content styles */
+.l-card-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.l-card-subtitle {
+    font-size: 0.95rem;
+    color: var(--text-color);
+    font-weight: 600;
+    padding-bottom: 5px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 5px;
+}
+
+.l-card-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    padding-top: 2px;
+    gap: 8px;
+    flex-wrap: wrap;
+    min-width: 0;
+}
+
+.l-card-row span {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    min-width: 0;
+}
+
+.l-card-row.compact {
+    font-size: 0.78rem;
+    gap: 6px;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.l-card-row.compact span {
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.l-card-row-bottom {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.l-compact-val {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.l-card-row span:last-child {
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.l-card-title,
+.l-card-subtitle,
+.lisans-slot-input {
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    white-space: normal;
+}
+
+.lisans-slot-input {
+    width: 100%;
+}
