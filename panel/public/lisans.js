@@ -136,7 +136,7 @@ function renderLisans() {
                             ${matchedItem.PLZ || matchedItem.Postleitzahl ? `<span class="l-compact-val">${matchedItem.PLZ || matchedItem.Postleitzahl}</span>` : ''}
                         </div>
                     ` : `
-                        <div class="lisans-slot-empty-msg">Eşleştirilecek kaydı bekliyor...</div>
+                        <div class="lisans-slot-empty-msg"></div>
                     `}
                 </div>
             </div>
