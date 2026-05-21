@@ -17,6 +17,24 @@ function loadLisansMatches() {
         const parsed = JSON.parse(stored);
         if (!parsed || typeof parsed !== 'object') return {};
 
+        const normalizeValue = (value) => {
+            if (value && typeof value === 'object' && value.kundenNr) {
+                return {
+                    kundenNr: String(value.kundenNr),
+                    mailGonderildi: Boolean(value.mailGonderildi),
+                    odendi: Boolean(value.odendi)
+                };
+            }
+            if (typeof value === 'string') {
+                return {
+                    kundenNr: value,
+                    mailGonderildi: false,
+                    odendi: false
+                };
+            }
+            return null;
+        };
+
         // Migrate old numeric-indexed storage to new slot-keyed storage
         const hasNumericKeys = Object.keys(parsed).some(k => /^\d+$/.test(k));
         if (hasNumericKeys && Array.isArray(lisansData) && lisansData.length > 0) {
@@ -26,16 +44,29 @@ function loadLisansMatches() {
                     const idx = Number(key);
                     const item = lisansData[idx];
                     if (item) {
-                        migrated[getSlotKey(item)] = parsed[key];
+                        const normalized = normalizeValue(parsed[key]);
+                        if (normalized && normalized.kundenNr) {
+                            migrated[getSlotKey(item)] = normalized;
+                        }
                     }
                 } else {
-                    migrated[key] = parsed[key];
+                    const normalized = normalizeValue(parsed[key]);
+                    if (normalized && normalized.kundenNr) {
+                        migrated[key] = normalized;
+                    }
                 }
             }
             return migrated;
         }
 
-        return parsed;
+        const normalizedPairs = {};
+        for (const key of Object.keys(parsed)) {
+            const normalized = normalizeValue(parsed[key]);
+            if (normalized && normalized.kundenNr) {
+                normalizedPairs[key] = normalized;
+            }
+        }
+        return normalizedPairs;
     } catch (error) {
         console.error('Failed to load saved lisans matches:', error);
         return {};
@@ -84,15 +115,18 @@ function renderLisans() {
     if (!pairContainer) return;
     pairContainer.innerHTML = '';
 
-    const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && v !== null && String(v).trim() !== '').length;
-    if (countElement) {
-        countElement.textContent = `(${matchedCount} eşleşme)`;
-    }
+const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && v !== null && ((typeof v === 'object' && v.kundenNr) ? String(v.kundenNr).trim() : String(v).trim()) !== '').length;
+        if (countElement) {
+            countElement.textContent = `(${matchedCount} eşleşme)`;
+        }
 
-    lisansData.forEach((item) => {
-        const slotKey = getSlotKey(item);
-        const matchedKundenNrForSlot = matchedPairs[slotKey];
-        const matchedItem = matchedKundenNrForSlot ? lisansData.find(d => String(d.KundenNr).toLowerCase() === String(matchedKundenNrForSlot).toLowerCase()) : null;
+        lisansData.forEach((item) => {
+            const slotKey = getSlotKey(item);
+            const matchedPair = matchedPairs[slotKey];
+            const matchedKundenNrForSlot = matchedPair ? String(matchedPair.kundenNr || matchedPair).trim() : '';
+            const matchedItem = matchedKundenNrForSlot ? lisansData.find(d => String(d.KundenNr).toLowerCase() === String(matchedKundenNrForSlot).toLowerCase()) : null;
+            const mailChecked = matchedPair ? Boolean(matchedPair.mailGonderildi) : false;
+            const odendiChecked = matchedPair ? Boolean(matchedPair.odendi) : false;
 
         if (showOnlyMatched && !matchedItem) {
             return;
@@ -125,10 +159,22 @@ function renderLisans() {
                     <input type="text" class="lisans-slot-input" placeholder="KundenNr yazıp Enter'a basın..."
                            value="${matchedItem ? matchedItem.KundenNr : ''}"
                            onchange="handleLisansMatch(this, '${safeSlotKey}')">
+                    ${matchedItem ? `
+                        <div class="l-card-checkboxes l-card-checkboxes-header">
+                            <label class="l-card-checkbox l-card-checkbox-mail">
+                                <input type="checkbox" onchange="handleLisansCheckbox(this, '${safeSlotKey}', 'mailGonderildi')" ${mailChecked ? 'checked' : ''} />
+                                Mail gönderildi
+                            </label>
+                            <label class="l-card-checkbox l-card-checkbox-paid">
+                                <input type="checkbox" onchange="handleLisansCheckbox(this, '${safeSlotKey}', 'odendi')" ${odendiChecked ? 'checked' : ''} />
+                                Ödendi
+                            </label>
+                        </div>
+                    ` : ''}
                 </div>
                 <div class="lisans-slot-body">
                     ${matchedItem ? `
-                        <div class="l-card-title" style="color: var(--secondary-color);">${matchedItem.KundenNr} - ${matchedItem.Firma || '-'}</div>
+                        <div class="l-card-title">${matchedItem.KundenNr} - ${matchedItem.Firma || '-'}</div>
                         <div class="l-card-subtitle" style="color: var(--text-color);">Lisans No: ${matchedItem.LisansNo || 'Yok'}</div>
                         <div class="l-card-row-bottom">
                             <span class="l-compact-val">${matchedItem.InhabeName || '-'}</span>
@@ -154,28 +200,45 @@ function handleLisansMatch(inputEl, slotKey) {
     // If empty, remove the match
     if (!val) {
         delete matchedPairs[slotKey];
+        saveLisansMatch();
         renderLisans();
         return;
     }
 
     // Try to find the KundenNr in our data
-    // Do case-insensitive string comparison just in case
     const found = lisansData.find(d => String(d.KundenNr).toLowerCase() === String(val).toLowerCase());
     
     if (found) {
         // Remove this KundenNr from any other slot to avoid duplicates
         for (let k in matchedPairs) {
-            if (matchedPairs[k] === found.KundenNr) {
+            const pair = matchedPairs[k];
+            const kundenNr = pair && typeof pair === 'object' ? String(pair.kundenNr) : String(pair);
+            if (kundenNr.toLowerCase() === String(found.KundenNr).toLowerCase()) {
                 delete matchedPairs[k];
             }
         }
-        // Assign to current slot key
-        matchedPairs[slotKey] = found.KundenNr;
+        // Assign or preserve current status values
+        const existing = matchedPairs[slotKey];
+        matchedPairs[slotKey] = {
+            kundenNr: found.KundenNr,
+            mailGonderildi: existing && typeof existing === 'object' ? Boolean(existing.mailGonderildi) : false,
+            odendi: existing && typeof existing === 'object' ? Boolean(existing.odendi) : false
+        };
     } else {
         alert('KundenNr bulunamadı! Lütfen geçerli bir KundenNr girin.');
         inputEl.value = '';
         delete matchedPairs[slotKey];
     }
-    
+    saveLisansMatch();
     renderLisans();
+}
+
+function handleLisansCheckbox(inputEl, slotKey, key) {
+    const pair = matchedPairs[slotKey];
+    if (!pair || typeof pair !== 'object' || !pair.kundenNr) {
+        return;
+    }
+    pair[key] = inputEl.checked;
+    matchedPairs[slotKey] = pair;
+    saveLisansMatch();
 }

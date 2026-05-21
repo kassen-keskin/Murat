@@ -162,7 +162,8 @@
     border-bottom: 1px solid var(--border-color);
     display: flex;
     align-items: center;
-    gap: 5px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .lisans-slot.filled .lisans-slot-header {
@@ -170,12 +171,44 @@
     border-bottom-color: rgba(3, 218, 198, 0.3);
 }
 
-.lisans-slot-header label {
+.l-card-checkboxes.l-card-checkboxes-header {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+.lisans-slot-header > label {
     font-size: 0.72rem;
     color: var(--text-muted);
     font-weight: 600;
     white-space: nowrap;
     line-height: 1.2;
+}
+
+.l-card-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+}
+
+.l-card-checkbox input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: currentColor;
+}
+
+.l-card-checkbox-mail {
+    color: #f7c948;
+}
+
+.l-card-checkbox-paid {
+    color: #4caf50;
 }
 
 .lisans-slot-input {
@@ -241,6 +274,58 @@
 
 .lisans-slot .l-card-row-bottom .l-compact-val {
     font-size: 0.68rem;
+}
+
+.l-card-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.l-card-title-number {
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    min-width: 6ch;
+    max-width: 6ch;
+    text-align: left;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+}
+
+.l-card-checkboxes {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.l-card-checkbox {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+}
+
+.l-card-checkbox input[type="checkbox"] {
+    width: 14px;
+    height: 14px;
+    accent-color: currentColor;
+}
+
+.l-card-checkbox-mail {
+    color: #f7c948;
+}
+
+.l-card-checkbox-paid {
+    color: #4caf50;
 }
 
 .l-card-row {
