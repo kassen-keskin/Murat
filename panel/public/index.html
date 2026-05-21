@@ -1034,18 +1034,17 @@
         <!-- ===== LİSANS EŞLEŞTİRME PANELİ ===== -->
         <div id="lisansPaneli" class="panel lisans-panel" style="display:none; flex:1; flex-direction:column;">
             <div class="satis-top-bar">
-                <h2>🔗 Lisans Eşleştirme</h2>
+                <h2>🔗 Lisans Eşleştirme <span id="lisansMatchCount" class="lisans-count">(0 eşleşme)</span></h2>
+                <label class="lisans-only-toggle">
+                    <input type="checkbox" id="lisansOnlyMatched" onchange="renderLisans()">
+                    Sadece Eşleşenler
+                </label>
                 <div style="flex:1;"></div>
                 <button class="btn-s success" onclick="saveLisansMatch()">💾 Eşleşmeleri Kaydet</button>
             </div>
             <div class="lisans-inner">
-                <div class="lisans-grid">
-                    <div class="lisans-col-body" id="lisansLeftCol">
-                        <!-- Sol taraftaki kartlar JS ile doldurulacak -->
-                    </div>
-                    <div class="lisans-col-body" id="lisansRightCol">
-                        <!-- Sağ taraftaki slotlar JS ile doldurulacak -->
-                    </div>
+                <div id="lisansPairContainer" class="lisans-pair-container">
+                    <!-- Eşleşme çiftleri JS ile doldurulacak -->
                 </div>
             </div>
         </div>

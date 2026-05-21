@@ -1,8 +1,6 @@
 let lisansData = [];
 let matchedPairs = {}; // slotKey -> KundenNr
 const LISANS_MATCH_STORAGE_KEY = 'lisansMatchedPairs';
-let lisansScrollSyncInitialized = false;
-let lisansScrollSyncActive = false;
 
 function getSlotKey(item) {
     if (!item) return '';
@@ -54,32 +52,12 @@ function saveLisansMatch() {
     }
 }
 
-function attachLisansScrollSync() {
-    if (lisansScrollSyncInitialized) return;
-
-    const leftCol = document.getElementById('lisansLeftCol');
-    const rightCol = document.getElementById('lisansRightCol');
-    if (!leftCol || !rightCol) return;
-
-    const syncScroll = (source, target) => {
-        if (lisansScrollSyncActive) return;
-        lisansScrollSyncActive = true;
-        target.scrollTop = source.scrollTop;
-        lisansScrollSyncActive = false;
-    };
-
-    leftCol.addEventListener('scroll', () => syncScroll(leftCol, rightCol));
-    rightCol.addEventListener('scroll', () => syncScroll(rightCol, leftCol));
-    lisansScrollSyncInitialized = true;
-}
-
 async function initLisansTab() {
     if (lisansData.length === 0) {
         await fetchLisansData();
     }
     matchedPairs = loadLisansMatches();
     renderLisans();
-    attachLisansScrollSync();
 }
 
 async function fetchLisansData() {
@@ -98,71 +76,75 @@ function filterLisansLeftList() {
 }
 
 function renderLisans() {
-    const leftCol = document.getElementById('lisansLeftCol');
-    const rightCol = document.getElementById('lisansRightCol');
-    
-    leftCol.innerHTML = '';
-    rightCol.innerHTML = '';
+    const pairContainer = document.getElementById('lisansPairContainer');
+    const onlyMatchedCheckbox = document.getElementById('lisansOnlyMatched');
+    const countElement = document.getElementById('lisansMatchCount');
+    const showOnlyMatched = onlyMatchedCheckbox ? onlyMatchedCheckbox.checked : false;
 
-    const matchedKundenNrs = Object.values(matchedPairs).map(v => String(v).toLowerCase());
+    if (!pairContainer) return;
+    pairContainer.innerHTML = '';
 
-    lisansData.forEach((item, index) => {
+    const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && v !== null && String(v).trim() !== '').length;
+    if (countElement) {
+        countElement.textContent = `(${matchedCount} eşleşme)`;
+    }
+
+    lisansData.forEach((item) => {
         const slotKey = getSlotKey(item);
-        // --- Left Card Logic ---
-        const isMatched = matchedKundenNrs.includes(String(item.KundenNr).toLowerCase());
-        const showLeft = true;
+        const matchedKundenNrForSlot = matchedPairs[slotKey];
+        const matchedItem = matchedKundenNrForSlot ? lisansData.find(d => String(d.KundenNr).toLowerCase() === String(matchedKundenNrForSlot).toLowerCase()) : null;
 
-        if (showLeft) {
-            const card = document.createElement('div');
-            card.className = `lisans-card ${isMatched ? 'matched-left' : ''}`;
-            card.id = `lcard-${item.KundenNr}`;
+        if (showOnlyMatched && !matchedItem) {
+            return;
+        }
 
-            const strasse = item.Strasse || item.Straße || item.Street || '';
-            const plz = item.PLZ || item.Postleitzahl || '';
+        const pairRow = document.createElement('div');
+        pairRow.className = 'lisans-pair';
 
-            card.innerHTML = `
+        const leftCell = document.createElement('div');
+        leftCell.className = 'lisans-pair-left';
+        leftCell.innerHTML = `
+            <div class="lisans-card">
                 <div class="l-card-title">${item.KundenNr} - ${item.Firma || '-'}</div>
                 <div class="l-card-subtitle">Lisans No: ${item.LisansNo || 'Yok'}</div>
                 <div class="l-card-row-bottom">
                     <span class="l-compact-val">${item.InhabeName || '-'}</span>
-                    ${strasse ? `<span class="l-compact-val">${strasse}</span>` : ''}
-                    ${plz ? `<span class="l-compact-val">${plz}</span>` : ''}
+                    ${item.Strasse || item.Straße || item.Street ? `<span class="l-compact-val">${item.Strasse || item.Straße || item.Street}</span>` : ''}
+                    ${item.PLZ || item.Postleitzahl ? `<span class="l-compact-val">${item.PLZ || item.Postleitzahl}</span>` : ''}
                 </div>
-            `;
-            leftCol.appendChild(card);
-        }
-
-        // --- Right Slot Logic ---
-        // Render exactly one slot per original data record so "ayni ölcude sanki kuyruk eslesmesi gibi"
-        const slot = document.createElement('div');
-        const matchedKundenNrForSlot = matchedPairs[slotKey];
-        const matchedItem = matchedKundenNrForSlot ? lisansData.find(d => String(d.KundenNr).toLowerCase() === String(matchedKundenNrForSlot).toLowerCase()) : null;
-
-        slot.className = `lisans-slot ${matchedItem ? 'filled' : ''}`;
-        
-        const safeSlotKey = String(slotKey).replace(/'/g, "\\'");
-        slot.innerHTML = `
-            <div class="lisans-slot-header">
-                <label>Iptal Edilecek Lisans Kunden Nr</label>
-                <input type="text" class="lisans-slot-input" placeholder="KundenNr yazıp Enter'a basın..." 
-                       value="${matchedItem ? matchedItem.KundenNr : ''}" 
-                       onchange="handleLisansMatch(this, '${safeSlotKey}')">
-            </div>
-            <div class="lisans-slot-body">
-                ${matchedItem ? `
-                    <div class="l-card-title" style="color: var(--secondary-color);">${matchedItem.KundenNr} - ${matchedItem.Firma || '-'}</div>
-                    <div class="l-card-subtitle" style="color: var(--text-color);">Lisans No: ${matchedItem.LisansNo || 'Yok'}</div>
-                    <div class="l-card-row-bottom">
-                        <span class="l-compact-val">${matchedItem.InhabeName || '-'}</span>
-                        ${matchedItem.Strasse || matchedItem.Straße || matchedItem.Street ? `<span class="l-compact-val">${matchedItem.Strasse || matchedItem.Straße || matchedItem.Street}</span>` : ''}
-                        ${matchedItem.PLZ || matchedItem.Postleitzahl ? `<span class="l-compact-val">${matchedItem.PLZ || matchedItem.Postleitzahl}</span>` : ''}
-                    </div>
-                ` : `
-                    <div class="lisans-slot-empty-msg">Eşleştirilecek kaydı bekliyor...</div>
-                `}
             </div>
         `;
-        rightCol.appendChild(slot);
+
+        const rightCell = document.createElement('div');
+        rightCell.className = 'lisans-pair-right';
+        const safeSlotKey = String(slotKey).replace(/'/g, "\\'");
+        rightCell.innerHTML = `
+            <div class="lisans-slot ${matchedItem ? 'filled' : ''}">
+                <div class="lisans-slot-header">
+                    <label>Iptal Edilecek Lisans Kunden Nr</label>
+                    <input type="text" class="lisans-slot-input" placeholder="KundenNr yazıp Enter'a basın..."
+                           value="${matchedItem ? matchedItem.KundenNr : ''}"
+                           onchange="handleLisansMatch(this, '${safeSlotKey}')">
+                </div>
+                <div class="lisans-slot-body">
+                    ${matchedItem ? `
+                        <div class="l-card-title" style="color: var(--secondary-color);">${matchedItem.KundenNr} - ${matchedItem.Firma || '-'}</div>
+                        <div class="l-card-subtitle" style="color: var(--text-color);">Lisans No: ${matchedItem.LisansNo || 'Yok'}</div>
+                        <div class="l-card-row-bottom">
+                            <span class="l-compact-val">${matchedItem.InhabeName || '-'}</span>
+                            ${matchedItem.Strasse || matchedItem.Straße || matchedItem.Street ? `<span class="l-compact-val">${matchedItem.Strasse || matchedItem.Straße || matchedItem.Street}</span>` : ''}
+                            ${matchedItem.PLZ || matchedItem.Postleitzahl ? `<span class="l-compact-val">${matchedItem.PLZ || matchedItem.Postleitzahl}</span>` : ''}
+                        </div>
+                    ` : `
+                        <div class="lisans-slot-empty-msg">Eşleştirilecek kaydı bekliyor...</div>
+                    `}
+                </div>
+            </div>
+        `;
+
+        pairRow.appendChild(leftCell);
+        pairRow.appendChild(rightCell);
+        pairContainer.appendChild(pairRow);
     });
 }
 
