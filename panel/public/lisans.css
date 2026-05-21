@@ -137,6 +137,24 @@
     box-shadow: 0 6px 12px rgba(0,0,0,0.2);
 }
 
+.lisans-card-passive {
+    opacity: 0.5;
+    filter: grayscale(100%);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.06);
+    border-color: rgba(255,255,255,0.12);
+    background-color: rgba(0,0,0,0.1);
+    color: var(--text-muted);
+    cursor: default;
+    pointer-events: none;
+}
+
+.lisans-card-passive .l-card-title,
+.lisans-card-passive .l-card-subtitle,
+.lisans-card-passive .l-card-row-bottom,
+.lisans-card-passive .l-compact-val {
+    color: var(--text-muted);
+}
+
 .lisans-slot {
     background-color: rgba(255, 255, 255, 0.02);
     border: 2px dashed var(--border-color);

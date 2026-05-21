@@ -135,10 +135,17 @@ const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && 
         const pairRow = document.createElement('div');
         pairRow.className = 'lisans-pair';
 
+        // Check if this left-side item is already matched elsewhere
+        const isItemMatched = Object.values(matchedPairs).some(pair => {
+            const kundenNr = pair && typeof pair === 'object' ? String(pair.kundenNr) : String(pair);
+            return kundenNr.toLowerCase() === String(item.KundenNr).toLowerCase();
+        });
+
         const leftCell = document.createElement('div');
         leftCell.className = 'lisans-pair-left';
+        const leftCardClass = isItemMatched ? 'lisans-card lisans-card-passive' : 'lisans-card';
         leftCell.innerHTML = `
-            <div class="lisans-card">
+            <div class="${leftCardClass}">
                 <div class="l-card-title">${item.KundenNr} - ${item.Firma || '-'}</div>
                 <div class="l-card-subtitle">Lisans No: ${item.LisansNo || 'Yok'}</div>
                 <div class="l-card-row-bottom">
