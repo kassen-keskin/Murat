@@ -3,7 +3,6 @@ import json
 import requests
 import urllib.parse
 import xml.etree.ElementTree as ET
-import google.generativeai as genai
 
 # Topics to search on Google News
 QUERIES = [
@@ -54,52 +53,5 @@ def fetch_news():
         except Exception as e:
             print(f"Arama sırasında hata ({query}): {e}")
                 
-    print(f"Toplam {len(all_news)} haber bulundu. Yapay zeka ile filtreleniyor...")
+    print(f"Toplam {len(all_news)} haber bulundu. Tarihe göre sıralanmak üzere ana programa aktarılıyor...")
     return all_news
-
-def filter_and_summarize_with_gemini(news_list):
-    api_key = os.getenv("GEMINI_API_KEY")
-    if not api_key:
-        print("Hata: GEMINI_API_KEY bulunamadı.")
-        return []
-        
-    genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-2.0-flash')
-    
-    prompt = """
-    Aşağıda Almanya vergi sistemi, yazar kasa sistemleri (kassensystem, TSE, vb.), elektronik fatura (E-Rechnung), ELSTER, DATEV ve benzeri konularda son 1 ayda çıkmış çeşitli haberlerin bir listesi JSON formatında verilmektedir.
-    
-    Görevlerin:
-    1. Bu haberleri incele ve vergi mükellefleri, işletmeler veya muhasebeciler için EN ÖNEMLİ, ANLAMLI ve TAZE olan en fazla 10 tanesini seç.
-    2. Alakasız veya çok genel/önemsiz olanları ele.
-    3. Seçtiğin haberlerin başlıklarını ve özetlerini Türkçe olarak kısaca çevir (kısa ve öz 1-2 cümle).
-    4. Sonucu aşağıdaki JSON formatında döndür. BAŞKA HİÇBİR METİN YAZMA, SADECE JSON DÖNDÜR.
-    
-    [
-        {
-            "title": "Türkçe Haber Başlığı",
-            "link": "Orijinal URL",
-            "summary": "Türkçe kısa özet...",
-            "source": "Haber Kaynağı",
-            "date": "Tarih"
-        }
-    ]
-    
-    Haber Listesi:
-    """
-    
-    prompt += json.dumps(news_list, ensure_ascii=False)
-    
-    try:
-        response = model.generate_content(prompt)
-        text = response.text.strip()
-        if text.startswith("```json"):
-            text = text[7:-3]
-        elif text.startswith("```"):
-            text = text[3:-3]
-            
-        selected_news = json.loads(text)
-        return selected_news
-    except Exception as e:
-        print(f"Gemini API hatası veya JSON parse hatası: {e}")
-        return []
