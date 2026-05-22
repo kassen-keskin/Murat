@@ -204,6 +204,10 @@ const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && 
 function handleLisansMatch(inputEl, slotKey) {
     const val = inputEl.value.trim();
 
+    // Extract the left-side KundenNr from the slotKey
+    const leftKundenNrMatch = slotKey.match(/\|K:([^|]*)\|/);
+    const leftKundenNr = leftKundenNrMatch ? leftKundenNrMatch[1] : '';
+
     // If empty, remove the match
     if (!val) {
         delete matchedPairs[slotKey];
@@ -212,16 +216,32 @@ function handleLisansMatch(inputEl, slotKey) {
         return;
     }
 
+    // Check if trying to match with itself
+    if (val.toLowerCase() === leftKundenNr.toLowerCase()) {
+        alert('Soldaki kunden Nr ile sagdaki eslesen kunden nr farkli olmali.');
+        // Reset the input to the previous value
+        const currentPair = matchedPairs[slotKey];
+        inputEl.value = currentPair && typeof currentPair === 'object' ? String(currentPair.kundenNr) : (currentPair ? String(currentPair) : '');
+        return;
+    }
+
     // Try to find the KundenNr in our data
     const found = lisansData.find(d => String(d.KundenNr).toLowerCase() === String(val).toLowerCase());
     
     if (found) {
-        // Remove this KundenNr from any other slot to avoid duplicates
+        // Check if this KundenNr is already used in a different slot
         for (let k in matchedPairs) {
-            const pair = matchedPairs[k];
-            const kundenNr = pair && typeof pair === 'object' ? String(pair.kundenNr) : String(pair);
-            if (kundenNr.toLowerCase() === String(found.KundenNr).toLowerCase()) {
-                delete matchedPairs[k];
+            if (k !== slotKey) { // Check only other slots
+                const pair = matchedPairs[k];
+                const kundenNr = pair && typeof pair === 'object' ? String(pair.kundenNr) : String(pair);
+                if (kundenNr.toLowerCase() === String(found.KundenNr).toLowerCase()) {
+                    // KundenNr already used elsewhere - show warning and don't change the matching
+                    alert('Bu Kunden Nr zaten kullanilmis. Lütfen tekrar kontrol edin.');
+                    // Reset the input to the previous value
+                    const currentPair = matchedPairs[slotKey];
+                    inputEl.value = currentPair && typeof currentPair === 'object' ? String(currentPair.kundenNr) : (currentPair ? String(currentPair) : '');
+                    return;
+                }
             }
         }
         // Assign or preserve current status values
