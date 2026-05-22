@@ -47,13 +47,13 @@ function loadLisansMatches() {
                     const item = lisansData[idx];
                     if (item) {
                         const normalized = normalizeValue(parsed[key]);
-                        if (normalized && normalized.kundenNr) {
+                        if (normalized && (normalized.kundenNr || normalized.bosta)) {
                             migrated[getSlotKey(item)] = normalized;
                         }
                     }
                 } else {
                     const normalized = normalizeValue(parsed[key]);
-                    if (normalized && normalized.kundenNr) {
+                    if (normalized && (normalized.kundenNr || normalized.bosta)) {
                         migrated[key] = normalized;
                     }
                 }
@@ -64,7 +64,7 @@ function loadLisansMatches() {
         const normalizedPairs = {};
         for (const key of Object.keys(parsed)) {
             const normalized = normalizeValue(parsed[key]);
-            if (normalized && normalized.kundenNr) {
+            if (normalized && (normalized.kundenNr || normalized.bosta)) {
                 normalizedPairs[key] = normalized;
             }
         }
@@ -119,7 +119,11 @@ function renderLisans() {
     if (!pairContainer) return;
     pairContainer.innerHTML = '';
 
-const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && v !== null && ((typeof v === 'object' && v.kundenNr) ? String(v.kundenNr).trim() : String(v).trim()) !== '').length;
+const matchedCount = Object.values(matchedPairs).filter(v => {
+    if (!v) return false;
+    if (typeof v === 'object') return Boolean(v.kundenNr && String(v.kundenNr).trim() !== '');
+    return String(v).trim() !== '';
+}).length;
         if (countElement) {
             countElement.textContent = `(${matchedCount} eşleşme)`;
         }
@@ -127,7 +131,7 @@ const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && 
         lisansData.forEach((item) => {
             const slotKey = getSlotKey(item);
             const matchedPair = matchedPairs[slotKey];
-            const matchedKundenNrForSlot = matchedPair ? String(matchedPair.kundenNr || matchedPair).trim() : '';
+            const matchedKundenNrForSlot = (matchedPair && typeof matchedPair === 'object') ? String(matchedPair.kundenNr || '').trim() : (matchedPair ? String(matchedPair).trim() : '');
             const matchedItem = matchedKundenNrForSlot ? lisansData.find(d => String(d.KundenNr).toLowerCase() === String(matchedKundenNrForSlot).toLowerCase()) : null;
             const mailChecked = matchedPair ? Boolean(matchedPair.mailGonderildi) : false;
             const odendiChecked = matchedPair ? Boolean(matchedPair.odendi) : false;
@@ -145,7 +149,8 @@ const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && 
 
         // Check if this left-side item is already matched elsewhere
         const isItemMatched = Object.values(matchedPairs).some(pair => {
-            const kundenNr = pair && typeof pair === 'object' ? String(pair.kundenNr) : String(pair);
+            const kundenNr = pair && typeof pair === 'object' ? String(pair.kundenNr || '') : String(pair || '');
+            if (!kundenNr) return false;
             return kundenNr.toLowerCase() === String(item.KundenNr).toLowerCase();
         });
 
