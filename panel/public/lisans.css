@@ -8,10 +8,42 @@
     min-height: 0;
 }
 
+.lisans-top-bar {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    align-items: stretch;
+}
+
+.lisans-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    flex-wrap: wrap;
+}
+
+.lisans-line-top {
+    justify-content: space-between;
+}
+
+.lisans-title-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.lisans-top-bar h2 {
+    margin: 0;
+    font-size: 1.05rem;
+    line-height: 1.2;
+}
+
 .lisans-count {
-    font-size: 0.95rem;
+    font-size: 0.9rem;
     color: var(--text-muted);
-    margin-left: 10px;
+    margin-left: 0;
     font-weight: 600;
 }
 
@@ -19,9 +51,13 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font-size: 0.9rem;
+    font-size: 0.85rem;
     color: var(--text-color);
     cursor: pointer;
+}
+
+.lisans-top-bar .btn-s {
+    white-space: nowrap;
 }
 
 .lisans-only-toggle input[type="checkbox"] {
@@ -227,6 +263,10 @@
 
 .l-card-checkbox-paid {
     color: #4caf50;
+}
+
+.l-card-checkbox-bosta {
+    color: #d32f2f;
 }
 
 .lisans-slot-input {

@@ -18,18 +18,20 @@ function loadLisansMatches() {
         if (!parsed || typeof parsed !== 'object') return {};
 
         const normalizeValue = (value) => {
-            if (value && typeof value === 'object' && value.kundenNr) {
+            if (value && typeof value === 'object') {
                 return {
-                    kundenNr: String(value.kundenNr),
+                    kundenNr: value.kundenNr !== undefined ? String(value.kundenNr) : '',
                     mailGonderildi: Boolean(value.mailGonderildi),
-                    odendi: Boolean(value.odendi)
+                    odendi: Boolean(value.odendi),
+                    bosta: Boolean(value.bosta)
                 };
             }
             if (typeof value === 'string') {
                 return {
                     kundenNr: value,
                     mailGonderildi: false,
-                    odendi: false
+                    odendi: false,
+                    bosta: false
                 };
             }
             return null;
@@ -109,8 +111,10 @@ function filterLisansLeftList() {
 function renderLisans() {
     const pairContainer = document.getElementById('lisansPairContainer');
     const onlyMatchedCheckbox = document.getElementById('lisansOnlyMatched');
+    const onlyBostaCheckbox = document.getElementById('lisansOnlyBosta');
     const countElement = document.getElementById('lisansMatchCount');
     const showOnlyMatched = onlyMatchedCheckbox ? onlyMatchedCheckbox.checked : false;
+    const showOnlyBosta = onlyBostaCheckbox ? onlyBostaCheckbox.checked : false;
 
     if (!pairContainer) return;
     pairContainer.innerHTML = '';
@@ -127,8 +131,12 @@ const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && 
             const matchedItem = matchedKundenNrForSlot ? lisansData.find(d => String(d.KundenNr).toLowerCase() === String(matchedKundenNrForSlot).toLowerCase()) : null;
             const mailChecked = matchedPair ? Boolean(matchedPair.mailGonderildi) : false;
             const odendiChecked = matchedPair ? Boolean(matchedPair.odendi) : false;
+            const bostaChecked = matchedPair ? Boolean(matchedPair.bosta) : false;
 
         if (showOnlyMatched && !matchedItem) {
+            return;
+        }
+        if (showOnlyBosta && !bostaChecked) {
             return;
         }
 
@@ -141,12 +149,19 @@ const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && 
             return kundenNr.toLowerCase() === String(item.KundenNr).toLowerCase();
         });
 
+        const safeSlotKey = String(slotKey).replace(/'/g, "\\'");
         const leftCell = document.createElement('div');
         leftCell.className = 'lisans-pair-left';
         const leftCardClass = isItemMatched ? 'lisans-card lisans-card-passive' : 'lisans-card';
         leftCell.innerHTML = `
             <div class="${leftCardClass}">
-                <div class="l-card-title">${item.KundenNr} - ${item.Firma || '-'}</div>
+                <div class="l-card-top-row">
+                    <div class="l-card-title">${item.KundenNr} - ${item.Firma || '-'}</div>
+                    <label class="l-card-checkbox l-card-checkbox-bosta">
+                        <input type="checkbox" onchange="handleLisansCheckbox(this, '${safeSlotKey}', 'bosta')" ${bostaChecked ? 'checked' : ''} />
+                        Bosta
+                    </label>
+                </div>
                 <div class="l-card-subtitle">Lisans No: ${item.LisansNo || 'Yok'}</div>
                 <div class="l-card-row-bottom">
                     <span class="l-compact-val">${item.InhabeName || '-'}</span>
@@ -158,7 +173,6 @@ const matchedCount = Object.values(matchedPairs).filter(v => v !== undefined && 
 
         const rightCell = document.createElement('div');
         rightCell.className = 'lisans-pair-right';
-        const safeSlotKey = String(slotKey).replace(/'/g, "\\'");
         rightCell.innerHTML = `
             <div class="lisans-slot ${matchedItem ? 'filled' : ''}">
                 <div class="lisans-slot-header">
@@ -208,9 +222,19 @@ function handleLisansMatch(inputEl, slotKey) {
     const leftKundenNrMatch = slotKey.match(/\|K:([^|]*)\|/);
     const leftKundenNr = leftKundenNrMatch ? leftKundenNrMatch[1] : '';
 
-    // If empty, remove the match
+    // If empty, remove the match but preserve bosta state if set
     if (!val) {
-        delete matchedPairs[slotKey];
+        const existing = matchedPairs[slotKey];
+        if (existing && typeof existing === 'object' && existing.bosta) {
+            matchedPairs[slotKey] = {
+                kundenNr: '',
+                mailGonderildi: false,
+                odendi: false,
+                bosta: true
+            };
+        } else {
+            delete matchedPairs[slotKey];
+        }
         saveLisansMatch();
         renderLisans();
         return;
@@ -249,7 +273,8 @@ function handleLisansMatch(inputEl, slotKey) {
         matchedPairs[slotKey] = {
             kundenNr: found.KundenNr,
             mailGonderildi: existing && typeof existing === 'object' ? Boolean(existing.mailGonderildi) : false,
-            odendi: existing && typeof existing === 'object' ? Boolean(existing.odendi) : false
+            odendi: existing && typeof existing === 'object' ? Boolean(existing.odendi) : false,
+            bosta: existing && typeof existing === 'object' ? Boolean(existing.bosta) : false
         };
     } else {
         alert('KundenNr bulunamadı! Lütfen geçerli bir KundenNr girin.');
@@ -262,10 +287,14 @@ function handleLisansMatch(inputEl, slotKey) {
 
 function handleLisansCheckbox(inputEl, slotKey, key) {
     const pair = matchedPairs[slotKey];
-    if (!pair || typeof pair !== 'object' || !pair.kundenNr) {
-        return;
-    }
-    pair[key] = inputEl.checked;
-    matchedPairs[slotKey] = pair;
+    const existing = matchedPairs[slotKey];
+    const updatedPair = existing && typeof existing === 'object' ? { ...existing } : {
+        kundenNr: '',
+        mailGonderildi: false,
+        odendi: false,
+        bosta: false
+    };
+    updatedPair[key] = inputEl.checked;
+    matchedPairs[slotKey] = updatedPair;
     saveLisansMatch();
 }
