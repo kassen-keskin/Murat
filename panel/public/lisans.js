@@ -172,6 +172,7 @@ const matchedCount = Object.values(matchedPairs).filter(v => {
                     <span class="l-compact-val">${item.InhabeName || '-'}</span>
                     ${item.Strasse || item.Straße || item.Street ? `<span class="l-compact-val">${item.Strasse || item.Straße || item.Street}</span>` : ''}
                     ${item.PLZ || item.Postleitzahl ? `<span class="l-compact-val">${item.PLZ || item.Postleitzahl}</span>` : ''}
+                    ${item.Versiyon ? `<span class="l-compact-val">Versiyon: ${item.Versiyon}</span>` : ''}
                 </div>
             </div>
         `;
@@ -206,6 +207,7 @@ const matchedCount = Object.values(matchedPairs).filter(v => {
                             <span class="l-compact-val">${matchedItem.InhabeName || '-'}</span>
                             ${matchedItem.Strasse || matchedItem.Straße || matchedItem.Street ? `<span class="l-compact-val">${matchedItem.Strasse || matchedItem.Straße || matchedItem.Street}</span>` : ''}
                             ${matchedItem.PLZ || matchedItem.Postleitzahl ? `<span class="l-compact-val">${matchedItem.PLZ || matchedItem.Postleitzahl}</span>` : ''}
+                            ${matchedItem.Versiyon ? `<span class="l-compact-val">Versiyon: ${matchedItem.Versiyon}</span>` : ''}
                         </div>
                     ` : `
                         <div class="lisans-slot-empty-msg"></div>
