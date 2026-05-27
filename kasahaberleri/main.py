@@ -1,6 +1,7 @@
 import os
 import sys
 import time
+import json
 from datetime import datetime
 import schedule
 from dotenv import load_dotenv
@@ -15,6 +16,21 @@ from telegram_sender import send_news_to_telegram
 # Çevresel değişkenleri (.env) yükle
 load_dotenv()
 
+SENT_NEWS_FILE = "sent_news.json"
+
+def load_sent_news():
+    if os.path.exists(SENT_NEWS_FILE):
+        with open(SENT_NEWS_FILE, "r", encoding="utf-8") as f:
+            try:
+                return json.load(f)
+            except json.JSONDecodeError:
+                return []
+    return []
+
+def save_sent_news(sent_list):
+    with open(SENT_NEWS_FILE, "w", encoding="utf-8") as f:
+        json.dump(sent_list, f, ensure_ascii=False, indent=4)
+
 def job():
     print("Günlük görev başlatılıyor...")
     try:
@@ -25,8 +41,16 @@ def job():
             print("Hiç haber bulunamadı.")
             return
             
+        # Önceden gönderilmiş haberleri yükle ve filtrele
+        sent_news_urls = load_sent_news()
+        new_news_list = [n for n in news_list if n.get("url") not in sent_news_urls]
+        
+        if not new_news_list:
+            print("Daha önce gönderilmemiş yeni haber bulunamadı.")
+            return
+            
         # 2. Gemini olmadan doğrudan en yeni 10 haberi hazırla
-        print("Haberler tarihe göre sıralanıp en yeni 10 tanesi seçiliyor...")
+        print(f"Bulunan {len(new_news_list)} yeni haber tarihe göre sıralanıp en yeni 10 tanesi seçiliyor...")
         
         from email.utils import parsedate_to_datetime
         
@@ -36,13 +60,13 @@ def job():
             except:
                 return datetime.now()
                 
-        news_list.sort(key=get_date, reverse=True)
+        new_news_list.sort(key=get_date, reverse=True)
         
         from deep_translator import GoogleTranslator
         translator = GoogleTranslator(source='auto', target='tr')
         
         selected_news = []
-        for n in news_list[:10]:
+        for n in new_news_list[:10]:
             original_title = n.get("title", "")
             try:
                 title_tr = translator.translate(original_title) if original_title else ""
@@ -61,6 +85,16 @@ def job():
         if selected_news:
             print(f"{len(selected_news)} adet haber Telegram'a gönderiliyor...")
             send_news_to_telegram(selected_news)
+            
+            # Gönderilenleri listeye ekle ve kaydet
+            for n in selected_news:
+                sent_news_urls.append(n["link"])
+            
+            # Dosya çok büyümesin diye son 1000 kaydı tut
+            if len(sent_news_urls) > 1000:
+                sent_news_urls = sent_news_urls[-1000:]
+                
+            save_sent_news(sent_news_urls)
             print("Gönderim başarılı.")
         else:
             print("Gönderilecek uygun haber bulunamadı.")
