@@ -98,7 +98,16 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
 
-            // 3. Fill the form
+            // 3. Formu temizle (Reset)
+            const newRecordBtn = document.getElementById('new-record-button-bottom');
+            if (newRecordBtn) {
+                newRecordBtn.click();
+            } else {
+                const forms = document.querySelectorAll('form');
+                forms.forEach(f => f.reset());
+            }
+
+            // 4. Fill the form
             let filledCount = 0;
             for (const [fieldId, dbColumn] of Object.entries(mappingData)) {
                 if (dbColumn && kundeData[dbColumn] !== undefined && kundeData[dbColumn] !== null) {
