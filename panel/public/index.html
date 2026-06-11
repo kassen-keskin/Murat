@@ -1030,21 +1030,51 @@
         </div><!-- /teslimatPaneli -->
 
         <!-- ===== TICKET PANELİ ===== -->
-        <div id="ticketsPaneli" class="panel tickets-panel" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+        <div id="ticketsPaneli" class="panel tickets-panel" style="display:none; flex:1; flex-direction:column; overflow:hidden; position:relative;">
+            
+            <!-- Ticket Login Overlay -->
+            <div id="ticketLoginOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:var(--bg-color); z-index:100; display:flex; justify-content:center; align-items:center;">
+                <div class="login-card" style="background:var(--surface-color); padding:40px; border-radius:12px; border:1px solid var(--border-color); width:100%; max-width:400px; text-align:center; box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                    <h2 style="color:var(--primary-color); margin-bottom:20px;">🎫 Ticket Girişi</h2>
+                    <p style="color:var(--text-muted); margin-bottom:25px;">Lütfen işlem yapmak için giriş yapın.</p>
+                    
+                    <div class="form-grp" style="text-align:left;">
+                        <label>Kullanıcı Adı</label>
+                        <input type="text" id="ticketLoginUser" class="form-ctrl" placeholder="Kullanıcı Adı" onkeydown="if(event.key==='Enter') document.getElementById('ticketLoginPass').focus()">
+                    </div>
+                    
+                    <div class="form-grp" style="text-align:left;">
+                        <label>Şifre</label>
+                        <input type="password" id="ticketLoginPass" class="form-ctrl" placeholder="****" onkeydown="if(event.key==='Enter') doTicketLogin()">
+                    </div>
+                    
+                    <div id="ticketLoginError" style="color:#ef5350; font-size:0.9rem; margin-top:10px; display:none; text-align:left;"></div>
+                    
+                    <button id="ticketLoginBtn" class="btn-s primary" style="width:100%; padding:12px; margin-top:20px; font-size:1.1rem; border-radius:8px;" onclick="doTicketLogin()">Giriş Yap 🚀</button>
+                </div>
+            </div>
+
             <div class="tickets-container" style="display: flex; flex: 1; overflow: hidden; background: var(--surface-color);">
                 <!-- Left: Ticket List -->
                 <div class="tickets-list-pane" style="width: 350px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column;">
                     <div class="tickets-list-header" style="padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                        <h3 style="margin:0; font-size: 1.2rem; color: var(--primary-color);">Biletler</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <h3 style="margin:0; font-size: 1.2rem; color: var(--primary-color);">Tickets</h3>
+                            <button class="btn-s error" style="padding: 4px 8px; font-size: 0.8rem;" onclick="doTicketLogout()" title="Çıkış Yap">🚪 Çıkış</button>
+                        </div>
                         <button class="btn-s primary" onclick="showNewTicketForm()">+ Yeni</button>
                     </div>
                     <div class="tickets-list-filters" style="padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; gap: 5px; flex-direction: column;">
-                        <input type="text" id="ticketSearchInput" class="form-ctrl" placeholder="Bilet ara..." style="width:100%; box-sizing:border-box;" oninput="filterTicketsList()">
+                        <input type="text" id="ticketSearchInput" class="form-ctrl" placeholder="Ara (Müşteri No, Firma, Konu...)" style="width:100%; box-sizing:border-box;" oninput="filterTicketsList()">
                         <select id="ticketStatusFilter" class="form-ctrl" style="width:100%; box-sizing:border-box;" onchange="filterTicketsList()">
-                            <option value="">Tümü</option>
+                            <option value="">Tüm Durumlar</option>
+                            <option value="1_2">Açık + Beklemede</option>
                             <option value="1">Açık</option>
                             <option value="2">Beklemede</option>
                             <option value="3">Çözüldü</option>
+                        </select>
+                        <select id="ticketUserFilter" class="form-ctrl" style="width:100%; box-sizing:border-box;" onchange="filterTicketsList()">
+                            <option value="">Tümü (Tüm Kullanıcılar)</option>
                         </select>
                     </div>
                     <div id="ticketsListContainer" class="tickets-list-items" style="flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;">

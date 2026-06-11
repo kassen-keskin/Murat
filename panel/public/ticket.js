@@ -1,10 +1,86 @@
 let ticketsData = [];
 let ticketUsers = [];
 let currentTicketId = null;
+let loggedInTicketUser = null;
 
 async function initTicketsTab() {
-    await fetchTicketUsers();
-    await fetchTickets();
+    const userJson = localStorage.getItem('ticketUser');
+    if (userJson) {
+        loggedInTicketUser = JSON.parse(userJson);
+        document.getElementById('ticketLoginOverlay').style.display = 'none';
+        await fetchTicketUsers();
+        
+        // Set default filters
+        const statusFilter = document.getElementById('ticketStatusFilter');
+        const userFilter = document.getElementById('ticketUserFilter');
+        if (statusFilter) statusFilter.value = '1_2';
+        if (userFilter) userFilter.value = String(loggedInTicketUser.kBenutzer);
+        
+        await fetchTickets();
+    } else {
+        document.getElementById('ticketLoginOverlay').style.display = 'flex';
+        await fetchTicketUsers(); // Fetch users so the combobox is ready later
+    }
+}
+
+async function doTicketLogin() {
+    const u = document.getElementById('ticketLoginUser').value.trim();
+    const p = document.getElementById('ticketLoginPass').value.trim();
+    const err = document.getElementById('ticketLoginError');
+    const btn = document.getElementById('ticketLoginBtn');
+    
+    if (!u || !p) {
+        err.textContent = "Lütfen kullanıcı adı ve şifre girin.";
+        err.style.display = 'block';
+        return;
+    }
+    
+    btn.disabled = true;
+    btn.textContent = "Giriş Yapılıyor...";
+    err.style.display = 'none';
+    
+    try {
+        const res = await fetch('/api/login', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({username: u, password: p})
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+            localStorage.setItem('ticketUser', JSON.stringify(data.user));
+            loggedInTicketUser = data.user;
+            document.getElementById('ticketLoginOverlay').style.display = 'none';
+            
+            // Set default filters
+            const statusFilter = document.getElementById('ticketStatusFilter');
+            const userFilter = document.getElementById('ticketUserFilter');
+            if (statusFilter) statusFilter.value = '1_2';
+            if (userFilter) userFilter.value = String(loggedInTicketUser.kBenutzer);
+            
+            await fetchTickets();
+        } else {
+            err.textContent = data.error || "Giriş başarısız.";
+            err.style.display = 'block';
+        }
+    } catch (e) {
+        err.textContent = "Bağlantı hatası oluştu.";
+        err.style.display = 'block';
+    } finally {
+        btn.disabled = false;
+        btn.textContent = "Giriş Yap 🚀";
+    }
+}
+
+function doTicketLogout() {
+    localStorage.removeItem('ticketUser');
+    loggedInTicketUser = null;
+    document.getElementById('ticketLoginOverlay').style.display = 'flex';
+    document.getElementById('ticketLoginPass').value = '';
+    // Clear lists
+    document.getElementById('ticketsListContainer').innerHTML = '';
+    document.getElementById('ticketDetailPane').innerHTML = '<div class="empty-state">Bilet seçin veya oluşturun.</div>';
 }
 
 async function fetchTicketUsers() {
@@ -12,6 +88,13 @@ async function fetchTicketUsers() {
         const res = await fetch('/api/ticket-users');
         if (res.ok) {
             ticketUsers = await res.json();
+            const userFilter = document.getElementById('ticketUserFilter');
+            if (userFilter) {
+                userFilter.innerHTML = '<option value="">Tümü (Tüm Kullanıcılar)</option>';
+                ticketUsers.forEach(u => {
+                    userFilter.innerHTML += `<option value="${u.kBenutzer}">${u.cName || u.cLogin}</option>`;
+                });
+            }
         }
     } catch (e) {
         console.error("Error fetching ticket users:", e);
@@ -33,14 +116,20 @@ async function fetchTickets() {
 function filterTicketsList() {
     const searchVal = document.getElementById('ticketSearchInput').value.toLowerCase();
     const statusVal = document.getElementById('ticketStatusFilter').value;
+    const userVal = document.getElementById('ticketUserFilter').value;
 
     const filtered = ticketsData.filter(t => {
         const matchSearch = (t.cEindeutigeId && t.cEindeutigeId.toLowerCase().includes(searchVal)) ||
                             (t.Firma && t.Firma.toLowerCase().includes(searchVal)) ||
-                            (t.cTitelErsteNachricht && t.cTitelErsteNachricht.toLowerCase().includes(searchVal));
+                            (t.cTitelErsteNachricht && t.cTitelErsteNachricht.toLowerCase().includes(searchVal)) ||
+                            (t.KundenNr && String(t.KundenNr).toLowerCase().includes(searchVal));
         
-        const matchStatus = statusVal === "" || String(t.kStatus) === statusVal;
-        return matchSearch && matchStatus;
+        const matchStatus = statusVal === "" || 
+                            String(t.kStatus) === statusVal || 
+                            (statusVal === "1_2" && (t.kStatus == 1 || t.kStatus == 2));
+        const matchUser = userVal === "" || String(t.kBenutzer_Ersteller) === userVal;
+        
+        return matchSearch && matchStatus && matchUser;
     });
 
     renderTicketsList(filtered);
@@ -78,10 +167,14 @@ function renderTicketsList(data) {
 
         const title = t.cTitelErsteNachricht || 'Başlıksız Bilet';
         const customerName = t.KundenNr ? `${t.KundenNr} - ${t.Firma || ''}` : (t.Firma || 'Bilinmeyen Müşteri');
+        
+        const ownerUser = ticketUsers.find(u => u.kBenutzer == t.kBenutzer_Ersteller);
+        const ownerName = ownerUser ? (ownerUser.cName || ownerUser.cLogin) : 'Bilinmeyen';
+        const displayId = `${t.cEindeutigeId || ('TKT-'+t.kTicket)} - ${ownerName}`;
 
         div.innerHTML = `
             <div class="ticket-item-header">
-                <span class="ticket-item-id">${t.cEindeutigeId || ('TKT-'+t.kTicket)}</span>
+                <span class="ticket-item-id">${displayId}</span>
                 <span class="status-badge ${statusClass}">${statusText}</span>
             </div>
             <div class="ticket-item-title" title="${title}">${title}</div>
@@ -116,10 +209,22 @@ function renderTicketChat(data) {
     
     // Header
     const customerStr = data.KundenNr ? `${data.KundenNr} - ${data.Firma}` : (data.Firma || 'Bilinmeyen');
+    
+    // Fallback: if data.kBenutzer_Ersteller is undefined (e.g. backend not restarted), check the list
+    let erstellerId = data.kBenutzer_Ersteller;
+    if (erstellerId === undefined) {
+        const ticketInList = ticketsData.find(t => t.kTicket == data.kTicket);
+        if (ticketInList) erstellerId = ticketInList.kBenutzer_Ersteller;
+    }
+
+    const ownerUser = ticketUsers.find(u => u.kBenutzer == erstellerId);
+    const ownerName = ownerUser ? (ownerUser.cName || ownerUser.cLogin) : 'Bilinmeyen';
+    const displayId = `${data.cEindeutigeId || ('TKT-'+data.kTicket)} - ${ownerName}`;
+    
     const headerHtml = `
         <div class="ticket-detail-header">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h2 class="ticket-detail-title" style="margin:0;">${data.cEindeutigeId || ('TKT-'+data.kTicket)}</h2>
+                <h2 class="ticket-detail-title" style="margin:0;">${displayId}</h2>
                 <div style="display:flex; gap: 8px;">
                     ${data.kStatus == 1 ? `<button class="btn-s warning" onclick="changeTicketStatus(${data.kTicket}, 2)">⏳ Beklemeye Al</button>` : ''}
                     ${data.kStatus == 2 ? `<button class="btn-s success" onclick="changeTicketStatus(${data.kTicket}, 1)">🟢 Yeniden Aç</button>` : ''}
@@ -170,16 +275,10 @@ function renderTicketChat(data) {
     }
     messagesHtml += '</div>';
 
-    // Reply Box
-    let userOptions = ticketUsers.map(u => `<option value="${u.kBenutzer}">${u.cName || u.cLogin}</option>`).join('');
     const replyHtml = `
         <div class="reply-area">
             <textarea id="replyContent" class="reply-textarea" placeholder="Yanıtınızı buraya yazın..."></textarea>
-            <div class="reply-actions">
-                <div style="display:flex; align-items:center; gap:10px;">
-                    <label style="color:var(--text-muted);font-size:0.9rem;">Gönderen:</label>
-                    <select id="replyUserSelect" class="form-ctrl">${userOptions}</select>
-                </div>
+            <div class="reply-actions" style="justify-content: flex-end;">
                 <button class="btn-s success" onclick="submitTicketReply(${data.kTicket})">Gönder 📤</button>
             </div>
         </div>
@@ -199,9 +298,8 @@ async function changeTicketStatus(id, newStatus) {
                       
     if (!confirm(promptMsg)) return;
     
-    // Try to get current user from dropdown, default to 1
-    const userSelect = document.getElementById('replyUserSelect');
-    const kBenutzer = userSelect ? parseInt(userSelect.value) : 1;
+    // Use logged in user
+    const kBenutzer = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
     
     try {
         const res = await fetch(`/api/tickets/${id}/status`, {
@@ -225,7 +323,7 @@ async function changeTicketStatus(id, newStatus) {
 
 async function submitTicketReply(ticketId) {
     const content = document.getElementById('replyContent').value.trim();
-    const userId = document.getElementById('replyUserSelect').value;
+    const userId = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
 
     if (!content) {
         alert("Lütfen bir mesaj yazın.");
@@ -268,8 +366,6 @@ function showNewTicketForm() {
         customerOptions += `<option value="${c.kKunde}">${c.KundenNr} - ${c.Firma || c.InhabeName}</option>`;
     });
 
-    let userOptions = ticketUsers.map(u => `<option value="${u.kBenutzer}">${u.cName || u.cLogin}</option>`).join('');
-
     pane.innerHTML = `
         <div class="new-ticket-form">
             <h2>🎫 Yeni Bilet Oluştur</h2>
@@ -289,11 +385,6 @@ function showNewTicketForm() {
                 <textarea id="newTicketContent" class="reply-textarea" placeholder="Mesajınızı buraya yazın..." style="min-height: 150px;"></textarea>
             </div>
 
-            <div class="form-grp">
-                <label>Oluşturan Agent</label>
-                <select id="newTicketUser" class="form-ctrl">${userOptions}</select>
-            </div>
-
             <div style="margin-top: 30px; display: flex; justify-content: flex-end;">
                 <button class="btn-s success lg" onclick="submitNewTicket()">Oluştur 🚀</button>
             </div>
@@ -305,7 +396,7 @@ async function submitNewTicket() {
     const kKunde = document.getElementById('newTicketKunde').value;
     const cTitel = document.getElementById('newTicketTitle').value.trim();
     const cInhalt = document.getElementById('newTicketContent').value.trim();
-    const kBenutzer = document.getElementById('newTicketUser').value;
+    const kBenutzer = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
 
     if (!cInhalt) {
         alert("İlk mesaj içeriği zorunludur.");

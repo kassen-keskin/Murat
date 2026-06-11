@@ -3,11 +3,31 @@ import json
 import pyodbc
 import os
 import time
+from functools import wraps
+from decimal import Decimal
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
 from dotenv import load_dotenv
 
 load_dotenv()
 
 app = Flask(__name__, static_folder='public', static_url_path='')
+
+ph = PasswordHasher()
+
+def verify_jtl_argon2(hash_str, password):
+    parts = hash_str.split("$")
+    if len(parts) >= 6:
+        parts[4] = parts[4].rstrip("=")
+        parts[5] = parts[5].rstrip("=")
+        hash_str = "$".join(parts)
+    try:
+        return ph.verify(hash_str, password)
+    except VerifyMismatchError:
+        return False
+    except Exception as e:
+        print(f"Argon2 error: {e}")
+        return False
 
 CACHE_TTL = 300  # seconds
 cache_store = {}
@@ -440,7 +460,7 @@ def get_ticket_details(id):
     try:
         # 1. Fetch ticket main info
         query_ticket = """
-        SELECT t.[kTicket], t.[cEindeutigeId], t.[kStatus], t.[nPrioritaet], t.[dAenderung], t.[kKunde], t.[kBenutzer_Bearbeiter], c.[Firma], c.[KundenNr]
+        SELECT t.[kTicket], t.[cEindeutigeId], t.[kStatus], t.[nPrioritaet], t.[dAenderung], t.[kKunde], t.[kBenutzer_Bearbeiter], t.[kBenutzer_Ersteller], c.[Firma], c.[KundenNr]
         FROM [Ticketsystem].[tTicket] t WITH (NOLOCK)
         LEFT JOIN [Custom].[KundenMaster] c WITH (NOLOCK) ON t.[kKunde] = c.[kKunde]
         WHERE t.[kTicket] = ?
@@ -724,6 +744,52 @@ def update_ticket_status(id):
     except Exception as e:
         conn.rollback()
         print(f"Update failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    username = data.get('username')
+    password = data.get('password')
+    
+    if not username or not password:
+        return jsonify({"error": "Kullanıcı adı ve şifre gerekli."}), 400
+        
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+        
+    try:
+        cursor = conn.cursor()
+        cursor.execute("SELECT kBenutzer, cName, cLogin, cPasswort FROM [eazybusiness].[dbo].[tBenutzer] WHERE cLogin = ?", (username,))
+        row = cursor.fetchone()
+        
+        if not row:
+            return jsonify({"error": "Kullanıcı bulunamadı."}), 401
+            
+        kBenutzer, cName, cLogin, cPasswort = row
+        
+        if cPasswort and cPasswort.startswith("$argon2"):
+            is_valid = verify_jtl_argon2(cPasswort, password)
+        else:
+            is_valid = (cPasswort == password)
+            
+        if is_valid:
+            return jsonify({
+                "success": True, 
+                "user": {
+                    "kBenutzer": kBenutzer, 
+                    "cName": cName or cLogin, 
+                    "cLogin": cLogin
+                }
+            })
+        else:
+            return jsonify({"error": "Hatalı şifre."}), 401
+            
+    except Exception as e:
+        print(f"Login error: {e}")
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
