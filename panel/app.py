@@ -678,6 +678,7 @@ def update_ticket_status(id):
     
     data = request.get_json()
     new_status = data.get('kStatus')
+    kBenutzer = data.get('kBenutzer', 1)
     
     if not new_status:
          return jsonify({"error": "Status is required"}), 400
@@ -685,6 +686,21 @@ def update_ticket_status(id):
     cursor = conn.cursor()
     try:
         now = datetime.datetime.now()
+        
+        cursor.execute("SELECT kBenutzer_Ersteller, kStatus FROM [Ticketsystem].[tTicket] WITH (NOLOCK) WHERE kTicket = ?", (id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"error": "Ticket not found"}), 404
+            
+        kBenutzer_Ersteller = row[0]
+        current_status = row[1]
+        
+        if new_status == 3 and str(kBenutzer) != str(kBenutzer_Ersteller):
+            return jsonify({"error": "Sadece bileti oluşturan kullanıcı bileti kapatabilir."}), 403
+            
+        if current_status == 3 and str(kBenutzer) != str(kBenutzer_Ersteller):
+            return jsonify({"error": "Sadece bileti oluşturan kullanıcı kapalı bileti tekrar açabilir."}), 403
+
         # If status is 3 (resolved), we can also set dLoesung
         if new_status == 3:
             cursor.execute("""
@@ -708,26 +724,56 @@ def update_ticket_status(id):
         """, (id,))
         ticket_row = cursor.fetchone()
         
+        # Determine action text
+        action_str = "durumu değiştirildi"
+        if new_status == 1:
+            action_str = "yeniden açıldı"
+        elif new_status == 2:
+            action_str = "beklemeye alındı"
+        elif new_status == 3:
+            action_str = "çözüldü"
+
+        # System Message for chat
+        system_msg = f"Sistem Bilgisi: Bilet durumu {action_str}."
+        
+        # 1. Insert dummy file for HTML content
+        cursor.execute("""
+            SET NOCOUNT ON;
+            INSERT INTO [dbo].[tFile]
+            ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+            SELECT SCOPE_IDENTITY();
+        """, (b'', kBenutzer, now, '', 'message.html', '.html', 0))
+        kFile_HtmlInhalt = int(cursor.fetchone()[0])
+        
+        # 2. Insert message
+        cursor.execute("""
+            SET NOCOUNT ON;
+            INSERT INTO [Ticketsystem].[tNachricht]
+            ([cInhalt], [dErstellung], [kTicket], [kBenutzer_Ersteller], [nRichtung], [dEmpfangen], [nVorgangserkennungGelaufen], [kFile_HtmlInhalt], [nVollstaendigAngelegt])
+            VALUES (?, ?, ?, ?, 0, ?, 1, ?, 1);
+        """, (system_msg, now, id, kBenutzer, now, kFile_HtmlInhalt))
+        
+        # 3. Update Eckdaten
+        cursor.execute("""
+            UPDATE [Ticketsystem].[tTicketEckdaten]
+            SET [nAnzahlNachrichten] = [nAnzahlNachrichten] + 1,
+                [dEmpfangLetzteNachricht] = ?,
+                [nRichtungLetzteNachricht] = 0
+            WHERE [kTicket] = ?
+        """, (now, id))
+
+        # Handle Kunde Note if kKunde exists
         if ticket_row and ticket_row[0]:
             kKunde = ticket_row[0]
             cEindeutigeId = ticket_row[1] or str(id)
             cTitel = ticket_row[2] or "Başlıksız"
             
             # Fetch user name
-            kBenutzer = data.get('kBenutzer', 1)
             cursor.execute("SELECT cName, cLogin FROM [eazybusiness].[dbo].[tBenutzer] WITH (NOLOCK) WHERE kBenutzer = ?", (kBenutzer,))
             user_row = cursor.fetchone()
             user_name = user_row[0] or user_row[1] if user_row else "Bilinmeyen Kullanıcı"
-                
-            # Determine action text
-            action_str = "durumu değiştirildi"
-            if new_status == 1:
-                action_str = "yeniden açıldı"
-            elif new_status == 2:
-                action_str = "beklemeye alındı"
-            elif new_status == 3:
-                action_str = "çözüldü"
-                
+            
             # Format date DD.MM.YYYY
             date_str = now.strftime("%d.%m.%Y")
             notiz_text = f"{cEindeutigeId} nolu '{cTitel}' konulu Ticket {user_name} tarafindan {date_str} tarihinde {action_str}."

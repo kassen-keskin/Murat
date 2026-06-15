@@ -221,6 +221,8 @@ function renderTicketChat(data) {
     const ownerName = ownerUser ? (ownerUser.cName || ownerUser.cLogin) : 'Bilinmeyen';
     const displayId = `${data.cEindeutigeId || ('TKT-'+data.kTicket)} - ${ownerName}`;
     
+    const isOwner = loggedInTicketUser && String(loggedInTicketUser.kBenutzer) === String(erstellerId);
+
     const headerHtml = `
         <div class="ticket-detail-header">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
@@ -228,7 +230,10 @@ function renderTicketChat(data) {
                 <div style="display:flex; gap: 8px;">
                     ${data.kStatus == 1 ? `<button class="btn-s warning" onclick="changeTicketStatus(${data.kTicket}, 2)">⏳ Beklemeye Al</button>` : ''}
                     ${data.kStatus == 2 ? `<button class="btn-s success" onclick="changeTicketStatus(${data.kTicket}, 1)">🟢 Yeniden Aç</button>` : ''}
-                    ${data.kStatus != 3 ? `<button class="btn-s secondary" onclick="changeTicketStatus(${data.kTicket}, 3)">❌ Kapat</button>` : `<span style="color:#4caf50;font-weight:bold;">✅ Kapalı</span>`}
+                    ${data.kStatus != 3 && isOwner ? `<button class="btn-s secondary" onclick="changeTicketStatus(${data.kTicket}, 3)">❌ Kapat</button>` : ''}
+                    ${data.kStatus != 3 && !isOwner ? `<button class="btn-s secondary" style="opacity:0.5;cursor:not-allowed;" title="Sadece bilet sahibi kapatabilir" disabled>❌ Kapat</button>` : ''}
+                    ${data.kStatus == 3 ? `<span style="color:#4caf50;font-weight:bold;margin-right:10px;align-self:center;">✅ Kapalı</span>` : ''}
+                    ${data.kStatus == 3 && isOwner ? `<button class="btn-s success" onclick="changeTicketStatus(${data.kTicket}, 1)">🟢 Tekrar Aç</button>` : ''}
                 </div>
             </div>
             <div class="ticket-detail-info">
