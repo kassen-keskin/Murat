@@ -166,7 +166,7 @@ const translations = {
         impressum_tax_id: "Umsatzsteuer-ID",
         impressum_vat_label: "Umsatzsteuer-Identifikationsnummer gemäß §27 a Umsatzsteuergesetz:",
         impressum_responsible: "Verantwortlich für den Inhalt",
-        impressum_responsible_text: "Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:<br><strong>Erol Keskin</strong><br>Philippistraße 3, 14059 Berlin",
+        impressum_responsible_text: "Verantwortlich für den Inhalt nach § 55 Abs. 2 RStV:<br><strong>Erol Keskin</strong><br>Stülpnagelstraße 3, 14059 Berlin",
         impressum_disclaimer: "Haftungsausschluss: Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für die Inhalte externer Links. Für den Inhalt der verlinkten Seiten sind ausschließlich deren Betreiber verantwortlich.",
         impressum_back: "Zurück",
         
@@ -428,7 +428,7 @@ const translations = {
         impressum_tax_id: "KDV Kimlik Numarası",
         impressum_vat_label: "KDV Kimlik Numarası (§27 a Umsatzsteuergesetz):",
         impressum_responsible: "İçerikten Sorumlu Kişi",
-        impressum_responsible_text: "§ 55 Abs. 2 RStV uyarınca içerikten sorumlu kişi:<br><strong>Erol Keskin</strong><br>Philippistraße 3, 14059 Berlin",
+        impressum_responsible_text: "§ 55 Abs. 2 RStV uyarınca içerikten sorumlu kişi:<br><strong>Erol Keskin</strong><br>Stülpnagelstraße 3, 14059 Berlin",
         impressum_disclaimer: "Sorumluluk Reddi: İçeriğin dikkatli bir şekilde denetlenmesine rağmen, harici bağlantıların içeriğinden sorumlu değiliz. Bağlı sayfaların içeriğinden yalnızca bunların operatörleri sorumludur.",
         impressum_back: "Geri",
         
