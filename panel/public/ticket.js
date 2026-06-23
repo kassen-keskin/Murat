@@ -358,26 +358,134 @@ async function submitTicketReply(ticketId) {
     }
 }
 
-function showNewTicketForm() {
+function getTicketDatasets() {
+    if (typeof datasets !== 'undefined') return datasets;
+    if (typeof window !== 'undefined' && window.datasets) return window.datasets;
+    const fallback = { rental: [], custom: [], aylik: [] };
+    if (typeof window !== 'undefined') window.datasets = fallback;
+    return fallback;
+}
+
+async function ensureTicketCustomersLoaded() {
+    const dataStore = getTicketDatasets();
+
+    if (Array.isArray(dataStore.custom) && dataStore.custom.length > 0) {
+        return;
+    }
+
+    if (typeof fetchData === 'function') {
+        try {
+            await fetchData('custom', '/api/customers_custom');
+        } catch (error) {
+            console.warn('Unable to fetch custom customers via fetchData:', error);
+        }
+    } else {
+        try {
+            const response = await fetch('/api/customers_custom');
+            if (response.ok) {
+                const json = await response.json();
+                dataStore.custom = Array.isArray(json) ? json : [];
+            }
+        } catch (error) {
+            console.warn('Unable to fetch custom customers directly:', error);
+        }
+    }
+
+    if ((!Array.isArray(dataStore.custom) || dataStore.custom.length === 0)) {
+        if (typeof fetchData === 'function') {
+            try {
+                await fetchData('rental', '/api/customers');
+            } catch (error) {
+                console.warn('Unable to fetch rental customers via fetchData:', error);
+            }
+        } else {
+            try {
+                const response = await fetch('/api/customers');
+                if (response.ok) {
+                    const json = await response.json();
+                    dataStore.rental = Array.isArray(json) ? json : [];
+                }
+            } catch (error) {
+                console.warn('Unable to fetch rental customers directly:', error);
+            }
+        }
+    }
+}
+
+function getTicketCustomers(filter = '') {
+    const dataStore = getTicketDatasets();
+    const customCustomers = Array.isArray(dataStore.custom) ? dataStore.custom : [];
+    const rentalCustomers = Array.isArray(dataStore.rental) ? dataStore.rental : [];
+    const customers = customCustomers.length > 0 ? customCustomers : rentalCustomers;
+    const searchValue = String(filter || '').trim().toLowerCase();
+
+    if (!searchValue) {
+        return customers;
+    }
+
+    return customers.filter(c => {
+        const firma = String(c.Firma || c.InhabeName || '').toLowerCase();
+        const kundenNr = String(c.KundenNr || c.kundenNr || '').toLowerCase();
+        return firma.includes(searchValue) || kundenNr.includes(searchValue);
+    });
+}
+
+function updateNewTicketCustomerOptions() {
+    const filter = document.getElementById('newTicketCustomerSearch')?.value || '';
+    const select = document.getElementById('newTicketKunde');
+    const countLabel = document.getElementById('newTicketCustomerCount');
+    if (!select) return;
+
+    const customers = getTicketCustomers(filter);
+    let customerOptions = '<option value="">-- Müşteri Seçin --</option>';
+
+    if (customers.length === 0) {
+        customerOptions += '<option value="" disabled>Sonuç bulunamadı</option>';
+    } else {
+        customers.forEach((c, idx) => {
+            const label = `${c.KundenNr || ''} - ${c.Firma || c.InhabeName || 'Bilinmeyen'}`;
+            const selected = idx === 0 ? ' selected' : '';
+            customerOptions += `<option value="${c.kKunde}"${selected}>${label}</option>`;
+        });
+    }
+
+    select.innerHTML = customerOptions;
+
+    if (customers.length > 0) {
+        select.value = String(customers[0].kKunde);
+    } else {
+        select.value = '';
+    }
+
+    if (countLabel) {
+        countLabel.textContent = customers.length;
+    }
+}
+
+async function showNewTicketForm() {
     currentTicketId = null;
     filterTicketsList(); // clear active selection
 
-    const pane = document.getElementById('ticketDetailPane');
-    
-    // Fetch customers from custom dataset to populate dropdown
-    const customers = datasets.custom || [];
-    let customerOptions = '<option value="">-- Müşteri Seçin --</option>';
-    customers.forEach(c => {
-        customerOptions += `<option value="${c.kKunde}">${c.KundenNr} - ${c.Firma || c.InhabeName}</option>`;
-    });
+    await ensureTicketCustomersLoaded();
 
+    const pane = document.getElementById('ticketDetailPane');
     pane.innerHTML = `
         <div class="new-ticket-form">
             <h2>🎫 Yeni Bilet Oluştur</h2>
             
+            <div class="form-grp" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                <div style="flex:1; min-width:220px;">
+                    <label>Müşteri Ara</label>
+                    <input type="text" id="newTicketCustomerSearch" class="form-ctrl" placeholder="Firma veya müşteri numarası ara..." oninput="updateNewTicketCustomerOptions()">
+                </div>
+                <div style="display:flex; align-items:center; gap:8px; white-space:nowrap;">
+                    <label style="margin:0; font-size:0.95rem; color:var(--text-muted);">Sonuç:</label>
+                    <span id="newTicketCustomerCount" style="font-weight:bold;">0</span>
+                </div>
+            </div>
             <div class="form-grp">
                 <label>Müşteri</label>
-                <select id="newTicketKunde" class="form-ctrl">${customerOptions}</select>
+                <select id="newTicketKunde" class="form-ctrl"></select>
             </div>
 
             <div class="form-grp">
@@ -395,6 +503,8 @@ function showNewTicketForm() {
             </div>
         </div>
     `;
+
+    updateNewTicketCustomerOptions();
 }
 
 async function submitNewTicket() {
