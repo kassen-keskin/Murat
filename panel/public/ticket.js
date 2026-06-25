@@ -116,6 +116,7 @@ async function fetchTickets() {
 function filterTicketsList() {
     const searchVal = document.getElementById('ticketSearchInput').value.toLowerCase();
     const statusVal = document.getElementById('ticketStatusFilter').value;
+    const priorityVal = document.getElementById('ticketPriorityFilter') ? document.getElementById('ticketPriorityFilter').value : "";
     const userVal = document.getElementById('ticketUserFilter').value;
 
     const filtered = ticketsData.filter(t => {
@@ -127,9 +128,10 @@ function filterTicketsList() {
         const matchStatus = statusVal === "" || 
                             String(t.kStatus) === statusVal || 
                             (statusVal === "1_2" && (t.kStatus == 1 || t.kStatus == 2));
+        const matchPriority = priorityVal === "" || String(t.nPrioritaet) === priorityVal;
         const matchUser = userVal === "" || String(t.kBenutzer_Ersteller) === userVal;
         
-        return matchSearch && matchStatus && matchUser;
+        return matchSearch && matchStatus && matchPriority && matchUser;
     });
 
     renderTicketsList(filtered);
@@ -172,10 +174,17 @@ function renderTicketsList(data) {
         const ownerName = ownerUser ? (ownerUser.cName || ownerUser.cLogin) : 'Bilinmeyen';
         const displayId = `${t.cEindeutigeId || ('TKT-'+t.kTicket)} - ${ownerName}`;
 
+        const priorityNames = {1: "Düşük", 2: "Normal", 3: "Yüksek"};
+        const priorityText = priorityNames[t.nPrioritaet] || "Bilinmeyen";
+        const priorityClass = `priority-${t.nPrioritaet}`;
+
         div.innerHTML = `
             <div class="ticket-item-header">
                 <span class="ticket-item-id">${displayId}</span>
-                <span class="status-badge ${statusClass}">${statusText}</span>
+                <div>
+                    <span class="status-badge ${priorityClass}" style="margin-right: 4px;">${priorityText}</span>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
             </div>
             <div class="ticket-item-title" title="${title}">${title}</div>
             <div class="ticket-item-meta">
@@ -223,11 +232,22 @@ function renderTicketChat(data) {
     
     const isOwner = loggedInTicketUser && String(loggedInTicketUser.kBenutzer) === String(erstellerId);
 
+    const ticketInListForTitle = ticketsData.find(t => t.kTicket == data.kTicket);
+    const titleStr = (ticketInListForTitle && ticketInListForTitle.cTitelErsteNachricht) ? ticketInListForTitle.cTitelErsteNachricht : 'Başlıksız Bilet';
+
     const headerHtml = `
         <div class="ticket-detail-header">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
-                <h2 class="ticket-detail-title" style="margin:0;">${displayId}</h2>
-                <div style="display:flex; gap: 8px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
+                <div>
+                    <h2 class="ticket-detail-title" style="margin:0;">${displayId}</h2>
+                    <div style="margin-top: 4px; font-size: 1.05rem; color: var(--text-color); font-weight: 500;">${titleStr}</div>
+                </div>
+                <div style="display:flex; gap: 8px; align-items:center;">
+                    <select class="form-ctrl" style="padding: 2px 8px; font-size: 0.85rem; width: auto;" onchange="changeTicketPriority(${data.kTicket}, this.value)">
+                        <option value="1" ${data.nPrioritaet == 1 ? 'selected' : ''}>Düşük</option>
+                        <option value="2" ${data.nPrioritaet == 2 ? 'selected' : ''}>Normal</option>
+                        <option value="3" ${data.nPrioritaet == 3 ? 'selected' : ''}>Yüksek</option>
+                    </select>
                     ${data.kStatus == 1 ? `<button class="btn-s warning" onclick="changeTicketStatus(${data.kTicket}, 2)">⏳ Beklemeye Al</button>` : ''}
                     ${data.kStatus == 2 ? `<button class="btn-s success" onclick="changeTicketStatus(${data.kTicket}, 1)">🟢 Yeniden Aç</button>` : ''}
                     ${data.kStatus != 3 && isOwner ? `<button class="btn-s secondary" onclick="changeTicketStatus(${data.kTicket}, 3)">❌ Kapat</button>` : ''}
@@ -494,6 +514,15 @@ async function showNewTicketForm() {
             </div>
 
             <div class="form-grp">
+                <label>Öncelik</label>
+                <select id="newTicketPriority" class="form-ctrl">
+                    <option value="1">Düşük (Sarı)</option>
+                    <option value="2" selected>Normal (Turuncu)</option>
+                    <option value="3">Yüksek (Kırmızı)</option>
+                </select>
+            </div>
+
+            <div class="form-grp">
                 <label>İlk Mesaj</label>
                 <textarea id="newTicketContent" class="reply-textarea" placeholder="Mesajınızı buraya yazın..." style="min-height: 150px;"></textarea>
             </div>
@@ -512,6 +541,7 @@ async function submitNewTicket() {
     const cTitel = document.getElementById('newTicketTitle').value.trim();
     const cInhalt = document.getElementById('newTicketContent').value.trim();
     const kBenutzer = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
+    const nPrioritaet = document.getElementById('newTicketPriority') ? document.getElementById('newTicketPriority').value : 2;
 
     if (!cInhalt) {
         alert("İlk mesaj içeriği zorunludur.");
@@ -526,7 +556,8 @@ async function submitNewTicket() {
                 kKunde: kKunde ? parseInt(kKunde) : null,
                 cTitel: cTitel,
                 cInhalt: cInhalt,
-                kBenutzer: parseInt(kBenutzer)
+                kBenutzer: parseInt(kBenutzer),
+                nPrioritaet: parseInt(nPrioritaet)
             })
         });
 
@@ -541,5 +572,28 @@ async function submitNewTicket() {
     } catch (e) {
         console.error("Hata:", e);
         alert("Bilet oluşturulamadı.");
+    }
+}
+
+async function changeTicketPriority(id, newPriority) {
+    const kBenutzer = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
+    
+    try {
+        const res = await fetch(`/api/tickets/${id}/priority`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ nPrioritaet: parseInt(newPriority), kBenutzer: kBenutzer })
+        });
+
+        if (res.ok) {
+            await fetchTickets(); // Refresh list to update priority badge
+            selectTicket(id); // Refresh chat to show system message
+        } else {
+            const err = await res.json();
+            alert("Hata: " + (err.error || "Bilinmeyen hata"));
+        }
+    } catch (e) {
+        console.error("Hata:", e);
+        alert("Bilet önceliği değiştirilemedi.");
     }
 }

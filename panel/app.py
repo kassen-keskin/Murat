@@ -513,6 +513,7 @@ def create_ticket():
     cTitel = data.get('cTitel', '')
     cInhalt = data.get('cInhalt', '')
     kBenutzer = data.get('kBenutzer', 1) # Default to 1 if not provided
+    nPrioritaet = data.get('nPrioritaet', 2) # Default to 2 (Normal)
     
     # Simple validation
     if not cInhalt:
@@ -553,7 +554,7 @@ def create_ticket():
             ([cEindeutigeId], [kStatus], [nPrioritaet], [dAenderung], [kBenutzer_Ersteller], [kKunde], [nIstInPapierkorb], [nBenutzererstellt], [nVollstaendigAngelegt])
             VALUES (?, ?, ?, ?, ?, ?, 0, 1, 1);
             SELECT SCOPE_IDENTITY();
-        """, (new_eindeutige_id, 1, 1, now, kBenutzer, kKunde))
+        """, (new_eindeutige_id, 1, nPrioritaet, now, kBenutzer, kKunde))
         
         new_ticket_id = int(cursor.fetchone()[0])
         
@@ -779,6 +780,100 @@ def update_ticket_status(id):
             notiz_text = f"{cEindeutigeId} nolu '{cTitel}' konulu Ticket {user_name} tarafindan {date_str} tarihinde {action_str}."
             
             # Insert into Kunde.tNotiz
+            cursor.execute("""
+                SET NOCOUNT ON;
+                INSERT INTO [Kunde].[tNotiz] ([kKunde], [kAuftrag], [cNotiz], [nTyp], [dErstellt], [kBenutzer])
+                VALUES (?, 0, ?, 0, ?, ?);
+            """, (kKunde, notiz_text, now, kBenutzer))
+            
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        print(f"Update failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/tickets/<int:id>/priority', methods=['PATCH'])
+def update_ticket_priority(id):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    data = request.get_json()
+    new_priority = data.get('nPrioritaet')
+    kBenutzer = data.get('kBenutzer', 1)
+    
+    if not new_priority:
+         return jsonify({"error": "Priority is required"}), 400
+
+    cursor = conn.cursor()
+    try:
+        now = datetime.datetime.now()
+        
+        cursor.execute("SELECT kBenutzer_Ersteller FROM [Ticketsystem].[tTicket] WITH (NOLOCK) WHERE kTicket = ?", (id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"error": "Ticket not found"}), 404
+
+        cursor.execute("""
+            UPDATE [Ticketsystem].[tTicket]
+            SET [nPrioritaet] = ?, [dAenderung] = ?
+            WHERE [kTicket] = ?
+        """, (new_priority, now, id))
+            
+        # Fetch ticket info for Notiz
+        cursor.execute("""
+            SELECT t.kKunde, t.cEindeutigeId, e.cTitelErsteNachricht 
+            FROM [Ticketsystem].[tTicket] t WITH (NOLOCK)
+            LEFT JOIN [Ticketsystem].[tTicketEckdaten] e WITH (NOLOCK) ON t.kTicket = e.kTicket
+            WHERE t.kTicket = ?
+        """, (id,))
+        ticket_row = cursor.fetchone()
+        
+        priority_names = {1: "Düşük", 2: "Normal", 3: "Yüksek"}
+        priority_name = priority_names.get(new_priority, "Bilinmeyen")
+        action_str = f"önceliği '{priority_name}' olarak değiştirildi"
+
+        system_msg = f"Sistem Bilgisi: Bilet {action_str}."
+        
+        cursor.execute("""
+            SET NOCOUNT ON;
+            INSERT INTO [dbo].[tFile]
+            ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+            SELECT SCOPE_IDENTITY();
+        """, (b'', kBenutzer, now, '', 'message.html', '.html', 0))
+        kFile_HtmlInhalt = int(cursor.fetchone()[0])
+        
+        cursor.execute("""
+            SET NOCOUNT ON;
+            INSERT INTO [Ticketsystem].[tNachricht]
+            ([cInhalt], [dErstellung], [kTicket], [kBenutzer_Ersteller], [nRichtung], [dEmpfangen], [nVorgangserkennungGelaufen], [kFile_HtmlInhalt], [nVollstaendigAngelegt])
+            VALUES (?, ?, ?, ?, 0, ?, 1, ?, 1);
+        """, (system_msg, now, id, kBenutzer, now, kFile_HtmlInhalt))
+        
+        cursor.execute("""
+            UPDATE [Ticketsystem].[tTicketEckdaten]
+            SET [nAnzahlNachrichten] = [nAnzahlNachrichten] + 1,
+                [dEmpfangLetzteNachricht] = ?,
+                [nRichtungLetzteNachricht] = 0
+            WHERE [kTicket] = ?
+        """, (now, id))
+
+        if ticket_row and ticket_row[0]:
+            kKunde = ticket_row[0]
+            cEindeutigeId = ticket_row[1] or str(id)
+            cTitel = ticket_row[2] or "Başlıksız"
+            
+            cursor.execute("SELECT cName, cLogin FROM [eazybusiness].[dbo].[tBenutzer] WITH (NOLOCK) WHERE kBenutzer = ?", (kBenutzer,))
+            user_row = cursor.fetchone()
+            user_name = user_row[0] or user_row[1] if user_row else "Bilinmeyen Kullanıcı"
+            
+            date_str = now.strftime("%d.%m.%Y")
+            notiz_text = f"{cEindeutigeId} nolu '{cTitel}' konulu Ticket {user_name} tarafindan {date_str} tarihinde {action_str}."
+            
             cursor.execute("""
                 SET NOCOUNT ON;
                 INSERT INTO [Kunde].[tNotiz] ([kKunde], [kAuftrag], [cNotiz], [nTyp], [dErstellt], [kBenutzer])

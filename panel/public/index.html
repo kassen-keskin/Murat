@@ -1073,6 +1073,12 @@
                             <option value="2">Beklemede</option>
                             <option value="3">Çözüldü</option>
                         </select>
+                        <select id="ticketPriorityFilter" class="form-ctrl" style="width:100%; box-sizing:border-box;" onchange="filterTicketsList()">
+                            <option value="">Tüm Öncelikler</option>
+                            <option value="1">Düşük (Sarı)</option>
+                            <option value="2">Normal (Turuncu)</option>
+                            <option value="3">Yüksek (Kırmızı)</option>
+                        </select>
                         <select id="ticketUserFilter" class="form-ctrl" style="width:100%; box-sizing:border-box;" onchange="filterTicketsList()">
                             <option value="">Tümü (Tüm Kullanıcılar)</option>
                         </select>

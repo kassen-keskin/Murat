@@ -111,6 +111,11 @@
 .status-pending { background: rgba(255, 152, 0, 0.2); color: #ffb74d; }
 .status-resolved { background: rgba(158, 158, 158, 0.2); color: #e0e0e0; }
 
+.priority-1 { background: rgba(255, 235, 59, 0.2); color: #fff176; } /* Düşük - Sarı */
+.priority-2 { background: rgba(255, 152, 0, 0.2); color: #ffb74d; } /* Normal - Turuncu */
+.priority-3 { background: rgba(244, 67, 54, 0.2); color: #e57373; } /* Yüksek - Kırmızı */
+
+
 /* Right Pane: Detail & Chat */
 .ticket-detail-pane {
     flex: 1;
