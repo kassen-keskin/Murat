@@ -134,6 +134,9 @@ function filterTicketsList() {
         return matchSearch && matchStatus && matchPriority && matchUser;
     });
 
+    const countBadge = document.getElementById('ticketCountBadge');
+    if (countBadge) countBadge.textContent = filtered.length;
+
     renderTicketsList(filtered);
 }
 

@@ -765,7 +765,7 @@ def update_ticket_status(id):
         """, (now, id))
 
         # Handle Kunde Note if kKunde exists
-        if ticket_row and ticket_row[0]:
+        if ticket_row and ticket_row[0] and new_status in (1, 3):
             kKunde = ticket_row[0]
             cEindeutigeId = ticket_row[1] or str(id)
             cTitel = ticket_row[2] or "Başlıksız"
@@ -862,24 +862,6 @@ def update_ticket_priority(id):
             WHERE [kTicket] = ?
         """, (now, id))
 
-        if ticket_row and ticket_row[0]:
-            kKunde = ticket_row[0]
-            cEindeutigeId = ticket_row[1] or str(id)
-            cTitel = ticket_row[2] or "Başlıksız"
-            
-            cursor.execute("SELECT cName, cLogin FROM [eazybusiness].[dbo].[tBenutzer] WITH (NOLOCK) WHERE kBenutzer = ?", (kBenutzer,))
-            user_row = cursor.fetchone()
-            user_name = user_row[0] or user_row[1] if user_row else "Bilinmeyen Kullanıcı"
-            
-            date_str = now.strftime("%d.%m.%Y")
-            notiz_text = f"{cEindeutigeId} nolu '{cTitel}' konulu Ticket {user_name} tarafindan {date_str} tarihinde {action_str}."
-            
-            cursor.execute("""
-                SET NOCOUNT ON;
-                INSERT INTO [Kunde].[tNotiz] ([kKunde], [kAuftrag], [cNotiz], [nTyp], [dErstellt], [kBenutzer])
-                VALUES (?, 0, ?, 0, ?, ?);
-            """, (kKunde, notiz_text, now, kBenutzer))
-            
         conn.commit()
         return jsonify({"success": True})
     except Exception as e:
