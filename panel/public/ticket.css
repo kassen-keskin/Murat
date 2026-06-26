@@ -30,7 +30,29 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 12px;
     background: rgba(255, 255, 255, 0.02);
+}
+
+.tickets-list-header > div {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+}
+
+.tickets-list-header > button,
+.ticket-detail-actions .btn-s,
+.reply-actions .btn-s {
+    min-height: 38px;
+    min-width: 100px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    white-space: nowrap;
+    padding: 8px 12px;
+    font-size: 0.9rem;
 }
 
 .tickets-list-filters {
@@ -241,8 +263,24 @@
 
 .reply-actions {
     display: flex;
-    justify-content: space-between;
+    justify-content: flex-end;
     align-items: center;
+    gap: 10px;
+}
+
+.ticket-detail-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+}
+
+.ticket-detail-actions .form-ctrl {
+    min-height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
 /* New Ticket Form */

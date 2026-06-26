@@ -3,6 +3,14 @@ let ticketUsers = [];
 let currentTicketId = null;
 let loggedInTicketUser = null;
 
+function getShortDisplayName(user) {
+    const source = user?.cName || user?.cLogin || '';
+    const trimmed = String(source).trim();
+    if (!trimmed) return 'Bilinmeyen';
+    const firstPart = trimmed.split(/\s+/)[0];
+    return firstPart || trimmed;
+}
+
 async function initTicketsTab() {
     const userJson = localStorage.getItem('ticketUser');
     if (userJson) {
@@ -92,7 +100,7 @@ async function fetchTicketUsers() {
             if (userFilter) {
                 userFilter.innerHTML = '<option value="">Tümü (Tüm Kullanıcılar)</option>';
                 ticketUsers.forEach(u => {
-                    userFilter.innerHTML += `<option value="${u.kBenutzer}">${u.cName || u.cLogin}</option>`;
+                    userFilter.innerHTML += `<option value="${u.kBenutzer}">${getShortDisplayName(u)}</option>`;
                 });
             }
         }
@@ -174,7 +182,7 @@ function renderTicketsList(data) {
         const customerName = t.KundenNr ? `${t.KundenNr} - ${t.Firma || ''}` : (t.Firma || 'Bilinmeyen Müşteri');
         
         const ownerUser = ticketUsers.find(u => u.kBenutzer == t.kBenutzer_Ersteller);
-        const ownerName = ownerUser ? (ownerUser.cName || ownerUser.cLogin) : 'Bilinmeyen';
+        const ownerName = ownerUser ? getShortDisplayName(ownerUser) : 'Bilinmeyen';
         const displayId = `${t.cEindeutigeId || ('TKT-'+t.kTicket)} - ${ownerName}`;
 
         const priorityNames = {1: "Düşük", 2: "Normal", 3: "Yüksek"};
@@ -230,7 +238,7 @@ function renderTicketChat(data) {
     }
 
     const ownerUser = ticketUsers.find(u => u.kBenutzer == erstellerId);
-    const ownerName = ownerUser ? (ownerUser.cName || ownerUser.cLogin) : 'Bilinmeyen';
+    const ownerName = ownerUser ? getShortDisplayName(ownerUser) : 'Bilinmeyen';
     const displayId = `${data.cEindeutigeId || ('TKT-'+data.kTicket)} - ${ownerName}`;
     
     const isOwner = loggedInTicketUser && String(loggedInTicketUser.kBenutzer) === String(erstellerId);
@@ -245,7 +253,7 @@ function renderTicketChat(data) {
                     <h2 class="ticket-detail-title" style="margin:0;">${displayId}</h2>
                     <div style="margin-top: 4px; font-size: 1.05rem; color: var(--text-color); font-weight: 500;">${titleStr}</div>
                 </div>
-                <div style="display:flex; gap: 8px; align-items:center;">
+                <div class="ticket-detail-actions">
                     <select class="form-ctrl" style="padding: 2px 8px; font-size: 0.85rem; width: auto;" onchange="changeTicketPriority(${data.kTicket}, this.value)">
                         <option value="1" ${data.nPrioritaet == 1 ? 'selected' : ''}>Düşük</option>
                         <option value="2" ${data.nPrioritaet == 2 ? 'selected' : ''}>Normal</option>
@@ -277,7 +285,7 @@ function renderTicketChat(data) {
             let senderName = 'Müşteri';
             if (isOutgoing) {
                 const user = ticketUsers.find(u => u.kBenutzer == m.kBenutzer_Ersteller);
-                senderName = user ? (user.cName || user.cLogin) : ('Agent ' + (m.kBenutzer_Ersteller||''));
+                senderName = user ? getShortDisplayName(user) : ('Agent ' + (m.kBenutzer_Ersteller||''));
             }
 
             let dateStr = '';
@@ -306,7 +314,7 @@ function renderTicketChat(data) {
     const replyHtml = `
         <div class="reply-area">
             <textarea id="replyContent" class="reply-textarea" placeholder="Yanıtınızı buraya yazın..."></textarea>
-            <div class="reply-actions" style="justify-content: flex-end;">
+            <div class="reply-actions">
                 <button class="btn-s success" onclick="submitTicketReply(${data.kTicket})">Gönder 📤</button>
             </div>
         </div>

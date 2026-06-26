@@ -1057,12 +1057,14 @@
             <div class="tickets-container" style="display: flex; flex: 1; overflow: hidden; background: var(--surface-color);">
                 <!-- Left: Ticket List -->
                 <div class="tickets-list-pane" style="width: 350px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column;">
-                    <div class="tickets-list-header" style="padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center;">
-                        <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="tickets-list-header" style="padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
                             <h3 style="margin:0; font-size: 1.2rem; color: var(--primary-color);">Tickets <span id="ticketCountBadge" style="font-size: 0.9rem; background: var(--card-bg); padding: 2px 8px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-color); font-weight: normal; margin-left: 5px;">0</span></h3>
-                            <button class="btn-s error" style="padding: 4px 8px; font-size: 0.8rem;" onclick="doTicketLogout()" title="Çıkış Yap">🚪 Çıkış</button>
                         </div>
-                        <button class="btn-s primary" onclick="showNewTicketForm()">+ Yeni</button>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <button class="btn-s primary" style="height: 38px; min-width: 90px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; box-sizing: border-box;" onclick="showNewTicketForm()">+ Yeni</button>
+                            <button class="btn-s error" style="height: 38px; min-width: 90px; display: inline-flex; align-items: center; justify-content: center; line-height: 1; box-sizing: border-box; gap: 6px;" onclick="doTicketLogout()" title="Çıkış Yap"><span style="display:inline-flex; align-items:center; justify-content:center; margin-right:auto;">🚪</span><span style="margin-left:auto;">Çıkış</span></button>
+                        </div>
                     </div>
                     <div class="tickets-list-filters" style="padding: 10px; border-bottom: 1px solid var(--border-color); display: flex; gap: 5px; flex-direction: column;">
                         <input type="text" id="ticketSearchInput" class="form-ctrl" placeholder="Ara (Müşteri No, Firma, Konu...)" style="width:100%; box-sizing:border-box;" oninput="filterTicketsList()">
