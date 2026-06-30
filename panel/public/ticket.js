@@ -148,6 +148,31 @@ function filterTicketsList() {
     renderTicketsList(filtered);
 }
 
+function parseRawDatetimeLocal(value) {
+    if (!value) return '';
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+    if (match) {
+        return `${match[1]}T${match[2]}`;
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    const pad = n => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
+function formatRawDateTimeLabel(value) {
+    if (!value) return 'Belirtilmedi';
+    const match = value.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+    if (match) {
+        const parts = match[1].split('-');
+        return `${parts[2]}.${parts[1]}.${parts[0]} ${match[2]}`;
+    }
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return 'Belirtilmedi';
+    return date.toLocaleString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
+}
+
 function renderTicketsList(data) {
     const container = document.getElementById('ticketsListContainer');
     container.innerHTML = '';
@@ -168,6 +193,19 @@ function renderTicketsList(data) {
 
         let statusClass = 'status-open';
         let statusText = 'Açık';
+        let dueLabel = '';
+        if (t.dFaelligAm) {
+            const rawDisplay = formatRawDateTimeLabel(t.dFaelligAm);
+            const dueDate = new Date(parseRawDatetimeLocal(t.dFaelligAm));
+            const now = new Date();
+            const diffHours = (dueDate - now) / (1000 * 60 * 60);
+            if (diffHours < 0) {
+                div.classList.add('due-overdue');
+            } else if (diffHours <= 24) {
+                div.classList.add('due-soon');
+            }
+            dueLabel = `📅 ${rawDisplay}`;
+        }
         if (t.kStatus == 2) { statusClass = 'status-pending'; statusText = 'Beklemede'; }
         else if (t.kStatus == 3) { statusClass = 'status-resolved'; statusText = 'Çözüldü'; }
 
@@ -201,6 +239,7 @@ function renderTicketsList(data) {
             <div class="ticket-item-meta">
                 <span>👤 ${customerName}</span>
                 <span>🕒 ${dateStr}</span>
+                ${dueLabel ? `<span class="ticket-due-label">${dueLabel}</span>` : ''}
             </div>
         `;
         container.appendChild(div);
@@ -246,6 +285,8 @@ function renderTicketChat(data) {
     const ticketInListForTitle = ticketsData.find(t => t.kTicket == data.kTicket);
     const titleStr = (ticketInListForTitle && ticketInListForTitle.cTitelErsteNachricht) ? ticketInListForTitle.cTitelErsteNachricht : 'Başlıksız Bilet';
 
+    const dueDateLabel = formatRawDateTimeLabel(data.dFaelligAm);
+    const dueDateJson = data.dFaelligAm ? JSON.stringify(data.dFaelligAm) : 'null';
     const headerHtml = `
         <div class="ticket-detail-header">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
@@ -270,7 +311,9 @@ function renderTicketChat(data) {
             <div class="ticket-detail-info">
                 <span><strong>Müşteri:</strong> ${customerStr}</span>
                 <span><strong>Durum:</strong> ${data.kStatus == 1 ? 'Açık' : (data.kStatus == 2 ? 'Beklemede' : 'Çözüldü')}</span>
+                <span><strong>Takip Tarihi:</strong> <span class="ticket-due-label editable" onclick='startDueDateEdit(${data.kTicket}, ${dueDateJson})' title="Düzenlemek için tıklayın">${dueDateLabel}</span></span>
             </div>
+            <div id="ticketDueDateEditor" class="ticket-due-editor" style="display:none; margin-top:12px; gap:10px; align-items:center;"></div>
         </div>
     `;
 
@@ -534,6 +577,12 @@ async function showNewTicketForm() {
             </div>
 
             <div class="form-grp">
+                <label>İzleme Tarihi / Planlanan Tarih</label>
+                <input type="datetime-local" id="newTicketDueDate" class="form-ctrl">
+                <small style="color:var(--text-muted);">Bu bilet için bakılacak tarih ve saati seçin.</small>
+            </div>
+
+            <div class="form-grp">
                 <label>İlk Mesaj</label>
                 <textarea id="newTicketContent" class="reply-textarea" placeholder="Mesajınızı buraya yazın..." style="min-height: 150px;"></textarea>
             </div>
@@ -553,6 +602,7 @@ async function submitNewTicket() {
     const cInhalt = document.getElementById('newTicketContent').value.trim();
     const kBenutzer = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
     const nPrioritaet = document.getElementById('newTicketPriority') ? document.getElementById('newTicketPriority').value : 2;
+    const dFaelligAm = document.getElementById('newTicketDueDate').value || null;
 
     if (!cInhalt) {
         alert("İlk mesaj içeriği zorunludur.");
@@ -568,7 +618,8 @@ async function submitNewTicket() {
                 cTitel: cTitel,
                 cInhalt: cInhalt,
                 kBenutzer: parseInt(kBenutzer),
-                nPrioritaet: parseInt(nPrioritaet)
+                nPrioritaet: parseInt(nPrioritaet),
+                dFaelligAm: dFaelligAm
             })
         });
 
@@ -606,5 +657,76 @@ async function changeTicketPriority(id, newPriority) {
     } catch (e) {
         console.error("Hata:", e);
         alert("Bilet önceliği değiştirilemedi.");
+    }
+}
+
+function startDueDateEdit(ticketId, currentValue) {
+    const editor = document.getElementById('ticketDueDateEditor');
+    if (!editor) return;
+    const inputValue = parseRawDatetimeLocal(currentValue);
+    editor.style.display = 'flex';
+    editor.innerHTML = `
+        <input type="datetime-local" id="ticketDueDateInput" class="form-ctrl" style="max-width:250px;" value="${inputValue}">
+        <button class="btn-s success" onclick="saveTicketDueDate(${ticketId})">Kaydet</button>
+        <button class="btn-s secondary" onclick="cancelDueDateEdit()">İptal</button>
+    `;
+
+    const input = document.getElementById('ticketDueDateInput');
+    if (!input) return;
+
+    input.focus();
+    input.select();
+
+    input.addEventListener('keydown', (event) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            saveTicketDueDate(ticketId);
+        } else if (event.key === 'Escape') {
+            cancelDueDateEdit();
+        }
+    });
+
+    input.addEventListener('blur', () => {
+        setTimeout(() => {
+            const active = document.activeElement;
+            if (!editor.contains(active)) {
+                saveTicketDueDate(ticketId);
+            }
+        }, 150);
+    });
+}
+
+function cancelDueDateEdit() {
+    const editor = document.getElementById('ticketDueDateEditor');
+    if (!editor) return;
+    editor.style.display = 'none';
+    editor.innerHTML = '';
+}
+
+async function saveTicketDueDate(ticketId) {
+    const input = document.getElementById('ticketDueDateInput');
+    if (!input) return;
+
+    const dFaelligAm = input.value ? input.value : null;
+    const kBenutzer = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
+
+    try {
+        const res = await fetch(`/api/tickets/${ticketId}/duedate`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dFaelligAm, kBenutzer })
+        });
+
+        if (res.ok) {
+            cancelDueDateEdit();
+            await fetchTickets();
+            selectTicket(ticketId);
+        } else {
+            const err = await res.json();
+            alert("Hata: " + (err.error || "Bilinmeyen hata"));
+        }
+    } catch (e) {
+        console.error("Hata:", e);
+        alert("Takip tarihi kaydedilemedi.");
     }
 }

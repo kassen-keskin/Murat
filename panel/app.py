@@ -430,7 +430,7 @@ def get_tickets():
           FROM [Ticketsystem].[tTicket] t WITH (NOLOCK)
           LEFT JOIN [Custom].[KundenMaster] c WITH (NOLOCK) ON t.[kKunde] = c.[kKunde]
           LEFT JOIN [Ticketsystem].[tTicketEckdaten] e WITH (NOLOCK) ON t.[kTicket] = e.[kTicket]
-          ORDER BY t.[dAenderung] DESC
+          ORDER BY CASE WHEN t.[dFaelligAm] IS NULL THEN 1 ELSE 0 END, t.[dFaelligAm] ASC, t.[dAenderung] DESC
         """
         cursor.execute(query)
         columns = [column[0] for column in cursor.description]
@@ -460,7 +460,7 @@ def get_ticket_details(id):
     try:
         # 1. Fetch ticket main info
         query_ticket = """
-        SELECT t.[kTicket], t.[cEindeutigeId], t.[kStatus], t.[nPrioritaet], t.[dAenderung], t.[kKunde], t.[kBenutzer_Bearbeiter], t.[kBenutzer_Ersteller], c.[Firma], c.[KundenNr]
+        SELECT t.[kTicket], t.[cEindeutigeId], t.[kStatus], t.[nPrioritaet], t.[dAenderung], t.[dFaelligAm], t.[kKunde], t.[kBenutzer_Bearbeiter], t.[kBenutzer_Ersteller], c.[Firma], c.[KundenNr]
         FROM [Ticketsystem].[tTicket] t WITH (NOLOCK)
         LEFT JOIN [Custom].[KundenMaster] c WITH (NOLOCK) ON t.[kKunde] = c.[kKunde]
         WHERE t.[kTicket] = ?
@@ -514,10 +514,17 @@ def create_ticket():
     cInhalt = data.get('cInhalt', '')
     kBenutzer = data.get('kBenutzer', 1) # Default to 1 if not provided
     nPrioritaet = data.get('nPrioritaet', 2) # Default to 2 (Normal)
-    
+    dFaelligAm = data.get('dFaelligAm', None)
+
     # Simple validation
     if not cInhalt:
          return jsonify({"error": "Content is required"}), 400
+
+    if dFaelligAm:
+        try:
+            dFaelligAm = datetime.datetime.fromisoformat(dFaelligAm)
+        except ValueError:
+            return jsonify({"error": "Geçersiz tarih formatı. YYYY-MM-DDTHH:MM şeklinde olmalı."}), 400
 
     cursor = conn.cursor()
     try:
@@ -551,10 +558,10 @@ def create_ticket():
         cursor.execute("""
             SET NOCOUNT ON;
             INSERT INTO [Ticketsystem].[tTicket] 
-            ([cEindeutigeId], [kStatus], [nPrioritaet], [dAenderung], [kBenutzer_Ersteller], [kKunde], [nIstInPapierkorb], [nBenutzererstellt], [nVollstaendigAngelegt])
-            VALUES (?, ?, ?, ?, ?, ?, 0, 1, 1);
+            ([cEindeutigeId], [kStatus], [nPrioritaet], [dAenderung], [dFaelligAm], [kBenutzer_Ersteller], [kKunde], [nIstInPapierkorb], [nBenutzererstellt], [nVollstaendigAngelegt])
+            VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1, 1);
             SELECT SCOPE_IDENTITY();
-        """, (new_eindeutige_id, 1, nPrioritaet, now, kBenutzer, kKunde))
+        """, (new_eindeutige_id, 1, nPrioritaet, now, dFaelligAm, kBenutzer, kKunde))
         
         new_ticket_id = int(cursor.fetchone()[0])
         
@@ -861,6 +868,76 @@ def update_ticket_priority(id):
                 [nRichtungLetzteNachricht] = 0
             WHERE [kTicket] = ?
         """, (now, id))
+
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        print(f"Update failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/tickets/<int:id>/duedate', methods=['PATCH'])
+def update_ticket_due_date(id):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    data = request.get_json()
+    dFaelligAm = data.get('dFaelligAm', None)
+    kBenutzer = data.get('kBenutzer', 1)
+
+    if dFaelligAm is not None and dFaelligAm != "":
+        try:
+            dFaelligAm = datetime.datetime.fromisoformat(dFaelligAm)
+        except ValueError:
+            return jsonify({"error": "Geçersiz tarih formatı. YYYY-MM-DDTHH:MM şeklinde olmalı."}), 400
+    else:
+        dFaelligAm = None
+
+    cursor = conn.cursor()
+    try:
+        now = datetime.datetime.now()
+        cursor.execute("SELECT kKunde, cEindeutigeId FROM [Ticketsystem].[tTicket] WITH (NOLOCK) WHERE kTicket = ?", (id,))
+        ticket_row = cursor.fetchone()
+        if not ticket_row:
+            return jsonify({"error": "Ticket not found"}), 404
+
+        cursor.execute("""
+            UPDATE [Ticketsystem].[tTicket]
+            SET [dFaelligAm] = ?, [dAenderung] = ?
+            WHERE [kTicket] = ?
+        """, (dFaelligAm, now, id))
+
+        if ticket_row[0]:
+            cEindeutigeId = ticket_row[1] or str(id)
+            due_label = dFaelligAm.strftime("%d.%m.%Y %H:%M") if dFaelligAm else "Kaldırıldı"
+            system_msg = f"Sistem Bilgisi: Takip tarihi {due_label} olarak güncellendi."
+
+            cursor.execute("""
+                SET NOCOUNT ON;
+                INSERT INTO [dbo].[tFile]
+                ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+                SELECT SCOPE_IDENTITY();
+            """, (b'', kBenutzer, now, '', 'message.html', '.html', 0))
+            kFile_HtmlInhalt = int(cursor.fetchone()[0])
+
+            cursor.execute("""
+                SET NOCOUNT ON;
+                INSERT INTO [Ticketsystem].[tNachricht]
+                ([cInhalt], [dErstellung], [kTicket], [kBenutzer_Ersteller], [nRichtung], [dEmpfangen], [nVorgangserkennungGelaufen], [kFile_HtmlInhalt], [nVollstaendigAngelegt])
+                VALUES (?, ?, ?, ?, 0, ?, 1, ?, 1);
+            """, (system_msg, now, id, kBenutzer, now, kFile_HtmlInhalt))
+
+            cursor.execute("""
+                UPDATE [Ticketsystem].[tTicketEckdaten]
+                SET [nAnzahlNachrichten] = [nAnzahlNachrichten] + 1,
+                    [dEmpfangLetzteNachricht] = ?,
+                    [nRichtungLetzteNachricht] = 0
+                WHERE [kTicket] = ?
+            """, (now, id))
 
         conn.commit()
         return jsonify({"success": True})
