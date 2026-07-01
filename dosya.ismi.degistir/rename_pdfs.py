@@ -1,8 +1,42 @@
 import os
+import re
+import shutil
 import sys
 from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
+
+try:
+    from dotenv import load_dotenv
+except ImportError:  # pragma: no cover - fallback for environments without python-dotenv
+    load_dotenv = None
+
+
+def load_panel_env():
+    candidates = []
+    script_dir = Path(__file__).resolve().parent
+    candidates.append(script_dir / '.env')
+    candidates.append(script_dir.parent / 'panel' / '.env')
+    candidates.append(script_dir / 'panel' / '.env')
+    candidates.append(Path.cwd() / '.env')
+    candidates.append(Path.cwd().parent / 'panel' / '.env')
+
+    for candidate in candidates:
+        if candidate.exists():
+            if load_dotenv is not None:
+                load_dotenv(candidate, override=False)
+            else:
+                for line in candidate.read_text(encoding='utf-8').splitlines():
+                    line = line.strip()
+                    if not line or line.startswith('#') or '=' not in line:
+                        continue
+                    key, value = line.split('=', 1)
+                    os.environ.setdefault(key.strip(), value.strip().strip('"').strip("'"))
+            return str(candidate)
+    return None
+
+
+load_panel_env()
 
 
 def find_pdfs(folder: Path, recursive: bool = False):
@@ -39,6 +73,77 @@ def unique_path(path: Path):
         i += 1
 
 
+def extract_first_four_digits(filename: str):
+    stem = Path(filename).stem
+    match = re.match(r'(\d{4})', stem)
+    return match.group(1) if match else ''
+
+
+def normalize_customer_number(value):
+    if value is None:
+        return ''
+    return str(value).strip()
+
+
+def fetch_customer_rows_from_view():
+    try:
+        import pyodbc
+    except ImportError as exc:
+        raise RuntimeError('pyodbc yüklü değil') from exc
+
+    server = os.getenv('DB_SERVER')
+    database = os.getenv('DB_DATABASE')
+    username = os.getenv('DB_USER')
+    password = os.getenv('DB_PASSWORD')
+    driver = os.getenv('DB_DRIVER', '{ODBC Driver 17 for SQL Server}')
+    connection_string = f'DRIVER={driver};SERVER={server};DATABASE={database};UID={username};PWD={password};TrustServerCertificate=yes;'
+
+    conn = pyodbc.connect(connection_string)
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+        SELECT [Kundennummer], [Zahlungsart Auftrag]
+        FROM [Custom].[MieteKundenSonFaturaDetay] WITH (NOLOCK)
+        """)
+        columns = [column[0] for column in cursor.description]
+        return [dict(zip(columns, row)) for row in cursor.fetchall()]
+    finally:
+        conn.close()
+
+
+def apply_customer_folder_mapping(folder: Path, customer_rows, recursive: bool = False):
+    folder = Path(folder)
+    files = find_pdfs(folder, recursive=recursive)
+    moved = []
+    for pdf_path in files:
+        prefix = extract_first_four_digits(pdf_path.name)
+        if not prefix:
+            continue
+
+        match_row = None
+        for row in customer_rows:
+            if normalize_customer_number(row.get('Kundennummer')) == prefix:
+                match_row = row
+                break
+        if not match_row:
+            continue
+
+        payment_type = str(match_row.get('Zahlungsart Auftrag', '')).strip().lower()
+        if payment_type == 'bank':
+            target_dir = folder / 'Bank'
+        elif payment_type == 'rechnung':
+            target_dir = folder / 'Rechnung'
+        else:
+            continue
+
+        target_dir.mkdir(parents=True, exist_ok=True)
+        target_path = unique_path(target_dir / pdf_path.name)
+        shutil.move(str(pdf_path), str(target_path))
+        moved.append((pdf_path, target_path))
+
+    return moved
+
+
 class App:
     def __init__(self, root):
         self.root = root
@@ -72,6 +177,8 @@ class App:
         self.space_var = tk.IntVar(value=1)
         tk.Checkbutton(frm, text='Boşluk ekle', variable=self.space_var).grid(row=2, column=2, columnspan=2, sticky='w')
         tk.Button(frm, text='Ön İzle (Append)', command=self.preview_append).grid(row=2, column=4, padx=6)
+
+        tk.Button(frm, text='View’e Göre Klasörle', command=self.organize_by_customer_view).grid(row=3, column=0, columnspan=3, sticky='w', pady=(8, 0))
 
         # Preview list
         self.listbox = tk.Listbox(root, width=120, height=20)
@@ -144,6 +251,27 @@ class App:
         for old, new in pairs:
             self.listbox.insert(tk.END, f"{old.name}  →  {new.name}")
         self.status_label.config(text=f'Önizleme: {len(pairs)} dosya')
+
+    def organize_by_customer_view(self):
+        if not self.folder:
+            messagebox.showwarning('Uyarı', 'Önce bir klasör seçin')
+            return
+
+        try:
+            customer_rows = fetch_customer_rows_from_view()
+        except Exception as exc:
+            messagebox.showerror('Hata', f'View verisi alınamadı:\n{exc}')
+            return
+
+        recursive = bool(self.subfolder_var.get())
+        moved = apply_customer_folder_mapping(self.folder, customer_rows, recursive=recursive)
+        self.show_preview(moved)
+
+        if not moved:
+            messagebox.showinfo('Bilgi', 'Eşleşen PDF bulunamadı veya hiç taşınma yapılmadı.')
+            return
+
+        messagebox.showinfo('Başarılı', f'{len(moved)} PDF dosyası ilgili klasöre taşındı.')
 
     def apply_rename(self):
         if not self.preview_pairs:
