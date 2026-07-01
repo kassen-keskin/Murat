@@ -313,9 +313,14 @@ class App:
 
 
 def main():
-    root = tk.Tk()
-    app = App(root)
-    root.mainloop()
+    try:
+        root = tk.Tk()
+        root.iconbitmap(default='')
+        app = App(root)
+        root.mainloop()
+    except Exception as exc:
+        messagebox.showerror('Hata', f'Uygulama başlatılamadı:\n{exc}')
+        raise
 
 
 if __name__ == '__main__':
