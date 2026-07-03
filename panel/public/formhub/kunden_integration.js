@@ -6,19 +6,19 @@ document.addEventListener('DOMContentLoaded', () => {
     // 2. Create the UI
     const searchContainer = document.createElement('div');
     searchContainer.className = 'kunden-search-container d-flex flex-wrap gap-2 align-items-center mb-3 p-3 rounded shadow-sm no-print';
-    searchContainer.style.cssText = 'background-color: var(--card-bg, var(--form-section-bg, #ffffff)); border: 1px solid var(--border-color-light, #ddd); color: var(--text-color, var(--text-color-primary, #333)); font-family: "Inter", sans-serif; max-width: 800px; margin: 15px auto; width: 100%;';
+    searchContainer.style.cssText = 'background: var(--card, #fcfdff); border: 1px solid var(--border, #d7e0ea); color: var(--text, #334155); font-family: "Segoe UI", "Inter", sans-serif; border-radius: 10px; max-width: 800px; margin: 0 auto 12px; width: 100%; padding: 12px 14px; box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);';
     
     // Attempt to match the Bootstrap style of the surrounding site, or provide sensible fallbacks
     searchContainer.innerHTML = `
-        <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap; width: 100%;">
-            <span style="font-weight: 600; font-size: 14px;"><i class="fas fa-search" style="margin-right: 5px;"></i> Kunden Ara:</span>
-            <input type="text" id="kundenSearchInput" style="padding: 8px 12px; border: 1px solid var(--border-color-input, #ccc); border-radius: 6px; flex: 1; min-width: 150px; background: transparent; color: inherit;" placeholder="KundenNr girin...">
-            <button type="button" id="kundenSearchBtn" style="padding: 8px 16px; background-color: #0d6efd; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600;">Bul ve Doldur</button>
-            <button type="button" id="kundenMappingBtn" style="padding: 8px 16px; background-color: #6c757d; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 600; margin-left: auto;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap; width: 100%;">
+            <span style="font-weight: 700; font-size: 12px; color: var(--text, #334155);"><i class="fas fa-search" style="margin-right: 5px;"></i> Kunden Ara:</span>
+            <input type="text" id="kundenSearchInput" style="padding: 0 10px; border: 1px solid var(--border-color-input, #d7e0ea); border-radius: 6px; flex: 1; min-width: 180px; background: #f8fafc; color: #0f172a; font-size: 12px; height: 38px; box-sizing: border-box;" placeholder="KundenNr girin...">
+            <button type="button" id="kundenSearchBtn" style="min-width: 110px; height: 38px; padding: 0 12px; background-color: #2563eb; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 11px; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);">Bul ve Doldur</button>
+            <button type="button" id="kundenMappingBtn" style="min-width: 130px; height: 38px; padding: 0 12px; background-color: #64748b; color: white; border: none; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 11px; margin-left: auto; box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);">
                 <i class="fas fa-cogs" style="margin-right: 5px;"></i> Eşleşme Paneli
             </button>
         </div>
-        <div id="kundenSearchMsg" style="width: 100%; margin-top: 10px; font-size: 13px; font-weight: 600; display: none;"></div>
+        <div id="kundenSearchMsg" style="width: 100%; margin-top: 10px; font-size: 12px; font-weight: 600; display: none;"></div>
     `;
 
     // 3. Insert the UI at the top

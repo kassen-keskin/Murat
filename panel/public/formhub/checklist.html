@@ -7,29 +7,35 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #2563eb;
-            --bg: #f8fafc;
+            --primary: #000000;
+            --primary-strong: #000000;
+            --bg: #ffffff;
             --card: #ffffff;
-            --text: #1e293b;
-            --border: #cbd5e1;
+            --text: #334155;
+            --muted: #000000;
+            --border: #d7e0ea;
+            --soft: #e9f0f8;
         }
 
         [data-theme="dark"] {
-            --primary: #f97316;
-            --bg: #0a0a0a;
-            --card: #1a1a1a;
+            --primary: #000000;
+            --primary-strong: #000000;
+            --bg: #999999;
+            --card: #999999;
             --text: #f5f5f5;
             --border: #404040;
-            --accent: #fb923c;
+            --accent: #000000;
+            --soft: #1f2937;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
+            font-family: 'Segoe UI', 'Inter', sans-serif;
+            background: #999999;
             color: var(--text);
             margin: 0;
             padding: 10px;
-            font-size: 11px;
+            font-size: 12px;
+            line-height: 1.4;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -40,10 +46,56 @@
             width: 100%;
             max-width: 780px;
             background: var(--card);
-            border-radius: 8px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
             padding: 15px 25px;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
             position: relative;
+        }
+
+        .action-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .action-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 96px;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, opacity 0.2s ease;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 3px 8px rgba(15, 23, 42, 0.12);
+        }
+
+        .action-btn-success,
+        .action-btn-warning,
+        .action-btn-neutral,
+        .action-btn-primary {
+            background: var(--primary);
+            color: #fff;
+            border-color: var(--primary);
+        }
+
+        .action-btn-neutral {
+            background: var(--soft);
+            color: var(--text);
+            border-color: var(--border);
         }
 
         header {
@@ -101,6 +153,7 @@
             background: var(--bg);
             color: var(--text);
             font-size: 11px;
+            font-family: 'Segoe UI', 'Inter', sans-serif;
             outline: none;
         }
 
@@ -387,16 +440,14 @@
 <body data-theme="dark">
 
     <div class="app-container">
-        <div class="no-print" style="text-align: right; margin-bottom: 10px; display: flex; justify-content: flex-end; gap: 8px;">
-            <button onclick="document.getElementById('importFile').click()" style="cursor:pointer; padding: 4px 8px; background: #10b981; color: white; border: none; border-radius: 4px; font-weight: bold;">📥 IMPORT</button>
+        <div class="no-print action-bar">
+            <button class="action-btn action-btn-success" onclick="document.getElementById('importFile').click()">📥 IMPORT</button>
             <input type="file" id="importFile" style="display:none" accept=".json" onchange="importData(event)">
             
-            <button onclick="exportData()" style="cursor:pointer; padding: 4px 8px; background: #f59e0b; color: white; border: none; border-radius: 4px; font-weight: bold;">📤 EXPORT</button>
+            <button class="action-btn action-btn-warning" onclick="exportData()">📤 EXPORT</button>
 
-            <button onclick="toggleTheme()" style="cursor:pointer; padding: 4px 8px;">🌓 Theme</button>
-            <button onclick="window.print()"
-                style="cursor:pointer; background: var(--primary); color: white; border:none; padding: 5px 15px; border-radius:4px; font-weight:bold;">🖨️
-                PDF ERSTELLEN</button>
+            <button class="action-btn action-btn-neutral" onclick="toggleTheme()">🌓 Theme</button>
+            <button class="action-btn action-btn-primary" onclick="window.print()">📄 PDF</button>
         </div>
 
         <header>
