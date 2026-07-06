@@ -321,8 +321,17 @@ function renderTicketChat(data) {
 
     // Messages
     let messagesHtml = '<div class="chat-container" id="ticketChatContainer">';
+    let visibleMessages = 0;
     if (data.messages && data.messages.length > 0) {
         data.messages.forEach(m => {
+            const rawContent = m.cInhalt ? String(m.cInhalt).trim() : '';
+            const content = rawContent ? rawContent.replace(/\n/g, '<br>') : '';
+            const hasAttachment = Boolean(m.attachment);
+            if (!content && !hasAttachment) {
+                return; // Skip empty messages without attachment
+            }
+
+            visibleMessages += 1;
             const isOutgoing = m.nRichtung == 0; // Assuming 0 is outgoing (Agent to Cust)
             const msgClass = isOutgoing ? 'outgoing' : 'incoming';
             
@@ -339,9 +348,8 @@ function renderTicketChat(data) {
                 dateStr = d.toLocaleDateString('tr-TR') + ' ' + d.toLocaleTimeString('tr-TR', {hour: '2-digit', minute:'2-digit'});
             }
 
-            const content = m.cInhalt ? m.cInhalt.replace(/\n/g, '<br>') : '';
             let attachmentHtml = '';
-            if (m.attachment) {
+            if (hasAttachment) {
                 const attachment = m.attachment;
                 const isImage = attachment.cFileType && attachment.cFileType.startsWith('image/');
                 const isVideo = attachment.cFileType && attachment.cFileType.startsWith('video/');
@@ -394,9 +402,12 @@ function renderTicketChat(data) {
                 </div>
             `;
         });
-    } else {
+    }
+
+    if (visibleMessages === 0) {
         messagesHtml += '<div style="text-align:center;color:var(--text-muted);margin-top:20px;">Henüz mesaj yok.</div>';
     }
+
     messagesHtml += '</div>';
 
     const replyHtml = `

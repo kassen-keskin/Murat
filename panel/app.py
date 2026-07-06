@@ -521,12 +521,15 @@ def get_ticket_details(id):
 
             attachment = None
             if msg_dict.get('file_id'):
-                attachment = {
-                    'kFile': msg_dict['file_id'],
-                    'cFileName': msg_dict.get('file_name') or 'attachment',
-                    'cFileType': msg_dict.get('file_type') or 'application/octet-stream',
-                    'url': f"/api/ticket-files/{msg_dict['file_id']}"
-                }
+                file_name = (msg_dict.get('file_name') or '').strip()
+                file_type = (msg_dict.get('file_type') or '').strip()
+                if file_name.lower() != 'message.html' and file_type.lower() not in ('.html', 'text/html'):
+                    attachment = {
+                        'kFile': msg_dict['file_id'],
+                        'cFileName': file_name or 'attachment',
+                        'cFileType': file_type or 'application/octet-stream',
+                        'url': f"/api/ticket-files/{msg_dict['file_id']}"
+                    }
 
             msg_dict.pop('file_id', None)
             msg_dict.pop('file_name', None)
@@ -782,22 +785,27 @@ def delete_ticket_attachment(id, file_id):
 
     cursor = conn.cursor()
     try:
-        cursor.execute("SELECT [kNachricht] FROM [Ticketsystem].[tNachricht] WITH (NOLOCK) WHERE [kTicket] = ? AND [kFile_HtmlInhalt] = ?", (id, file_id))
+        cursor.execute("SELECT [kNachricht], [cInhalt] FROM [Ticketsystem].[tNachricht] WITH (NOLOCK) WHERE [kTicket] = ? AND [kFile_HtmlInhalt] = ?", (id, file_id))
         row = cursor.fetchone()
         if not row:
             return jsonify({"error": "Attachment not found for this ticket."}), 404
 
-        now = datetime.datetime.now()
-        cursor.execute("""
-            SET NOCOUNT ON;
-            INSERT INTO [dbo].[tFile]
-            ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-            SELECT SCOPE_IDENTITY();
-        """, (b'', 1, now, '', 'message.html', '.html', 0))
-        dummy_file_id = int(cursor.fetchone()[0])
+        message_id, message_content = row
+        message_text = (message_content or '').strip()
+        if message_text == '':
+            cursor.execute("DELETE FROM [Ticketsystem].[tNachricht] WHERE [kNachricht] = ?", (message_id,))
+        else:
+            now = datetime.datetime.now()
+            cursor.execute("""
+                SET NOCOUNT ON;
+                INSERT INTO [dbo].[tFile]
+                ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+                SELECT SCOPE_IDENTITY();
+            """, (b'', 1, now, '', 'message.html', '.html', 0))
+            dummy_file_id = int(cursor.fetchone()[0])
+            cursor.execute("UPDATE [Ticketsystem].[tNachricht] SET [kFile_HtmlInhalt] = ? WHERE [kNachricht] = ?", (dummy_file_id, message_id))
 
-        cursor.execute("UPDATE [Ticketsystem].[tNachricht] SET [kFile_HtmlInhalt] = ? WHERE [kTicket] = ? AND [kFile_HtmlInhalt] = ?", (dummy_file_id, id, file_id))
         cursor.execute("UPDATE [Ticketsystem].[tTicketEckdaten] SET [nAnzahlAnhaenge] = CASE WHEN [nAnzahlAnhaenge] > 0 THEN [nAnzahlAnhaenge] - 1 ELSE 0 END WHERE [kTicket] = ?", (id,))
         conn.commit()
         return jsonify({"success": True})
