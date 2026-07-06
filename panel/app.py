@@ -1,8 +1,10 @@
-from flask import Flask, jsonify, make_response, send_from_directory, request
+from flask import Flask, jsonify, make_response, send_from_directory, request, Response, send_file
+import io
 import json
 import pyodbc
 import os
 import time
+import datetime
 from functools import wraps
 from decimal import Decimal
 from argon2 import PasswordHasher
@@ -66,6 +68,29 @@ def get_db_connection():
     except Exception as e:
         print(f"Database connection failed: {e}")
         return None
+
+
+def create_attachment_record(cursor, uploaded_file, kBenutzer, created_at):
+    if not uploaded_file or not getattr(uploaded_file, 'filename', None):
+        return None
+
+    file_bytes = uploaded_file.read()
+    if not file_bytes:
+        return None
+
+    file_name = uploaded_file.filename or 'upload'
+    mime_type = uploaded_file.mimetype or 'application/octet-stream'
+    file_size_kb = max(1, (len(file_bytes) + 1023) // 1024)
+
+    cursor.execute("""
+        SET NOCOUNT ON;
+        INSERT INTO [dbo].[tFile]
+        ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
+        VALUES (?, ?, ?, ?, ?, ?, ?);
+        SELECT SCOPE_IDENTITY();
+    """, (file_bytes, kBenutzer, created_at, '', file_name, mime_type, file_size_kb))
+    return int(cursor.fetchone()[0])
+
 
 @app.route('/')
 def serve_index():
@@ -478,10 +503,12 @@ def get_ticket_details(id):
 
         # 2. Fetch messages
         query_msgs = """
-        SELECT [kNachricht], [cInhalt], [dErstellung], [kBenutzer_Ersteller], [nRichtung], [cBeschreibung]
-        FROM [Ticketsystem].[tNachricht] WITH (NOLOCK)
-        WHERE [kTicket] = ?
-        ORDER BY [dErstellung] ASC
+        SELECT n.[kNachricht], n.[cInhalt], n.[dErstellung], n.[kBenutzer_Ersteller], n.[nRichtung], n.[cBeschreibung],
+               f.[kFile] AS file_id, f.[cFileName] AS file_name, f.[cFileType] AS file_type
+        FROM [Ticketsystem].[tNachricht] n WITH (NOLOCK)
+        LEFT JOIN [dbo].[tFile] f WITH (NOLOCK) ON n.[kFile_HtmlInhalt] = f.[kFile]
+        WHERE n.[kTicket] = ?
+        ORDER BY n.[dErstellung] ASC
         """
         cursor.execute(query_msgs, (id,))
         columns_m = [column[0] for column in cursor.description]
@@ -491,6 +518,21 @@ def get_ticket_details(id):
             for key, value in msg_dict.items():
                 if isinstance(value, datetime.datetime):
                     msg_dict[key] = value.isoformat()
+
+            attachment = None
+            if msg_dict.get('file_id'):
+                attachment = {
+                    'kFile': msg_dict['file_id'],
+                    'cFileName': msg_dict.get('file_name') or 'attachment',
+                    'cFileType': msg_dict.get('file_type') or 'application/octet-stream',
+                    'url': f"/api/ticket-files/{msg_dict['file_id']}"
+                }
+
+            msg_dict.pop('file_id', None)
+            msg_dict.pop('file_name', None)
+            msg_dict.pop('file_type', None)
+            if attachment:
+                msg_dict['attachment'] = attachment
             messages.append(msg_dict)
             
         ticket_data['messages'] = messages
@@ -507,17 +549,23 @@ def create_ticket():
     conn = get_db_connection()
     if not conn:
         return jsonify({"error": "Database connection failed"}), 500
-    
-    data = request.get_json()
+
+    if 'multipart/form-data' in request.content_type:
+        data = request.form.to_dict()
+        uploaded_file = request.files.get('file')
+    else:
+        data = request.get_json(silent=True) or {}
+        uploaded_file = None
+
     kKunde = data.get('kKunde', None)
     cTitel = data.get('cTitel', '')
     cInhalt = data.get('cInhalt', '')
-    kBenutzer = data.get('kBenutzer', 1) # Default to 1 if not provided
-    nPrioritaet = data.get('nPrioritaet', 2) # Default to 2 (Normal)
+    kBenutzer = int(data.get('kBenutzer', 1))
+    nPrioritaet = int(data.get('nPrioritaet', 2))
     dFaelligAm = data.get('dFaelligAm', None)
 
     # Simple validation
-    if not cInhalt:
+    if not cInhalt and not uploaded_file:
          return jsonify({"error": "Content is required"}), 400
 
     if dFaelligAm:
@@ -564,16 +612,20 @@ def create_ticket():
         """, (new_eindeutige_id, 1, nPrioritaet, now, dFaelligAm, kBenutzer, kKunde))
         
         new_ticket_id = int(cursor.fetchone()[0])
-        
-        # 2. Insert dummy file for HTML content
-        cursor.execute("""
-            SET NOCOUNT ON;
-            INSERT INTO [dbo].[tFile]
-            ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-            SELECT SCOPE_IDENTITY();
-        """, (b'', kBenutzer, now, '', 'message.html', '.html', 0))
-        kFile_HtmlInhalt = int(cursor.fetchone()[0])
+
+        attachment_file_id = create_attachment_record(cursor, uploaded_file, kBenutzer, now) if uploaded_file else None
+        if attachment_file_id:
+            kFile_HtmlInhalt = attachment_file_id
+        else:
+            # 2. Insert dummy file for HTML content
+            cursor.execute("""
+                SET NOCOUNT ON;
+                INSERT INTO [dbo].[tFile]
+                ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+                SELECT SCOPE_IDENTITY();
+            """, (b'', kBenutzer, now, '', 'message.html', '.html', 0))
+            kFile_HtmlInhalt = int(cursor.fetchone()[0])
         
         # 3. Insert initial message into tNachricht
         cursor.execute("""
@@ -588,8 +640,8 @@ def create_ticket():
         cursor.execute("""
             INSERT INTO [Ticketsystem].[tTicketEckdaten]
             ([kTicket], [nAnzahlNachrichten], [nAnzahlAnhaenge], [cInhaltErsteNachricht], [nRichtungLetzteNachricht], [cTitelErsteNachricht], [dEmpfangLetzteNachricht])
-            VALUES (?, 1, 0, ?, 0, ?, ?)
-        """, (new_ticket_id, cInhalt, cTitel, now))
+            VALUES (?, 1, ?, ?, 0, ?, ?)
+        """, (new_ticket_id, 1 if attachment_file_id else 0, cInhalt, cTitel, now))
         
         # 5. Insert into tNotiz (Ticket Created)
         if kKunde:
@@ -621,27 +673,37 @@ def reply_ticket(id):
     conn = get_db_connection()
     if not conn:
         return jsonify({"error": "Database connection failed"}), 500
-    
-    data = request.get_json()
+
+    if 'multipart/form-data' in request.content_type:
+        data = request.form.to_dict()
+        uploaded_file = request.files.get('file')
+    else:
+        data = request.get_json(silent=True) or {}
+        uploaded_file = None
+
     cInhalt = data.get('cInhalt', '')
-    kBenutzer = data.get('kBenutzer', 1)
+    kBenutzer = int(data.get('kBenutzer', 1))
     
-    if not cInhalt:
+    if not cInhalt and not uploaded_file:
          return jsonify({"error": "Content is required"}), 400
 
     cursor = conn.cursor()
     try:
         now = datetime.datetime.now()
-        
-        # 1. Insert dummy file for HTML content
-        cursor.execute("""
-            SET NOCOUNT ON;
-            INSERT INTO [dbo].[tFile]
-            ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
-            VALUES (?, ?, ?, ?, ?, ?, ?);
-            SELECT SCOPE_IDENTITY();
-        """, (b'', kBenutzer, now, '', 'message.html', '.html', 0))
-        kFile_HtmlInhalt = int(cursor.fetchone()[0])
+
+        attachment_file_id = create_attachment_record(cursor, uploaded_file, kBenutzer, now) if uploaded_file else None
+        if attachment_file_id:
+            kFile_HtmlInhalt = attachment_file_id
+        else:
+            # 1. Insert dummy file for HTML content
+            cursor.execute("""
+                SET NOCOUNT ON;
+                INSERT INTO [dbo].[tFile]
+                ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
+                VALUES (?, ?, ?, ?, ?, ?, ?);
+                SELECT SCOPE_IDENTITY();
+            """, (b'', kBenutzer, now, '', 'message.html', '.html', 0))
+            kFile_HtmlInhalt = int(cursor.fetchone()[0])
         
         # 2. Insert message
         cursor.execute("""
@@ -663,17 +725,85 @@ def reply_ticket(id):
         cursor.execute("""
             UPDATE [Ticketsystem].[tTicketEckdaten]
             SET [nAnzahlNachrichten] = [nAnzahlNachrichten] + 1,
+                [nAnzahlAnhaenge] = [nAnzahlAnhaenge] + ?,
                 [dEmpfangLetzteNachricht] = ?,
                 [nRichtungLetzteNachricht] = 0
             WHERE [kTicket] = ?
-        """, (now, id))
+        """, (1 if attachment_file_id else 0, now, id))
         
         conn.commit()
-        return jsonify({"success": True})
+        return jsonify({"success": True, "attachment": {'kFile': attachment_file_id, 'url': f'/api/ticket-files/{attachment_file_id}'} if attachment_file_id else None})
         
     except Exception as e:
         conn.rollback()
         print(f"Reply failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/ticket-files/<int:file_id>')
+def get_ticket_file(file_id):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT [bFile], [cFileName], [cFileType] FROM [dbo].[tFile] WITH (NOLOCK) WHERE [kFile] = ?", (file_id,))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"error": "File not found"}), 404
+
+        file_bytes = row[0]
+        if file_bytes is None or len(file_bytes) == 0:
+            return jsonify({"error": "File is empty"}), 404
+
+        if isinstance(file_bytes, memoryview):
+            file_bytes = file_bytes.tobytes()
+        elif isinstance(file_bytes, bytearray):
+            file_bytes = bytes(file_bytes)
+
+        file_name = row[1] or f'attachment-{file_id}'
+        content_type = row[2] or 'application/octet-stream'
+        download = request.args.get('download')
+        as_attachment = bool(download and download not in ('0', 'false', 'False', ''))
+        return send_file(io.BytesIO(file_bytes), mimetype=content_type, as_attachment=as_attachment, download_name=file_name)
+    except Exception as e:
+        print(f"File fetch failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/tickets/<int:id>/attachments/<int:file_id>', methods=['DELETE'])
+def delete_ticket_attachment(id, file_id):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        cursor.execute("SELECT [kNachricht] FROM [Ticketsystem].[tNachricht] WITH (NOLOCK) WHERE [kTicket] = ? AND [kFile_HtmlInhalt] = ?", (id, file_id))
+        row = cursor.fetchone()
+        if not row:
+            return jsonify({"error": "Attachment not found for this ticket."}), 404
+
+        now = datetime.datetime.now()
+        cursor.execute("""
+            SET NOCOUNT ON;
+            INSERT INTO [dbo].[tFile]
+            ([bFile], [kBenutzer], [dErstellDatum], [cFileHash], [cFileName], [cFileType], [nFileSizeKB])
+            VALUES (?, ?, ?, ?, ?, ?, ?);
+            SELECT SCOPE_IDENTITY();
+        """, (b'', 1, now, '', 'message.html', '.html', 0))
+        dummy_file_id = int(cursor.fetchone()[0])
+
+        cursor.execute("UPDATE [Ticketsystem].[tNachricht] SET [kFile_HtmlInhalt] = ? WHERE [kTicket] = ? AND [kFile_HtmlInhalt] = ?", (dummy_file_id, id, file_id))
+        cursor.execute("UPDATE [Ticketsystem].[tTicketEckdaten] SET [nAnzahlAnhaenge] = CASE WHEN [nAnzahlAnhaenge] > 0 THEN [nAnzahlAnhaenge] - 1 ELSE 0 END WHERE [kTicket] = ?", (id,))
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        print(f"Delete attachment failed: {e}")
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()

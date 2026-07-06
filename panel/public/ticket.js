@@ -2,6 +2,8 @@ let ticketsData = [];
 let ticketUsers = [];
 let currentTicketId = null;
 let loggedInTicketUser = null;
+let currentTicketAttachment = null;
+let currentTicketAttachmentPreviewUrl = null;
 
 function getShortDisplayName(user) {
     const source = user?.cName || user?.cLogin || '';
@@ -338,10 +340,53 @@ function renderTicketChat(data) {
             }
 
             const content = m.cInhalt ? m.cInhalt.replace(/\n/g, '<br>') : '';
+            let attachmentHtml = '';
+            if (m.attachment) {
+                const attachment = m.attachment;
+                const isImage = attachment.cFileType && attachment.cFileType.startsWith('image/');
+                const isVideo = attachment.cFileType && attachment.cFileType.startsWith('video/');
+                const isPdf = attachment.cFileType === 'application/pdf' || (attachment.cFileName || '').toLowerCase().endsWith('.pdf');
+                if (isImage) {
+                    attachmentHtml = `
+                        <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px;">
+                            <div class="attachment-preview-media">
+                                <img src="${attachment.url}" alt="${attachment.cFileName}" style="max-width:100%;max-height:100%;border-radius:8px;object-fit:contain;">
+                            </div>
+                            <div class="message-attachment-actions">
+                                <button type="button" class="link-button" onclick="downloadTicketAttachment('${attachment.url}', '${encodeURIComponent(attachment.cFileName || 'attachment')}')">⬇️ İndir</button>
+                                <button type="button" class="link-button" onclick="deleteTicketAttachment(${data.kTicket}, ${attachment.kFile})">🗑️ Sil</button>
+                            </div>
+                        </div>`;
+                } else if (isVideo) {
+                    attachmentHtml = `
+                        <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px;">
+                            <div class="attachment-preview-media">
+                                <video controls src="${attachment.url}" style="max-width:100%;max-height:100%;border-radius:8px;"></video>
+                            </div>
+                            <div class="message-attachment-actions">
+                                <button type="button" class="link-button" onclick="downloadTicketAttachment('${attachment.url}', '${encodeURIComponent(attachment.cFileName || 'attachment')}')">⬇️ İndir</button>
+                                <button type="button" class="link-button" onclick="deleteTicketAttachment(${data.kTicket}, ${attachment.kFile})">🗑️ Sil</button>
+                            </div>
+                        </div>`;
+                } else if (isPdf) {
+                    attachmentHtml = `
+                        <div style="margin-top:8px;display:flex;flex-direction:column;gap:8px;">
+                            <div class="attachment-preview-pdf">
+                                <iframe class="attachment-pdf-object" src="${attachment.url}" type="application/pdf" aria-label="PDF önizleme"></iframe>
+                            </div>
+                            <div class="message-attachment-actions">
+                                <button type="button" class="link-button" onclick="downloadTicketAttachment('${attachment.url}?download=1', '${encodeURIComponent(attachment.cFileName || 'attachment')}')">⬇️ İndir</button>
+                                <button type="button" class="link-button" onclick="deleteTicketAttachment(${data.kTicket}, ${attachment.kFile})">🗑️ Sil</button>
+                            </div>
+                        </div>`;
+                } else {
+                    attachmentHtml = '';
+                }
+            }
 
             messagesHtml += `
                 <div class="chat-message ${msgClass}">
-                    <div class="chat-bubble">${content}</div>
+                    <div class="chat-bubble">${content}${attachmentHtml}</div>
                     <div class="chat-meta">
                         <span class="chat-sender">${senderName}</span>
                         <span>${dateStr}</span>
@@ -355,9 +400,12 @@ function renderTicketChat(data) {
     messagesHtml += '</div>';
 
     const replyHtml = `
-        <div class="reply-area">
+        <div class="reply-area" id="ticketReplyArea">
+            <input type="file" id="ticketAttachmentInput" accept="image/*,video/*,.pdf" hidden>
             <textarea id="replyContent" class="reply-textarea" placeholder="Yanıtınızı buraya yazın..."></textarea>
+            <div id="ticketAttachmentPreview" class="attachment-preview"></div>
             <div class="reply-actions">
+                <button type="button" class="btn-s secondary" onclick="document.getElementById('ticketAttachmentInput').click()">📎 Dosya</button>
                 <button class="btn-s success" onclick="submitTicketReply(${data.kTicket})">Gönder 📤</button>
             </div>
         </div>
@@ -365,9 +413,101 @@ function renderTicketChat(data) {
 
     pane.innerHTML = headerHtml + messagesHtml + replyHtml;
 
+    attachTicketReplyDropzone();
+
     // Scroll chat to bottom
     const chatContainer = document.getElementById('ticketChatContainer');
     chatContainer.scrollTop = chatContainer.scrollHeight;
+}
+
+function attachTicketReplyDropzone() {
+    const replyArea = document.getElementById('ticketReplyArea');
+    const input = document.getElementById('ticketAttachmentInput');
+    const preview = document.getElementById('ticketAttachmentPreview');
+    const detailPane = document.getElementById('ticketDetailPane');
+    if (!replyArea || !input || !preview) return;
+
+    const clearPreview = () => {
+        if (currentTicketAttachmentPreviewUrl) {
+            URL.revokeObjectURL(currentTicketAttachmentPreviewUrl);
+            currentTicketAttachmentPreviewUrl = null;
+        }
+        preview.innerHTML = '';
+        currentTicketAttachment = null;
+        replyArea.classList.remove('dragover');
+    };
+
+    const updatePreview = (file) => {
+        clearPreview();
+        if (!file) return;
+
+        const isImage = file.type && file.type.startsWith('image/');
+        const isVideo = file.type && file.type.startsWith('video/');
+        const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+
+        if (!isImage && !isVideo && !isPdf) {
+            preview.innerHTML = '<span style="color:var(--text-muted);">Sadece resim, video veya PDF dosyası ekleyebilirsiniz.</span>';
+            return;
+        }
+
+        currentTicketAttachment = file;
+        if (isImage) {
+            currentTicketAttachmentPreviewUrl = URL.createObjectURL(file);
+            preview.innerHTML = `<div class="attachment-preview-media"><button type="button" class="attachment-remove-button" aria-label="Dosyayı kaldır">×</button><img src="${currentTicketAttachmentPreviewUrl}" alt="${file.name}" style="max-width:100%;max-height:100%;border-radius:8px;object-fit:contain;"></div>`;
+        } else if (isVideo) {
+            currentTicketAttachmentPreviewUrl = URL.createObjectURL(file);
+            preview.innerHTML = `<div class="attachment-preview-media"><button type="button" class="attachment-remove-button" aria-label="Dosyayı kaldır">×</button><video controls src="${currentTicketAttachmentPreviewUrl}" style="max-width:100%;max-height:100%;border-radius:8px;"></video></div>`;
+        } else {
+            currentTicketAttachmentPreviewUrl = URL.createObjectURL(file);
+            preview.innerHTML = `<div class="attachment-preview-pdf"><button type="button" class="attachment-remove-button" aria-label="Dosyayı kaldır">×</button><iframe class="attachment-pdf-object" src="${currentTicketAttachmentPreviewUrl}" type="application/pdf" aria-label="PDF önizleme"></iframe></div>`;
+        }
+
+        const removeButton = preview.querySelector('.attachment-remove-button');
+        if (removeButton) {
+            removeButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                clearPreview();
+                input.value = '';
+            });
+        }
+
+        const clearButton = document.createElement('button');
+        clearButton.type = 'button';
+        clearButton.className = 'btn-s secondary';
+        clearButton.textContent = 'Temizle';
+        clearButton.style.marginTop = '8px';
+        clearButton.onclick = (e) => {
+            e.stopPropagation();
+            clearPreview();
+            input.value = '';
+        };
+        preview.appendChild(clearButton);
+    };
+
+    const dragTarget = detailPane || replyArea;
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dragTarget.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            replyArea.classList.add('dragover');
+        });
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dragTarget.addEventListener(eventName, (e) => {
+            e.preventDefault();
+            replyArea.classList.remove('dragover');
+        });
+    });
+
+    dragTarget.addEventListener('drop', (e) => {
+        const file = e.dataTransfer?.files?.[0];
+        if (file) updatePreview(file);
+    });
+
+    input.addEventListener('change', (e) => {
+        const file = e.target.files?.[0];
+        if (file) updatePreview(file);
+    });
 }
 
 async function changeTicketStatus(id, newStatus) {
@@ -404,22 +544,35 @@ async function submitTicketReply(ticketId) {
     const content = document.getElementById('replyContent').value.trim();
     const userId = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
 
-    if (!content) {
-        alert("Lütfen bir mesaj yazın.");
+    if (!content && !currentTicketAttachment) {
+        alert("Lütfen bir mesaj yazın veya bir dosya ekleyin.");
         return;
     }
 
     try {
+        const formData = new FormData();
+        if (content) formData.append('cInhalt', content);
+        formData.append('kBenutzer', userId);
+        if (currentTicketAttachment) formData.append('file', currentTicketAttachment);
+
         const res = await fetch(`/api/tickets/${ticketId}/reply`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                cInhalt: content,
-                kBenutzer: userId
-            })
+            body: formData
         });
 
         if (res.ok) {
+            if (currentTicketAttachmentPreviewUrl) {
+                URL.revokeObjectURL(currentTicketAttachmentPreviewUrl);
+                currentTicketAttachmentPreviewUrl = null;
+            }
+            currentTicketAttachment = null;
+            document.getElementById('replyContent').value = '';
+            const input = document.getElementById('ticketAttachmentInput');
+            if (input) input.value = '';
+            const preview = document.getElementById('ticketAttachmentPreview');
+            if (preview) preview.innerHTML = '';
+            const replyArea = document.getElementById('ticketReplyArea');
+            if (replyArea) replyArea.classList.remove('dragover');
             await fetchTickets(); // Refresh list to update modified date
             selectTicket(ticketId); // Refresh chat
         } else {
@@ -429,6 +582,47 @@ async function submitTicketReply(ticketId) {
     } catch (e) {
         console.error("Hata:", e);
         alert("Yanıt gönderilemedi.");
+    }
+}
+
+async function downloadTicketAttachment(url, encodedFileName) {
+    try {
+        const response = await fetch(url, { credentials: 'same-origin' });
+        if (!response.ok) {
+            const err = await response.text();
+            throw new Error(err || 'Dosya indirilemedi.');
+        }
+        const blob = await response.blob();
+        const filename = decodeURIComponent(encodedFileName || 'attachment');
+        const objectUrl = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = objectUrl;
+        link.download = filename;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(objectUrl);
+    } catch (err) {
+        console.error('Download failed:', err);
+        alert('Dosya indirilemedi. ' + (err.message || ''));        
+    }
+}
+
+async function deleteTicketAttachment(ticketId, fileId) {
+    if (!confirm('Eki silmek istediğinize emin misiniz?')) return;
+    try {
+        const response = await fetch(`/api/tickets/${ticketId}/attachments/${fileId}`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!response.ok) {
+            const err = await response.json();
+            throw new Error(err.error || 'Silme işlemi başarısız.');
+        }
+        selectTicket(ticketId);
+    } catch (err) {
+        console.error('Attachment delete failed:', err);
+        alert('Ek silinemedi. ' + (err.message || ''));
     }
 }
 
