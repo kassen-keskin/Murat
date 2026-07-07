@@ -749,10 +749,11 @@ async function showNewTicketForm() {
 
     const pane = document.getElementById('ticketDetailPane');
     pane.innerHTML = `
-        <div class="new-ticket-form">
-            <h2>🎫 Yeni Bilet Oluştur</h2>
-            
-            <div class="form-grp" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div class="new-ticket-form-shell">
+            <div class="new-ticket-form">
+                <h2>🎫 Yeni Bilet Oluştur</h2>
+                
+                <div class="form-grp" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                 <div style="flex:1; min-width:220px;">
                     <label>Müşteri Ara</label>
                     <input type="text" id="newTicketCustomerSearch" class="form-ctrl" placeholder="Firma veya müşteri numarası ara..." oninput="updateNewTicketCustomerOptions()">
@@ -792,8 +793,9 @@ async function showNewTicketForm() {
                 <textarea id="newTicketContent" class="reply-textarea" placeholder="Mesajınızı buraya yazın..." style="min-height: 150px;"></textarea>
             </div>
 
-            <div style="margin-top: 30px; display: flex; justify-content: flex-end;">
-                <button class="btn-s success lg" onclick="submitNewTicket()">Oluştur 🚀</button>
+                <div style="margin-top: 30px; display: flex; justify-content: flex-end;">
+                    <button class="btn-s success lg" onclick="submitNewTicket()">Oluştur 🚀</button>
+                </div>
             </div>
         </div>
     `;
