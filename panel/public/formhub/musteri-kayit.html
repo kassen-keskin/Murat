@@ -939,12 +939,17 @@
         });
 
         function setDefaultDates() {
-            const today = new Date().toISOString().split('T')[0];
-            const dateFieldsToDefault = ['purchaseDate', 'usageDate', 'tseUsageDate'];
-            dateFieldsToDefault.forEach(id => {
+            // Leave purchaseDate empty by default
+            const purchaseDateEl = document.getElementById('purchaseDate');
+            if (purchaseDateEl) {
+                purchaseDateEl.value = '';
+            }
+
+            // Ensure other date fields start empty
+            ['usageDate', 'tseUsageDate'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) {
-                    el.value = today;
+                    el.value = '';
                 }
             });
         }
@@ -974,6 +979,9 @@
             document.getElementById('ekasseTypeText').value = '';
             document.getElementById('tseTypeText').value = '';
             document.getElementById('ekasseSoftwareName').value = ''; // Yeni eklenen alan
+            document.getElementById('softwareVersion').value = '';
+            document.getElementById('usageDate').value = '';
+            document.getElementById('tseUsageDate').value = '';
 
             // Tüm bölümleri açık bırak
             const collapsibleSectionContents = document.querySelectorAll('.form-section .collapse');
@@ -1845,18 +1853,6 @@
                     });
                 }
             });
-
-            // Anschaffungsdatum synchronization
-            const purchaseDateInput = document.getElementById('purchaseDate');
-            if (purchaseDateInput) {
-                purchaseDateInput.addEventListener('change', (e) => {
-                    const val = e.target.value;
-                    const usageDateInput = document.getElementById('usageDate');
-                    const tseUsageDateInput = document.getElementById('tseUsageDate');
-                    if (usageDateInput) usageDateInput.value = val;
-                    if (tseUsageDateInput) tseUsageDateInput.value = val;
-                });
-            }
 
             // Combobox logic for accumulating fields
             const comboboxFields = ['ekasseSoftwareName', 'softwareVersion', 'hardwareManufacturer', 'hardwareModel'];
