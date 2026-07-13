@@ -34,6 +34,14 @@ def verify_jtl_argon2(hash_str, password):
 CACHE_TTL = 300  # seconds
 cache_store = {}
 
+ELSTER_STATUS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'elster_statuses.json')
+ELSTER_RECORDS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'elster_records.json')
+ELSTER_DEFAULT_STATUSES = [
+    {"id": 1, "name": "Durum 1", "color": "#4caf50", "order": 1},
+    {"id": 2, "name": "Durum 2", "color": "#ffb300", "order": 2},
+    {"id": 3, "name": "Durum 3", "color": "#ef5350", "order": 3},
+]
+
 
 def make_cached_response(data, status='MISS'):
     resp = make_response(jsonify(data))
@@ -51,6 +59,91 @@ def get_cached_data(key):
 
 def set_cached_data(key, data):
     cache_store[key] = {'data': data, 'timestamp': time.time()}
+
+
+def save_json_file(file_path, payload):
+    with open(file_path, 'w', encoding='utf-8') as f:
+        json.dump(payload, f, ensure_ascii=False, indent=4)
+
+
+def load_json_file(file_path, fallback):
+    if not os.path.exists(file_path):
+        save_json_file(file_path, fallback)
+        return fallback
+
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        save_json_file(file_path, fallback)
+        return fallback
+
+
+def normalize_elster_statuses(statuses):
+    if not isinstance(statuses, list) or len(statuses) == 0:
+        return ELSTER_DEFAULT_STATUSES
+
+    normalized = []
+    for index, status in enumerate(statuses, start=1):
+        status_id = int(status.get('id') or index)
+        name = str(status.get('name') or f'Durum {status_id}').strip() or f'Durum {status_id}'
+        color = str(status.get('color') or '#607d8b').strip() or '#607d8b'
+        order = int(status.get('order') or index)
+        normalized.append({
+            'id': status_id,
+            'name': name,
+            'color': color,
+            'order': order,
+        })
+
+    normalized.sort(key=lambda item: (item['order'], item['id']))
+    return normalized
+
+
+def build_elster_customer_text(customer_data):
+    firma = customer_data.get('Firma') or ''
+    inhabename = customer_data.get('InhabeName') or ''
+    kunden_nr = customer_data.get('KundenNr') or ''
+    address_parts = [
+        customer_data.get('Strasse') or '',
+        customer_data.get('PLZ') or '',
+        customer_data.get('Ort') or ''
+    ]
+    address = ', '.join(part for part in address_parts if part).strip()
+    return f"{kunden_nr} - {firma} - {inhabename} - {address}".strip(' - ')
+
+
+def fetch_elster_customer_details(kunde_id):
+    conn = get_db_connection()
+    if not conn:
+        return None
+
+    cursor = conn.cursor()
+    try:
+        query = """
+        SELECT TOP 1 [kKunde], [KundenNr], [Firma], [InhabeName], [FirmaAdress] AS [Strasse], [PLZ], [Ort]
+        FROM [Custom].[Kunde] WITH (NOLOCK)
+        WHERE [kKunde] = ?
+        """
+        cursor.execute(query, (kunde_id,))
+        row = cursor.fetchone()
+        if row:
+            columns = [column[0] for column in cursor.description]
+            return dict(zip(columns, row))
+
+        query = """
+        SELECT TOP 1 [kKunde], [KundenNr], [Firma], [InhabeName], [Strasse], [PLZ], '' AS [Ort]
+        FROM [Custom].[MieteKundenMaster] WITH (NOLOCK)
+        WHERE [kKunde] = ?
+        """
+        cursor.execute(query, (kunde_id,))
+        row = cursor.fetchone()
+        if row:
+            columns = [column[0] for column in cursor.description]
+            return dict(zip(columns, row))
+        return None
+    finally:
+        conn.close()
 
 # Database configuration
 server = os.getenv('DB_SERVER')
@@ -1085,6 +1178,139 @@ def update_ticket_due_date(id):
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
+
+@app.route('/api/elster-statuses', methods=['GET', 'POST'])
+def manage_elster_statuses():
+    statuses = load_json_file(ELSTER_STATUS_FILE, ELSTER_DEFAULT_STATUSES)
+    normalized = normalize_elster_statuses(statuses)
+
+    if request.method == 'GET':
+        return jsonify(normalized)
+
+    data = request.get_json(silent=True) or {}
+    submitted = data.get('statuses') or statuses
+    normalized = normalize_elster_statuses(submitted)
+    save_json_file(ELSTER_STATUS_FILE, normalized)
+    return jsonify({'success': True, 'statuses': normalized})
+
+
+@app.route('/api/elster-records', methods=['GET', 'POST'])
+def manage_elster_records():
+    statuses = normalize_elster_statuses(load_json_file(ELSTER_STATUS_FILE, ELSTER_DEFAULT_STATUSES))
+    status_map = {str(status['id']): status for status in statuses}
+    records = load_json_file(ELSTER_RECORDS_FILE, [])
+
+    if request.method == 'GET':
+        enriched = []
+        for record in records:
+            status_id = str(record.get('kStatus') or 1)
+            status = status_map.get(status_id, {
+                'id': int(status_id),
+                'name': f'Durum {status_id}',
+                'color': '#607d8b',
+                'order': 999,
+            })
+            enriched.append({
+                **record,
+                'statusName': status['name'],
+                'statusColor': status['color'],
+                'statusOrder': status['order'],
+                'customerText': record.get('customerText') or build_elster_customer_text(record)
+            })
+
+        enriched.sort(key=lambda item: (item['statusOrder'], -int(item.get('statusChangeOrder') or 0), item.get('id', 0)))
+        return jsonify(enriched)
+
+    data = request.get_json(silent=True) or {}
+    k_kunde = data.get('kKunde')
+    k_status = data.get('kStatus')
+    user_name = data.get('userName', 'Bilinmiyor')
+
+    if not k_kunde or k_status is None:
+        return jsonify({'error': 'Müşteri ve durum bilgisi zorunludur.'}), 400
+
+    customer = fetch_elster_customer_details(int(k_kunde))
+    if not customer:
+        return jsonify({'error': 'Müşteri detayları alınamadı.'}), 404
+
+    customer_text = build_elster_customer_text(customer)
+    now = datetime.datetime.now().isoformat()
+    existing = None
+    for record in records:
+        if int(record.get('kKunde')) == int(k_kunde):
+            existing = record
+            break
+
+    if existing:
+        existing['kStatus'] = int(k_status)
+        existing['customerText'] = customer_text
+        existing['KundenNr'] = customer.get('KundenNr')
+        existing['Firma'] = customer.get('Firma')
+        existing['InhabeName'] = customer.get('InhabeName')
+        existing['Strasse'] = customer.get('Strasse')
+        existing['PLZ'] = customer.get('PLZ')
+        existing['Ort'] = customer.get('Ort')
+        existing['dAenderung'] = now
+        existing['statusChangeOrder'] = int(existing.get('statusChangeOrder') or 0) + 1
+        existing['userName'] = user_name
+        record = existing
+    else:
+        next_id = max((int(item.get('id', 0)) for item in records), default=0) + 1
+        record = {
+            'id': next_id,
+            'kKunde': int(k_kunde),
+            'kStatus': int(k_status),
+            'KundenNr': customer.get('KundenNr'),
+            'Firma': customer.get('Firma'),
+            'InhabeName': customer.get('InhabeName'),
+            'Strasse': customer.get('Strasse'),
+            'PLZ': customer.get('PLZ'),
+            'Ort': customer.get('Ort'),
+            'customerText': customer_text,
+            'dAenderung': now,
+            'statusChangeOrder': 1,
+            'userName': user_name,
+        }
+        records.append(record)
+
+    save_json_file(ELSTER_RECORDS_FILE, records)
+    status = status_map.get(str(record.get('kStatus')), {
+        'id': int(record.get('kStatus')),
+        'name': f'Durum {record.get("kStatus")}',
+        'color': '#607d8b',
+        'order': 999,
+    })
+    record['statusName'] = status['name']
+    record['statusColor'] = status['color']
+    record['statusOrder'] = status['order']
+    return jsonify({'success': True, 'record': record})
+
+
+@app.route('/api/elster-records/<int:id>', methods=['PATCH'])
+def update_elster_record(id):
+    data = request.get_json(silent=True) or {}
+    k_status = data.get('kStatus')
+    user_name = data.get('userName', 'Bilinmiyor')
+    if k_status is None:
+        return jsonify({'error': 'Durum bilgisi zorunludur.'}), 400
+
+    records = load_json_file(ELSTER_RECORDS_FILE, [])
+    found = None
+    for record in records:
+        if int(record.get('id')) == id:
+            found = record
+            break
+
+    if not found:
+        return jsonify({'error': 'Kayıt bulunamadı.'}), 404
+
+    found['kStatus'] = int(k_status)
+    found['dAenderung'] = datetime.datetime.now().isoformat()
+    found['statusChangeOrder'] = int(found.get('statusChangeOrder') or 0) + 1
+    found['userName'] = user_name
+    save_json_file(ELSTER_RECORDS_FILE, records)
+    return jsonify({'success': True, 'record': found})
+
 
 @app.route('/api/login', methods=['POST'])
 def login():

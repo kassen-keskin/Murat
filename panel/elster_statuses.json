@@ -1,0 +1,50 @@
+[
+    {
+        "id": 1,
+        "name": "Ödeme Bekleniyor",
+        "color": "#013ff9",
+        "order": 1
+    },
+    {
+        "id": 2,
+        "name": "Steuer Mummer Bekleniyor",
+        "color": "#ff0000",
+        "order": 2
+    },
+    {
+        "id": 3,
+        "name": "Identifikationsnummer Bekleniyor",
+        "color": "#f05189",
+        "order": 3
+    },
+    {
+        "id": 1783945861839,
+        "name": "Privat Adres Bekleniyor",
+        "color": "#f2df07",
+        "order": 4
+    },
+    {
+        "id": 1783945898073,
+        "name": "Kasa Bilgileri Eksik",
+        "color": "#c800ff",
+        "order": 5
+    },
+    {
+        "id": 1783945911396,
+        "name": "TSE Bilgileri Eksik",
+        "color": "#1eff00",
+        "order": 6
+    },
+    {
+        "id": 1783947989787,
+        "name": "Elster OK",
+        "color": "#ffffff",
+        "order": 7
+    },
+    {
+        "id": 1783949409463,
+        "name": "JSON hazir",
+        "color": "#607d8b",
+        "order": 8
+    }
+]
