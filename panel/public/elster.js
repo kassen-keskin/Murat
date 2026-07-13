@@ -12,6 +12,25 @@ function toggleElsterGroup(statusId, event) {
         tbody.classList.add('collapsed');
         elsterGroupExpandedStates.delete(Number(statusId));
     }
+    updateToggleAllBtnState();
+}
+
+function updateToggleAllBtnState() {
+    const btn = document.getElementById('elsterToggleAllBtn');
+    if (btn) {
+        const isAllExpanded = elsterStatuses.length > 0 && elsterGroupExpandedStates.size >= elsterStatuses.length;
+        btn.textContent = isAllExpanded ? 'Tümünü Kapat' : 'Tümünü Aç';
+    }
+}
+
+function toggleAllElsterGroups() {
+    const isAllExpanded = elsterGroupExpandedStates.size >= elsterStatuses.length;
+    if (isAllExpanded) {
+        elsterGroupExpandedStates.clear();
+    } else {
+        elsterStatuses.forEach(s => elsterGroupExpandedStates.add(Number(s.id)));
+    }
+    renderElsterList();
 }
 
 function formatElsterDateTime(value) {
@@ -318,7 +337,7 @@ function renderElsterList() {
                         </td>
                         <td>
                             ${formatElsterDateTime(record.dAenderung)}
-                            <span style="color:var(--text-muted); font-weight:600; margin-left:12px;">👤 ${record.userName || 'Bilinmiyor'}</span>
+                            <span style="color:var(--text-muted); font-weight:600; margin-left:12px;">${(record.userName || 'Bilinmiyor').trim().split(' ')[0]}</span>
                         </td>
                     </tr>
                 `;
@@ -358,4 +377,5 @@ function renderElsterList() {
             ${groupedHtml}
         </table>
     `;
+    updateToggleAllBtnState();
 }

@@ -702,13 +702,35 @@
             display: flex;
             gap: 10px;
             margin-bottom: -1px;
-            /* Overlap border if needed */
-            padding: 0 10px;
+            padding: 0 10px 6px 10px;
             flex-shrink: 0;
+            overflow-x: auto;
+            white-space: nowrap;
+            scrollbar-width: thin;
+        }
+
+        .tabs-container::-webkit-scrollbar {
+            height: 6px;
+        }
+
+        .tabs-container::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 4px;
+        }
+
+        .tabs-container::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+        }
+
+        .tabs-container::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
         }
 
         .tab-item {
             padding: 10px 25px;
+            flex-shrink: 0;
+            white-space: nowrap;
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
             border-bottom: none;
@@ -1149,7 +1171,10 @@
             </div>
 
             <div class="elster-card elster-list-card">
-                <h3>ELSTER Liste</h3>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+                    <h3 style="margin:0;">ELSTER Liste</h3>
+                    <button id="elsterToggleAllBtn" class="btn-s secondary" onclick="toggleAllElsterGroups()">Tümünü Aç</button>
+                </div>
                 <div id="elsterListContainer" class="elster-list-container"></div>
             </div>
         </div>
