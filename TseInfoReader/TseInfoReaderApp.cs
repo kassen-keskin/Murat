@@ -6,9 +6,91 @@ using System.Windows.Forms;
 using System.Drawing;
 using System.ComponentModel;
 using System.Reflection;
+using System.Data.SqlClient;
+using System.Collections.Generic;
 
 namespace TseInfoReader
 {
+    public class ConfirmForm : Form
+    {
+        public ConfirmForm(string customerInfo, string oldSerial, string newSerial, string oldDesc, string newDesc, string oldDate, string newDate, bool isDarkMode)
+        {
+            this.Text = "Onay - Veritabanına Aktar";
+            this.Size = new Size(900, 500);
+            this.StartPosition = FormStartPosition.CenterParent;
+            this.MinimizeBox = false;
+            this.MaximizeBox = false;
+
+            TableLayoutPanel layout = new TableLayoutPanel();
+            layout.Dock = DockStyle.Fill;
+            layout.RowCount = 3;
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 60));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 80));
+            layout.ColumnCount = 1;
+
+            Label lblCustomer = new Label();
+            lblCustomer.Text = customerInfo;
+            lblCustomer.Font = new Font(lblCustomer.Font.FontFamily, 16, FontStyle.Bold);
+            lblCustomer.Dock = DockStyle.Fill;
+            lblCustomer.TextAlign = ContentAlignment.MiddleCenter;
+
+            TableLayoutPanel splitLayout = new TableLayoutPanel();
+            splitLayout.Dock = DockStyle.Fill;
+            splitLayout.RowCount = 1;
+            splitLayout.ColumnCount = 2;
+            splitLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+            splitLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 50));
+
+            Label lblOld = new Label();
+            lblOld.Text = string.Format("ESKİ BİLGİLER\n\nTSE Seri No:\n{0}\n\nTSE BSI Kodu:\n{1}\n\nBitiş Tarihi:\n{2}", 
+                string.IsNullOrEmpty(oldSerial) ? "Yok" : oldSerial,
+                string.IsNullOrEmpty(oldDesc) ? "Yok" : oldDesc,
+                string.IsNullOrEmpty(oldDate) ? "Yok" : oldDate);
+            lblOld.Font = new Font(lblOld.Font.FontFamily, 12, FontStyle.Regular);
+            lblOld.Dock = DockStyle.Fill;
+            lblOld.TextAlign = ContentAlignment.TopLeft;
+            lblOld.Margin = new Padding(20);
+
+            Label lblNew = new Label();
+            lblNew.Text = string.Format("YENİ BİLGİLER\n\nTSE Seri No:\n{0}\n\nTSE BSI Kodu:\n{1}\n\nBitiş Tarihi:\n{2}", 
+                string.IsNullOrEmpty(newSerial) ? "Yok" : newSerial,
+                string.IsNullOrEmpty(newDesc) ? "Yok" : newDesc,
+                string.IsNullOrEmpty(newDate) ? "Yok" : newDate);
+            lblNew.Font = new Font(lblNew.Font.FontFamily, 12, FontStyle.Bold);
+            lblNew.Dock = DockStyle.Fill;
+            lblNew.TextAlign = ContentAlignment.TopLeft;
+            lblNew.Margin = new Padding(20);
+
+            splitLayout.Controls.Add(lblOld, 0, 0);
+            splitLayout.Controls.Add(lblNew, 1, 0);
+
+            Button btnSave = new Button();
+            btnSave.Text = "KAYDET";
+            btnSave.Font = new Font(btnSave.Font.FontFamily, 20, FontStyle.Bold);
+            btnSave.ForeColor = Color.Red;
+            btnSave.Dock = DockStyle.Fill;
+            btnSave.Margin = new Padding(20, 10, 20, 10);
+            btnSave.DialogResult = DialogResult.OK;
+
+            layout.Controls.Add(lblCustomer, 0, 0);
+            layout.Controls.Add(splitLayout, 0, 1);
+            layout.Controls.Add(btnSave, 0, 2);
+
+            this.Controls.Add(layout);
+            this.AcceptButton = btnSave;
+
+            if (isDarkMode)
+            {
+                this.BackColor = Color.FromArgb(45, 45, 48);
+                this.ForeColor = Color.White;
+                btnSave.BackColor = Color.FromArgb(63, 63, 70);
+                btnSave.FlatStyle = FlatStyle.Flat;
+                btnSave.FlatAppearance.BorderColor = Color.Gray;
+            }
+        }
+    }
+
     public class TseStatus
     {
         [Category("Sonstiges")]
@@ -120,53 +202,131 @@ namespace TseInfoReader
         public bool TseTsecurityExportAllowedIfCspTestFails { get; internal set; }
     }
 
+    public class CustomerItem
+    {
+        public int kKunde { get; set; }
+        public string DisplayText { get; set; }
+        public override string ToString() { return DisplayText; }
+    }
+
     public class MainForm : Form
     {
         private PropertyGrid propertyGrid;
         private Button btnScan;
         private Label lblStatus;
         private Label lblDriveInfo;
+        private ComboBox cmbCustomers;
+        private TextBox txtSearch;
+        private Label lblCount;
+        private Button btnExportDb;
+        private Button btnThemeToggle;
+        private string sqlConnectionString;
+        private List<CustomerItem> allCustomers = new List<CustomerItem>();
+        private bool isDarkMode = false;
+        private FlowLayoutPanel topPanel;
 
         public MainForm()
         {
             this.Text = "TSE Info Reader";
             this.Size = new Size(800, 700);
             this.StartPosition = FormStartPosition.CenterScreen;
+            this.WindowState = FormWindowState.Maximized;
+            this.Font = new Font("Segoe UI", 12, FontStyle.Regular);
 
             TableLayoutPanel layout = new TableLayoutPanel();
             layout.Dock = DockStyle.Fill;
             layout.RowCount = 3;
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 50));
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
             layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
-            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 30));
+            layout.RowStyles.Add(new RowStyle(SizeType.Absolute, 40));
             layout.ColumnCount = 1;
 
-            FlowLayoutPanel topPanel = new FlowLayoutPanel();
+            topPanel = new FlowLayoutPanel();
             topPanel.Dock = DockStyle.Fill;
-            topPanel.WrapContents = false;
+            topPanel.WrapContents = true;
+            topPanel.AutoSize = true;
+            topPanel.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+
+            Font largeFont = new Font("Segoe UI", 14, FontStyle.Bold);
+            Font normalFont = new Font("Segoe UI", 14, FontStyle.Regular);
 
             btnScan = new Button();
-            btnScan.Text = "Otomatik Tara (USB'leri Bul)";
-            btnScan.Size = new Size(200, 35);
+            btnScan.Text = "Otomatik Tara (USB Bul)";
+            btnScan.Size = new Size(260, 50);
             btnScan.Margin = new Padding(3, 8, 3, 3);
+            btnScan.Font = largeFont;
             btnScan.Click += BtnScan_Click;
 
             lblDriveInfo = new Label();
-            lblDriveInfo.Text = "Okunan Sürücü: -";
+            lblDriveInfo.Text = "Sürücü: -";
             lblDriveInfo.AutoSize = true;
-            lblDriveInfo.Margin = new Padding(15, 17, 3, 3);
-            lblDriveInfo.Font = new Font(lblDriveInfo.Font, FontStyle.Bold);
+            lblDriveInfo.Margin = new Padding(15, 20, 10, 3);
+            lblDriveInfo.Font = largeFont;
+
+            Label lblSearch = new Label();
+            lblSearch.Text = "Ara:";
+            lblSearch.AutoSize = true;
+            lblSearch.Margin = new Padding(15, 20, 3, 3);
+            lblSearch.Font = largeFont;
+
+            txtSearch = new TextBox();
+            txtSearch.Size = new Size(200, 35);
+            txtSearch.Margin = new Padding(3, 16, 3, 3);
+            txtSearch.Font = normalFont;
+            txtSearch.TextChanged += TxtSearch_TextChanged;
+
+            lblCount = new Label();
+            lblCount.Text = "0/0";
+            lblCount.AutoSize = true;
+            lblCount.Margin = new Padding(5, 20, 15, 3);
+            lblCount.Font = largeFont;
+
+            Label lblCmb = new Label();
+            lblCmb.Text = "Müşteri:";
+            lblCmb.AutoSize = true;
+            lblCmb.Margin = new Padding(15, 20, 3, 3);
+            lblCmb.Font = largeFont;
+            
+            cmbCustomers = new ComboBox();
+            cmbCustomers.DropDownStyle = ComboBoxStyle.DropDownList;
+            cmbCustomers.Size = new Size(500, 35);
+            cmbCustomers.Margin = new Padding(3, 16, 15, 3);
+            cmbCustomers.Font = normalFont;
+            
+            btnExportDb = new Button();
+            btnExportDb.Text = "Veritabanına Aktar";
+            btnExportDb.Size = new Size(220, 50);
+            btnExportDb.Margin = new Padding(3, 8, 3, 3);
+            btnExportDb.Font = largeFont;
+            btnExportDb.Click += BtnExportDb_Click;
+            btnExportDb.Enabled = false;
+
+            btnThemeToggle = new Button();
+            btnThemeToggle.Text = "Koyu Tema";
+            btnThemeToggle.Size = new Size(150, 50);
+            btnThemeToggle.Margin = new Padding(3, 8, 3, 3);
+            btnThemeToggle.Font = largeFont;
+            btnThemeToggle.Click += BtnThemeToggle_Click;
 
             topPanel.Controls.Add(btnScan);
             topPanel.Controls.Add(lblDriveInfo);
+            topPanel.Controls.Add(lblSearch);
+            topPanel.Controls.Add(txtSearch);
+            topPanel.Controls.Add(lblCount);
+            topPanel.Controls.Add(lblCmb);
+            topPanel.Controls.Add(cmbCustomers);
+            topPanel.Controls.Add(btnExportDb);
+            topPanel.Controls.Add(btnThemeToggle);
 
             propertyGrid = new PropertyGrid();
             propertyGrid.Dock = DockStyle.Fill;
+            propertyGrid.Font = new Font("Segoe UI", 12, FontStyle.Regular);
             propertyGrid.PropertySort = PropertySort.Categorized;
             propertyGrid.ToolbarVisible = false;
             propertyGrid.SelectedGridItemChanged += PropertyGrid_SelectedGridItemChanged;
 
             lblStatus = new Label();
+            lblStatus.Text = "Hazır.";
             lblStatus.Dock = DockStyle.Fill;
             lblStatus.TextAlign = ContentAlignment.MiddleLeft;
             lblStatus.Text = "Hazır. Lütfen tara butonuna basın. (Üzerine tıkladığınız değerler otomatik kopyalanır)";
@@ -176,6 +336,332 @@ namespace TseInfoReader
             layout.Controls.Add(lblStatus, 0, 2);
 
             this.Controls.Add(layout);
+            
+            this.Load += MainForm_Load;
+            
+            ApplyTheme();
+        }
+
+        private void BtnThemeToggle_Click(object sender, EventArgs e)
+        {
+            isDarkMode = !isDarkMode;
+            ApplyTheme();
+        }
+
+        private void ApplyTheme()
+        {
+            Color backColor = isDarkMode ? Color.FromArgb(45, 45, 48) : SystemColors.Control;
+            Color foreColor = isDarkMode ? Color.White : SystemColors.ControlText;
+            Color inputBackColor = isDarkMode ? Color.FromArgb(60, 60, 60) : SystemColors.Window;
+            Color inputForeColor = isDarkMode ? Color.White : SystemColors.WindowText;
+            Color buttonBackColor = isDarkMode ? Color.FromArgb(63, 63, 70) : SystemColors.Control;
+            
+            this.BackColor = backColor;
+            this.ForeColor = foreColor;
+
+            foreach (Control c in topPanel.Controls)
+            {
+                if (c is Label)
+                {
+                    c.ForeColor = foreColor;
+                }
+                else if (c is Button)
+                {
+                    c.BackColor = buttonBackColor;
+                    c.ForeColor = (c == btnExportDb) ? (isDarkMode ? Color.LightCoral : Color.Red) : foreColor;
+                    if (c == btnExportDb && !isDarkMode) c.ForeColor = SystemColors.ControlText;
+                    ((Button)c).FlatStyle = FlatStyle.Flat;
+                    ((Button)c).FlatAppearance.BorderColor = isDarkMode ? Color.Gray : Color.LightGray;
+                }
+                else if (c is TextBox || c is ComboBox)
+                {
+                    c.BackColor = inputBackColor;
+                    c.ForeColor = inputForeColor;
+                    if (c is ComboBox) ((ComboBox)c).FlatStyle = isDarkMode ? FlatStyle.Flat : FlatStyle.Standard;
+                    else if (c is TextBox) ((TextBox)c).BorderStyle = isDarkMode ? BorderStyle.FixedSingle : BorderStyle.Fixed3D;
+                }
+            }
+
+            lblStatus.ForeColor = foreColor;
+            lblStatus.BackColor = backColor;
+
+            propertyGrid.BackColor = backColor;
+            propertyGrid.ViewBackColor = backColor;
+            propertyGrid.ViewForeColor = foreColor;
+            propertyGrid.LineColor = isDarkMode ? Color.FromArgb(63, 63, 70) : SystemColors.ControlDark;
+            propertyGrid.CategoryForeColor = isDarkMode ? Color.LightSkyBlue : SystemColors.ControlText;
+            propertyGrid.CategorySplitterColor = isDarkMode ? Color.FromArgb(45, 45, 48) : SystemColors.Control;
+            propertyGrid.HelpBackColor = backColor;
+            propertyGrid.HelpForeColor = foreColor;
+
+            btnThemeToggle.Text = isDarkMode ? "Açık Tema" : "Koyu Tema";
+        }
+
+        private void MainForm_Load(object sender, EventArgs e)
+        {
+            LoadDatabaseConfig();
+            LoadCustomersFromDb();
+        }
+
+        private void LoadDatabaseConfig()
+        {
+            string envFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TseInfoReader.env");
+            string server = "";
+            string db = "";
+            string user = "";
+            string pass = "";
+
+            if (File.Exists(envFile))
+            {
+                var lines = File.ReadAllLines(envFile);
+                foreach (var line in lines)
+                {
+                    if (line.StartsWith("DB_SERVER=")) server = line.Substring(10).Trim();
+                    else if (line.StartsWith("DB_DATABASE=")) db = line.Substring(12).Trim();
+                    else if (line.StartsWith("DB_USER=")) user = line.Substring(8).Trim();
+                    else if (line.StartsWith("DB_PASSWORD=")) pass = line.Substring(12).Trim();
+                }
+                
+                if (!string.IsNullOrEmpty(server) && !string.IsNullOrEmpty(db))
+                {
+                    SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
+                    builder.DataSource = server;
+                    builder.InitialCatalog = db;
+                    if (!string.IsNullOrEmpty(user))
+                    {
+                        builder.UserID = user;
+                        builder.Password = pass;
+                    }
+                    else
+                    {
+                        builder.IntegratedSecurity = true;
+                    }
+                    sqlConnectionString = builder.ConnectionString;
+                }
+            }
+            else
+            {
+                lblStatus.Text = "TseInfoReader.env dosyası bulunamadı, SQL bağlantısı yapılamayacak.";
+            }
+        }
+
+        private void LoadCustomersFromDb()
+        {
+            if (string.IsNullOrEmpty(sqlConnectionString)) return;
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(sqlConnectionString))
+                {
+                    conn.Open();
+                    string query = "SELECT kKunde, KundenNr, Firma, InhabeName, FirmaAdress FROM [Custom].[Kunde] WHERE TRY_CAST(KundenNr AS INT) >= 1000 ORDER BY KundenNr";
+                    using (SqlCommand cmd = new SqlCommand(query, conn))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                int id = reader.GetInt32(0);
+                                string nr = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                                string firma = reader.IsDBNull(2) ? "" : reader.GetString(2);
+                                string inhabe = reader.IsDBNull(3) ? "" : reader.GetString(3);
+                                string addr = reader.IsDBNull(4) ? "" : reader.GetString(4);
+
+                                string display = string.Format("{0}-{1}-{2}-{3}", nr, firma, inhabe, addr);
+
+                                allCustomers.Add(new CustomerItem { kKunde = id, DisplayText = display });
+                            }
+                        }
+                    }
+                }
+                FilterCustomers("");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Müşteriler yüklenirken hata oluştu: " + ex.Message, "SQL Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+
+        private void TxtSearch_TextChanged(object sender, EventArgs e)
+        {
+            FilterCustomers(txtSearch.Text);
+        }
+
+        private void FilterCustomers(string query)
+        {
+            cmbCustomers.Items.Clear();
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                cmbCustomers.Items.Add(new CustomerItem { kKunde = 0, DisplayText = "--- Lütfen Seçiniz ---" });
+                cmbCustomers.Items.AddRange(allCustomers.ToArray());
+                
+                lblCount.Text = (cmbCustomers.Items.Count - 1) + "/" + allCustomers.Count;
+                if (cmbCustomers.Items.Count > 0)
+                    cmbCustomers.SelectedIndex = 0;
+            }
+            else
+            {
+                var filtered = allCustomers.Where(c => c.DisplayText.IndexOf(query, StringComparison.OrdinalIgnoreCase) >= 0).ToArray();
+                cmbCustomers.Items.AddRange(filtered);
+                
+                lblCount.Text = cmbCustomers.Items.Count + "/" + allCustomers.Count;
+                if (cmbCustomers.Items.Count > 0)
+                    cmbCustomers.SelectedIndex = 0;
+            }
+        }
+
+        private void BtnExportDb_Click(object sender, EventArgs e)
+        {
+            if (string.IsNullOrEmpty(sqlConnectionString))
+            {
+                MessageBox.Show("Veritabanı bağlantı ayarları eksik!", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+            
+            CustomerItem selectedCustomer = cmbCustomers.SelectedItem as CustomerItem;
+            if (selectedCustomer == null || selectedCustomer.kKunde == 0)
+            {
+                MessageBox.Show("Lütfen geçerli bir müşteri seçin.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            TseStatus status = propertyGrid.SelectedObject as TseStatus;
+            if (status == null || string.IsNullOrEmpty(status.TseSerial))
+            {
+                MessageBox.Show("Lütfen önce USB'yi tarayıp TSE verilerini okuyun.", "Hata", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            string oldSerial = "";
+            string oldDesc = "";
+            string oldDate = "";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(sqlConnectionString))
+                {
+                    conn.Open();
+                    string fetchSql = "SELECT kAttribut, cWertVarchar, dWertDateTime FROM [Kunde].[tKundeEigenesFeld] WHERE kKunde = @kKunde AND kAttribut IN (244, 246, 247)";
+                    using (SqlCommand cmd = new SqlCommand(fetchSql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@kKunde", selectedCustomer.kKunde);
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                int attr = reader.GetInt32(0);
+                                if (attr == 244)
+                                    oldSerial = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                                else if (attr == 247)
+                                    oldDesc = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                                else if (attr == 246)
+                                    oldDate = reader.IsDBNull(2) ? "" : reader.GetDateTime(2).ToString("dd.MM.yyyy HH:mm:ss");
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Eski veriler çekilirken hata oluştu: " + ex.Message, "SQL Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            DateTime? newDateObj = null;
+            string newDateStr = "Geçersiz/Tanımsız";
+            long seconds = unchecked((long)status.CertificateExpirationDate);
+            if (seconds > -62135596800L && seconds < 253402300799L && status.CertificateExpirationDate > 0)
+            {
+                newDateObj = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(seconds);
+                newDateStr = newDateObj.Value.ToString("dd.MM.yyyy HH:mm:ss");
+            }
+
+            using (ConfirmForm cf = new ConfirmForm(selectedCustomer.DisplayText, oldSerial, status.TseSerial, oldDesc, status.TseDescription, oldDate, newDateStr, isDarkMode))
+            {
+                if (cf.ShowDialog(this) != DialogResult.OK)
+                {
+                    return; // Iptal edildi
+                }
+            }
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(sqlConnectionString))
+                {
+                    conn.Open();
+                    using (SqlTransaction tx = conn.BeginTransaction())
+                    {
+                        // 1. TseSerial -> 244
+                        UpsertStringField(conn, tx, selectedCustomer.kKunde, 244, status.TseSerial);
+                        
+                        // 2. TseDescription -> 247
+                        UpsertStringField(conn, tx, selectedCustomer.kKunde, 247, status.TseDescription);
+
+                        // 3. CertificateExpirationDate -> 246 (dWertDateTime)
+                        if (newDateObj.HasValue)
+                        {
+                            UpsertDateTimeField(conn, tx, selectedCustomer.kKunde, 246, newDateObj.Value);
+                        }
+
+                        tx.Commit();
+                    }
+                }
+                MessageBox.Show("Veriler SQL veritabanına başarıyla aktarıldı!", "Başarılı", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                lblStatus.Text = "Aktarım başarılı.";
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Aktarım sırasında hata oluştu:\n" + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void UpsertStringField(SqlConnection conn, SqlTransaction tx, int kKunde, int kAttribut, string value)
+        {
+            string checkSql = "SELECT 1 FROM [Kunde].[tKundeEigenesFeld] WHERE kKunde = @kKunde AND kAttribut = @kAttribut";
+            bool exists = false;
+            using (SqlCommand cmdCheck = new SqlCommand(checkSql, conn, tx))
+            {
+                cmdCheck.Parameters.AddWithValue("@kKunde", kKunde);
+                cmdCheck.Parameters.AddWithValue("@kAttribut", kAttribut);
+                exists = cmdCheck.ExecuteScalar() != null;
+            }
+
+            string sql = exists ?
+                "UPDATE [Kunde].[tKundeEigenesFeld] SET cWertVarchar = @val WHERE kKunde = @kKunde AND kAttribut = @kAttribut" :
+                "INSERT INTO [Kunde].[tKundeEigenesFeld] (kKunde, kAttribut, cWertVarchar) VALUES (@kKunde, @kAttribut, @val)";
+            
+            using (SqlCommand cmd = new SqlCommand(sql, conn, tx))
+            {
+                cmd.Parameters.AddWithValue("@kKunde", kKunde);
+                cmd.Parameters.AddWithValue("@kAttribut", kAttribut);
+                cmd.Parameters.AddWithValue("@val", value ?? (object)DBNull.Value);
+                cmd.ExecuteNonQuery();
+            }
+        }
+
+        private void UpsertDateTimeField(SqlConnection conn, SqlTransaction tx, int kKunde, int kAttribut, DateTime value)
+        {
+            string checkSql = "SELECT 1 FROM [Kunde].[tKundeEigenesFeld] WHERE kKunde = @kKunde AND kAttribut = @kAttribut";
+            bool exists = false;
+            using (SqlCommand cmdCheck = new SqlCommand(checkSql, conn, tx))
+            {
+                cmdCheck.Parameters.AddWithValue("@kKunde", kKunde);
+                cmdCheck.Parameters.AddWithValue("@kAttribut", kAttribut);
+                exists = cmdCheck.ExecuteScalar() != null;
+            }
+
+            string sql = exists ?
+                "UPDATE [Kunde].[tKundeEigenesFeld] SET dWertDateTime = @val WHERE kKunde = @kKunde AND kAttribut = @kAttribut" :
+                "INSERT INTO [Kunde].[tKundeEigenesFeld] (kKunde, kAttribut, dWertDateTime) VALUES (@kKunde, @kAttribut, @val)";
+            
+            using (SqlCommand cmd = new SqlCommand(sql, conn, tx))
+            {
+                cmd.Parameters.AddWithValue("@kKunde", kKunde);
+                cmd.Parameters.AddWithValue("@kAttribut", kAttribut);
+                cmd.Parameters.AddWithValue("@val", value);
+                cmd.ExecuteNonQuery();
+            }
         }
 
         private void PropertyGrid_SelectedGridItemChanged(object sender, SelectedGridItemChangedEventArgs e)
@@ -249,15 +735,17 @@ namespace TseInfoReader
 
                 if (foundPath != null)
                 {
-                    lblDriveInfo.Text = "Okunan Sürücü: " + Path.GetPathRoot(foundPath);
+                    lblDriveInfo.Text = "Sürücü: " + Path.GetPathRoot(foundPath);
                     lblStatus.Text = string.Format("Bulundu: {0}. Veriler okunuyor...", foundPath);
                     ParseTseFile(foundPath);
+                    btnExportDb.Enabled = true;
                 }
                 else
                 {
-                    lblDriveInfo.Text = "Okunan Sürücü: Bulunamadı";
+                    lblDriveInfo.Text = "Sürücü: Yok";
                     lblStatus.Text = "Hiçbir USB sürücüde TSE_INFO.DAT dosyası bulunamadı!";
                     propertyGrid.SelectedObject = null;
+                    btnExportDb.Enabled = false;
                 }
             }
             catch (Exception ex)
