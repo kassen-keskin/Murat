@@ -426,7 +426,9 @@
             }))
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
-        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `MietBackup_${f_firma.value || 'v86'}.json`; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
+        const firmaVal = f_firma.value ? f_firma.value.trim() : "";
+        a.download = firmaVal ? `${firmaVal} - Mietvertrag.json` : "Mietvertrag.json"; a.click();
     }
 
     function importData(e) {
@@ -444,7 +446,26 @@
 
     function handlePrint() { 
         if(!check_id.checked || !check_gew.checked || !check_anm.checked) alert("Bitte bestätigen Sie die Unterlagen.");
-        else window.print(); 
+        else {
+            const firmaName = f_firma.value ? f_firma.value.trim() : "";
+            const newTitle = firmaName ? `${firmaName} - Mietvertrag` : "Mietvertrag";
+            
+            const origTitle = document.title;
+            let origTopTitle = null;
+            try { if (window.top) origTopTitle = window.top.document.title; } catch(e) {}
+            
+            document.title = newTitle;
+            try { if (window.top) window.top.document.title = newTitle; } catch(e) {}
+            
+            setTimeout(() => {
+                window.print();
+                
+                setTimeout(() => {
+                    document.title = origTitle;
+                    try { if (window.top && origTopTitle !== null) window.top.document.title = origTopTitle; } catch(e) {}
+                }, 3000);
+            }, 50);
+        }
     }
 
     new Sortable(document.getElementById('item-container'), { animation: 150, handle: '.drag-handle', onEnd: sync });

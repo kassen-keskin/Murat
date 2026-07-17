@@ -447,7 +447,7 @@
             <button class="action-btn action-btn-warning" onclick="exportData()">📤 EXPORT</button>
 
             <button class="action-btn action-btn-neutral" onclick="toggleTheme()">🌓 Theme</button>
-            <button class="action-btn action-btn-primary" onclick="window.print()">📄 PDF</button>
+            <button class="action-btn action-btn-primary" onclick="printPDF()">📄 PDF</button>
         </div>
 
         <header>
@@ -715,6 +715,27 @@
     </div>
 
     <script>
+        function printPDF() {
+            const firmaName = document.getElementById("betriebsname") ? document.getElementById("betriebsname").value.trim() : "";
+            const newTitle = firmaName ? `${firmaName} - Checklist` : "Checklist";
+            
+            const origTitle = document.title;
+            let origTopTitle = null;
+            try { if (window.top) origTopTitle = window.top.document.title; } catch(e) {}
+            
+            document.title = newTitle;
+            try { if (window.top) window.top.document.title = newTitle; } catch(e) {}
+            
+            setTimeout(() => {
+                window.print();
+                
+                setTimeout(() => {
+                    document.title = origTitle;
+                    try { if (window.top && origTopTitle !== null) window.top.document.title = origTopTitle; } catch(e) {}
+                }, 3000);
+            }, 50);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             const dateInput = document.getElementById('currentDate');
             if (dateInput && !dateInput.value) {
@@ -839,7 +860,8 @@
             const downloadAnchorNode = document.createElement('a');
             downloadAnchorNode.setAttribute("href", dataStr);
             
-            const filename = data.betrieb ? `checklist_${data.betrieb.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json` : "checklist_export.json";
+            const firmaName = data.betrieb ? data.betrieb.trim() : "";
+            const filename = firmaName ? `${firmaName} - Checklist.json` : "Checklist.json";
             downloadAnchorNode.setAttribute("download", filename);
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();

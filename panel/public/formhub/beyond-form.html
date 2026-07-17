@@ -435,9 +435,9 @@ function saveJSON() {
     const blob = new Blob([JSON.stringify(data, null, 2)], {type: "application/json"});
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     
-    let filename = "Forum_Backup";
+    let filename = "Beyond-Form";
     const firmaVal = document.getElementById("Firmenname").value.trim();
-    if(firmaVal) filename = firmaVal.replace(/\s+/g, "_");
+    if(firmaVal) filename = firmaVal + " - Beyond-Form";
     
     a.download = filename + ".json"; a.click();
 }

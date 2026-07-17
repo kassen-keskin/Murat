@@ -98,7 +98,7 @@
 <body>
 
     <div class="header-menu no-print">
-        <button class="btn-print" onclick="window.print()">YAZDIR / PDF OLUŞTUR</button>
+        <button class="btn-print" onclick="printPDF()">YAZDIR / PDF OLUŞTUR</button>
     </div>
 
     <div class="page-container" id="page1">
@@ -314,6 +314,26 @@
     </div>
 
     <script>
+    function printPDF() {
+        const firmaName = document.getElementById("Firmenname") ? document.getElementById("Firmenname").value.trim() : "";
+        const newTitle = firmaName ? `${firmaName} - Beyond-Form` : "Beyond-Form";
+        
+        const origTitle = document.title;
+        let origTopTitle = null;
+        try { if (window.top) origTopTitle = window.top.document.title; } catch(e) {}
+        
+        document.title = newTitle;
+        try { if (window.top) window.top.document.title = newTitle; } catch(e) {}
+        
+        setTimeout(() => {
+            window.print();
+            
+            setTimeout(() => {
+                document.title = origTitle;
+                try { if (window.top && origTopTitle !== null) window.top.document.title = origTopTitle; } catch(e) {}
+            }, 3000);
+        }, 50);
+    }
     const mieteMap = {
         "V200c LAN": "8,95", "Base Next": "9,95", "Desk 3500": "10,65", 
         "Move 3500": "13,95", "Move 5000": "14,95", "Mobile Premium": "14,95", "A920": "15,95"

@@ -1233,7 +1233,8 @@
                 // \ / : * ? " < > |
                 return name.replace(/[\\/:*?"<>|]/g, '_');
             };
-            const fileName = `${sanitizeFilename(companyName)}_Meldeverfahren.pdf`;
+            const sanitizedName = sanitizeFilename(companyName);
+            const fileName = sanitizedName ? `${sanitizedName} - Musteri-Kayit.pdf` : 'Musteri-Kayit.pdf';
             doc.save(fileName);
             showStatusMessage('PDF başarıyla oluşturuldu!', 'success');
         });
@@ -1355,8 +1356,9 @@
                 return name.replace(/[\\/:*?"<>|]/g, '_');
             };
 
-            const fileName = sanitizeFilename(formData.companyName) || 'Neukunde';
-            a.download = `${fileName}_Registrierung.xml`;
+            const sanitizedName = sanitizeFilename(formData.companyName);
+            const fileName = sanitizedName ? `${sanitizedName} - Musteri-Kayit.xml` : 'Musteri-Kayit.xml';
+            a.download = fileName;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1424,8 +1426,9 @@
                 return name.replace(/[\\/:*?"<>|]/g, '_');
             };
 
-            const fileName = sanitizeFilename(formData.companyName) || 'Neukunde';
-            a.download = `${fileName}_FormVerileri.json`;
+            const sanitizedName = sanitizeFilename(formData.companyName);
+            const fileName = sanitizedName ? `${sanitizedName} - Musteri-Kayit.json` : 'Musteri-Kayit.json';
+            a.download = fileName;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1695,8 +1698,9 @@
                 if (!name) return '';
                 return name.replace(/[\\/:*?"<>|]/g, '_');
             };
-            const fileName = sanitizeFilename(formData.companyName) || 'Neukunde';
-            doc.save(`${fileName}_KompleForm.pdf`);
+            const sanitizedName = sanitizeFilename(formData.companyName);
+            const fileName = sanitizedName ? `${sanitizedName} - Musteri-Kayit.pdf` : 'Musteri-Kayit.pdf';
+            doc.save(fileName);
             showStatusMessage('Komple Form PDF başarıyla oluşturuldu!', 'success');
         }
 
