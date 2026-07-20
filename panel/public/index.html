@@ -802,6 +802,13 @@
             </div>
 
             <div class="filter-group">
+                <label class="filter-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                    <input type="checkbox" id="filterTSE" style="width: 18px; height: 18px; cursor: pointer;">
+                    TSE
+                </label>
+            </div>
+
+            <div class="filter-group">
                 <label class="filter-label">BorcTarihiGunSayisi &ge;</label>
                 <input type="number" id="filterGunSayisi" class="filter-input" placeholder="Min days..."
                     style="width: 100px;">
@@ -1416,6 +1423,16 @@
                             row['TamKontrolTarihi'] = `${dd}-${mm}-${yyyy}`;
                         }
                     }
+                    if (row['TSEBitisTarihi']) {
+                        const d = parseTRDate(row['TSEBitisTarihi']);
+                        if (d && !isNaN(d)) {
+                            row[`_TSEBitisTarihi_Sort`] = d.getTime();
+                            const dd = String(d.getDate()).padStart(2, '0');
+                            const mm = String(d.getMonth() + 1).padStart(2, '0');
+                            const yyyy = d.getFullYear();
+                            row['TSEBitisTarihi'] = `${dd}-${mm}-${yyyy}`;
+                        }
+                    }
                 });
 
                 datasets[key] = data;
@@ -1588,6 +1605,7 @@
         const filterKundenNr = document.getElementById('filterKundenNr');
         const filterKundenKategorie = document.getElementById('filterKundenKategorie');
         const filterElster = document.getElementById('filterElster');
+        const filterTSE = document.getElementById('filterTSE');
         const filterGunSayisi = document.getElementById('filterGunSayisi');
         const viewToggles = document.getElementsByName('viewMode');
 
@@ -1622,6 +1640,7 @@
             const kundenNrVal = filterKundenNr.value.trim().toLowerCase();
             const kundenKategorieVal = filterKundenKategorie.value;
             const elsterOnly = filterElster.checked;
+            const tseOnly = filterTSE.checked;
             const minGunSayisi = filterGunSayisi.value ? parseInt(filterGunSayisi.value, 10) : null;
 
             const currentData = datasets[currentTab] || [];
@@ -1635,6 +1654,14 @@
 
                 // Elster Filter: Only if checked, filter for Elster == 1
                 if (elsterOnly && row['Elster'] != 1) return false;
+
+                // TSE Filter: Only if checked, filter for TSEBitisTarihi <= 30 days
+                if (tseOnly) {
+                    if (!row['_TSEBitisTarihi_Sort']) return false;
+                    const now = new Date().getTime();
+                    const diffDays = (row['_TSEBitisTarihi_Sort'] - now) / (1000 * 3600 * 24);
+                    if (diffDays > 30) return false;
+                }
 
                 // BorcTarihiGunSayisi Global Numeric Filter (gte)
                 if (minGunSayisi !== null && !isNaN(minGunSayisi)) {
@@ -1741,6 +1768,7 @@
         filterKundenNr.addEventListener('input', applyFilters);
         filterKundenKategorie.addEventListener('change', applyFilters);
         filterElster.addEventListener('change', applyFilters);
+        filterTSE.addEventListener('change', applyFilters);
         filterGunSayisi.addEventListener('input', applyFilters);
         filterElster.addEventListener('change', applyFilters);
 
@@ -1766,10 +1794,10 @@
                 return ordered.filter(key => keys.includes(key));
             }
             if (currentTab === 'custom') {
-                return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'Servis', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi', 'AuftragSayisi'];
+                return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'TSEBitisTarihi', 'Servis', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi', 'AuftragSayisi'];
             }
             // For rental tab, use specific ordering and exclude Tel/Mobil
-            return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'Servis', 'PLZ', 'Strasse', 'LisansNo'];
+            return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'TSEBitisTarihi', 'Servis', 'PLZ', 'Strasse', 'LisansNo'];
         }
 
         function renderCards(data) {
@@ -1883,6 +1911,24 @@
                         val.style.padding = '2px 6px';
                         val.style.borderRadius = '4px';
                         val.style.fontWeight = 'bold';
+                    }
+
+                    if (key === 'TSEBitisTarihi') {
+                        let isOrange = false;
+                        if (row['_TSEBitisTarihi_Sort']) {
+                            const now = new Date().getTime();
+                            const diffDays = (row['_TSEBitisTarihi_Sort'] - now) / (1000 * 3600 * 24);
+                            if (diffDays <= 30) {
+                                isOrange = true;
+                            }
+                        }
+                        if (isOrange) {
+                            val.style.setProperty('background-color', '#ff9800', 'important');
+                            val.style.setProperty('color', 'black', 'important');
+                            val.style.padding = '2px 6px';
+                            val.style.borderRadius = '4px';
+                            val.style.fontWeight = 'bold';
+                        }
                     }
 
                     val.textContent = value;
@@ -2038,6 +2084,21 @@
                         } else {
                             td.style.setProperty('background-color', '#ef5350', 'important');
                             td.style.setProperty('color', 'white', 'important');
+                            td.style.fontWeight = 'bold';
+                        }
+                    }
+                    if (key === 'TSEBitisTarihi') {
+                        let isOrange = false;
+                        if (row['_TSEBitisTarihi_Sort']) {
+                            const now = new Date().getTime();
+                            const diffDays = (row['_TSEBitisTarihi_Sort'] - now) / (1000 * 3600 * 24);
+                            if (diffDays <= 30) {
+                                isOrange = true;
+                            }
+                        }
+                        if (isOrange) {
+                            td.style.setProperty('background-color', '#ff9800', 'important');
+                            td.style.setProperty('color', 'black', 'important');
                             td.style.fontWeight = 'bold';
                         }
                     }
@@ -2561,6 +2622,7 @@
             document.getElementById('filterKundenNr').value = '';
             document.getElementById('filterKundenKategorie').value = '';
             document.getElementById('filterElster').checked = false;
+            document.getElementById('filterTSE').checked = false;
             document.getElementById('filterGunSayisi').value = '';
 
             // Reset Excel-style states

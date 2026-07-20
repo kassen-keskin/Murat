@@ -260,6 +260,7 @@ def get_customers():
               ,[KundenGruppe]
               ,[Elster]
               ,[TamKontrolTarihi]
+              ,[TSEBitisTarihi]
               ,[Servis]
           FROM [Custom].[MieteKundenMaster] WITH (NOLOCK)
           ORDER BY [KundenNr]
@@ -308,6 +309,7 @@ def get_customers_custom():
               ,[BorcTarihiGunSayisi]
               ,[Gesperrt]
               ,[TamKontrolTarihi]
+              ,[TSEBitisTarihi]
               ,[Servis]
           FROM [Custom].[KundenMaster] WITH (NOLOCK)
           ORDER BY [KundenNr]
