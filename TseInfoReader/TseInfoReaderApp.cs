@@ -866,12 +866,119 @@ namespace TseInfoReader
 
     static class Program
     {
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern bool FreeConsole();
+
         [STAThread]
-        static void Main()
+        static void Main(string[] args)
         {
+            if (args.Length > 0)
+            {
+                RunCli(args);
+                return;
+            }
+
+            // Argüman yoksa arayüzü başlat, konsol penceresini gizle
+            FreeConsole();
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
+        }
+
+        static void RunCli(string[] args)
+        {
+            if (args.Contains("-all") || args.Contains("-h") || args.Contains("--help"))
+            {
+                Console.WriteLine("Kullanilabilir Komutlar:");
+                Console.WriteLine("  -a    : Tum TSE bilgilerini (Versiyon, Serial, BIS, Tarih) okur ve ekrana yazdirir.");
+                Console.WriteLine("  -v    : Sadece TSE Software Versiyonunu gosterir.");
+                Console.WriteLine("  -s    : Sadece TSE Serial Numarasini gosterir.");
+                Console.WriteLine("  -b    : Sadece BIS Kodunu gosterir.");
+                Console.WriteLine("  -g    : Sadece Bitis (Gecerlilik) Tarihini gosterir.");
+                Console.WriteLine("  -all  : Bu yardim menusunu gosterir.");
+                return;
+            }
+
+            string foundPath = null;
+            foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Removable))
+            {
+                if (drive.IsReady)
+                {
+                    string path = Path.Combine(drive.RootDirectory.FullName, "TSE_INFO.DAT");
+                    if (File.Exists(path))
+                    {
+                        foundPath = path;
+                        break;
+                    }
+                }
+            }
+
+            if (foundPath == null)
+            {
+                Console.WriteLine("Hata: USB suruculerde TSE_INFO.DAT bulunamadi.");
+                return;
+            }
+
+            var status = ParseTseFileCli(foundPath);
+            bool all = args.Contains("-a");
+
+            if (all)
+            {
+                Console.WriteLine("--- TUM TSE BILGILERI ---");
+                Console.WriteLine("Software Versiyon: " + status.TseSoftwareVersion);
+                Console.WriteLine("TSE Serial      : " + status.TseSerial);
+                Console.WriteLine("BIS Kodu        : " + status.TseDescription);
+                Console.WriteLine("Bitis Tarihi    : " + status.CertificateExpirationDateTimeOffset);
+                Console.WriteLine("-------------------------");
+            }
+            else
+            {
+                if (args.Contains("-v")) Console.WriteLine("TSE Software Versiyon: " + status.TseSoftwareVersion);
+                if (args.Contains("-s")) Console.WriteLine("TSE Serial: " + status.TseSerial);
+                if (args.Contains("-b")) Console.WriteLine("BIS Kodu: " + status.TseDescription);
+                if (args.Contains("-g")) Console.WriteLine("Bitis Tarihi: " + status.CertificateExpirationDateTimeOffset);
+            }
+        }
+
+        private static uint ReadUInt32BE(byte[] data, int offset) { return (uint)((data[offset] << 24) | (data[offset + 1] << 16) | (data[offset + 2] << 8) | data[offset + 3]); }
+        private static ulong ReadUInt64BE(byte[] data, int offset) { return ((ulong)ReadUInt32BE(data, offset) << 32) | ReadUInt32BE(data, offset + 4); }
+        private static ushort ReadUInt16BE(byte[] data, int offset) { return (ushort)((data[offset] << 8) | data[offset + 1]); }
+
+        private static TseStatus ParseTseFileCli(string filePath)
+        {
+            byte[] b = new byte[512];
+            using (FileStream fs = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            {
+                fs.Read(b, 0, 512);
+            }
+
+            TseStatus status = new TseStatus();
+            try { status.TseDescription = Encoding.ASCII.GetString(b, 288, 128).TrimEnd('\0'); } catch { }
+            try 
+            {
+                ulong exp = ReadUInt64BE(b, 64);
+                status.CertificateExpirationDate = exp;
+                long seconds = unchecked((long)exp);
+                if (seconds > 253402300799L || seconds < -62135596800L) {
+                    status.CertificateExpirationDateTimeOffset = "Invalid/Uninitialized";
+                } else {
+                    DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(seconds);
+                    status.CertificateExpirationDateTimeOffset = dt.ToString("dd.MM.yyyy HH:mm:ss") + " +00:00";
+                }
+            } catch { }
+            try 
+            {
+                ushort swMajor = ReadUInt16BE(b, 84);
+                byte swMinor = b[86];
+                byte swBuild = b[87];
+                status.TseSoftwareVersion = swMajor + "." + swMinor + "." + swBuild;
+            } catch { }
+            try 
+            {
+                byte[] serialBytes = b.Skip(256).Take(32).ToArray();
+                status.TseSerial = BitConverter.ToString(serialBytes).Replace("-", "").ToLower();
+            } catch { }
+            return status;
         }
     }
 }
