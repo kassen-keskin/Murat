@@ -752,6 +752,11 @@
             color: #000;
             border-color: var(--primary-color);
         }
+
+        .sortable-ghost {
+            opacity: 0.4;
+            background-color: var(--hover-color);
+        }
     </style>
     <link rel="stylesheet" href="/satis.css">
     <link rel="stylesheet" href="/teslimat.css">
@@ -759,6 +764,7 @@
     <link rel="stylesheet" href="/ticket.css">
     <link rel="stylesheet" href="/elster.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="/teslimat.js" defer></script>
     <script src="/lisans.js" defer></script>
@@ -769,6 +775,19 @@
 <body>
 
     <div class="dashboard-container">
+
+        <!-- Tab Selection -->
+        <div class="tabs-container">
+            <div id="tabRental" class="tab-item" onclick="switchTab('rental')">Takipteki Müşteriler</div>
+            <div id="tabCustom" class="tab-item" onclick="switchTab('custom')">Tüm Müşteriler</div>
+            <div id="tabAylik"  class="tab-item" onclick="switchTab('aylik')">Aylık Fatura</div>
+            <div id="tabFormHub" class="tab-item" onclick="switchTab('formhub')">📄 Dokümanlar</div>
+            <div id="tabSatis"  class="tab-item" onclick="switchTab('satis')">🛒 Yeni Satış</div>
+            <div id="tabTeslimat" class="tab-item" onclick="switchTab('teslimat')">📦 Kasa Teslimat</div>
+            <div id="tabLisans" class="tab-item" onclick="switchTab('lisans')">🔗 Lisans Eşleştirme</div>
+            <div id="tabTickets" class="tab-item active" onclick="switchTab('tickets')">🎫 Destek / Tickets</div>
+            <div id="tabElster" class="tab-item" onclick="switchTab('elster')">📋 ELSTER</div>
+        </div>
 
         <!-- Filter Panel -->
         <div class="panel filter-panel">
@@ -826,19 +845,6 @@
                 style="margin-left: 20px; font-size: 0.9rem; color: var(--primary-color); font-weight: 600; white-space: nowrap;">
                 Result: 0
             </div>
-        </div>
-
-        <!-- Tab Selection -->
-        <div class="tabs-container">
-            <div id="tabRental" class="tab-item active" onclick="switchTab('rental')">Takipteki Müşteriler</div>
-            <div id="tabCustom" class="tab-item" onclick="switchTab('custom')">Tüm Müşteriler</div>
-            <div id="tabAylik"  class="tab-item" onclick="switchTab('aylik')">Aylık Fatura</div>
-            <div id="tabFormHub" class="tab-item" onclick="switchTab('formhub')">📄 Dokümanlar</div>
-            <div id="tabSatis"  class="tab-item" onclick="switchTab('satis')">🛒 Yeni Satış</div>
-            <div id="tabTeslimat" class="tab-item" onclick="switchTab('teslimat')">📦 Kasa Teslimat</div>
-            <div id="tabLisans" class="tab-item" onclick="switchTab('lisans')">🔗 Lisans Eşleştirme</div>
-            <div id="tabTickets" class="tab-item" onclick="switchTab('tickets')">🎫 Destek / Tickets</div>
-            <div id="tabElster" class="tab-item" onclick="switchTab('elster')">📋 ELSTER</div>
         </div>
 
         <div id="aylikControls" class="aylik-controls" style="display:none; gap:10px; margin-top:12px;">
@@ -1293,7 +1299,7 @@
             custom: [],
             aylik: []
         };
-        let currentTab = 'rental';
+        let currentTab = 'tickets';
         let currentViewMode = 'listgrid';
 
         // Aylik Fatura state
@@ -1474,6 +1480,7 @@
                 formHubPaneli.style.display = 'none';
                 lisansPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
+                elsterPaneli.style.display = 'none';
                 satisPaneli.style.display = 'flex';
                 initSatisTab();
             } else if (tab === 'teslimat') {
@@ -1483,6 +1490,7 @@
                 formHubPaneli.style.display = 'none';
                 lisansPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
+                elsterPaneli.style.display = 'none';
                 teslimatPaneli.style.display = 'flex';
                 if (typeof initTeslimatTab === 'function') initTeslimatTab();
             } else if (tab === 'formhub') {
@@ -1492,6 +1500,7 @@
                 teslimatPaneli.style.display = 'none';
                 lisansPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
+                elsterPaneli.style.display = 'none';
                 formHubPaneli.style.display = 'flex';
             } else if (tab === 'lisans') {
                 filterPanel.style.display = 'none';
@@ -1500,6 +1509,7 @@
                 teslimatPaneli.style.display = 'none';
                 formHubPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
+                elsterPaneli.style.display = 'none';
                 lisansPaneli.style.display = 'flex';
                 if (typeof initLisansTab === 'function') initLisansTab();
             } else if (tab === 'tickets') {
@@ -2677,6 +2687,37 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Tabs reordering logic
+            const tabsContainer = document.querySelector('.tabs-container');
+            if (tabsContainer) {
+                const savedOrderStr = localStorage.getItem('dashboard_tabs_order');
+                if (savedOrderStr) {
+                    try {
+                        const savedOrder = JSON.parse(savedOrderStr);
+                        savedOrder.forEach(id => {
+                            const tab = document.getElementById(id);
+                            if (tab) {
+                                tabsContainer.appendChild(tab);
+                            }
+                        });
+                    } catch (e) {
+                        console.error('Error parsing tabs order from localStorage', e);
+                    }
+                }
+
+                if (typeof Sortable !== 'undefined') {
+                    new Sortable(tabsContainer, {
+                        animation: 150,
+                        ghostClass: 'sortable-ghost',
+                        onEnd: function () {
+                            const currentOrder = Array.from(tabsContainer.children).map(child => child.id).filter(id => id);
+                            localStorage.setItem('dashboard_tabs_order', JSON.stringify(currentOrder));
+                        }
+                    });
+                }
+            }
+
+            switchTab('tickets');
             fetchAllData();
             startAutoRefresh();
         });
