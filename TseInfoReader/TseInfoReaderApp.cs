@@ -224,7 +224,7 @@ namespace TseInfoReader
         private Button btnThemeToggle;
         private string sqlConnectionString;
         private List<CustomerItem> allCustomers = new List<CustomerItem>();
-        private bool isDarkMode = false;
+        private bool isDarkMode = true;
         private FlowLayoutPanel topPanel;
 
         public MainForm()
@@ -873,11 +873,16 @@ namespace TseInfoReader
         [System.Runtime.InteropServices.DllImport("kernel32.dll")]
         private static extern bool FreeConsole();
 
+        [System.Runtime.InteropServices.DllImport("kernel32.dll")]
+        private static extern bool AttachConsole(int dwProcessId);
+        private const int ATTACH_PARENT_PROCESS = -1;
+
         [STAThread]
         static void Main(string[] args)
         {
             if (args.Length > 0)
             {
+                AttachConsole(ATTACH_PARENT_PROCESS);
                 RunCli(args);
                 return;
             }
