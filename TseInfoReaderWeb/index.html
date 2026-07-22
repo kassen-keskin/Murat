@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSE Info Reader</title>
+    <style>
+        :root {
+            --bg-color: #1e1e1e;
+            --panel-bg: #2d2d30;
+            --text-color: #ffffff;
+            --accent-color: #3e3e42;
+            --border-color: #555;
+            --primary-color: #007acc;
+            --primary-hover: #005999;
+            --success-color: #28a745;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background-color: var(--panel-bg);
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            margin-top: 20px;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 24px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .upload-btn-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            border: none;
+            color: white;
+            background-color: var(--primary-color);
+            padding: 15px 20px;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: background-color 0.2s;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-hover);
+        }
+
+        .upload-btn-wrapper input[type=file] {
+            font-size: 100px;
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            cursor: pointer;
+            height: 100%;
+        }
+
+        .data-group {
+            margin-bottom: 15px;
+            display: none;
+        }
+
+        .data-label {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .data-value-container {
+            display: flex;
+            align-items: center;
+            background-color: var(--bg-color);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            padding: 5px;
+        }
+
+        .data-value {
+            flex-grow: 1;
+            padding: 10px;
+            font-size: 16px;
+            word-break: break-all;
+        }
+
+        .copy-btn {
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+            margin-left: 5px;
+        }
+
+        .copy-btn:hover {
+            background-color: #555;
+        }
+
+        .copy-btn.copied {
+            background-color: var(--success-color);
+        }
+
+        #status {
+            text-align: center;
+            margin-top: 10px;
+            color: #aaa;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>TSE Info Reader</h1>
+        
+        <div class="upload-btn-wrapper">
+            <button class="btn">USB'den TSE_INFO.DAT Seç</button>
+            <input type="file" id="fileInput" accept=".dat,application/octet-stream" />
+        </div>
+        <div id="status">Lütfen USB diskinizden TSE_INFO.DAT dosyasını seçin.</div>
+
+        <div class="upload-btn-wrapper" style="margin-top:10px;">
+            <button class="btn" style="background-color: #3b82f6;">USB'den TSE_TAR.001 Seç (Kayıtlı İstemciler)</button>
+            <input type="file" id="tarFileInput" accept=".001,application/octet-stream" />
+        </div>
+        <div id="tarStatus" style="text-align:center; color:#aaa; font-size:14px; margin-top:5px;"></div>
+
+        <div id="dataContainer">
+            <div class="data-group" id="grpSerial">
+                <span class="data-label">TSE Serial No</span>
+                <div class="data-value-container">
+                    <div class="data-value" id="valSerial">-</div>
+                    <button class="copy-btn" onclick="copyText('valSerial', this)">Kopyala</button>
+                </div>
+            </div>
+
+            <div class="data-group" id="grpBsi">
+                <span class="data-label">BSI Kodu (Description)</span>
+                <div class="data-value-container">
+                    <div class="data-value" id="valBsi">-</div>
+                    <button class="copy-btn" onclick="copyText('valBsi', this)">Kopyala</button>
+                </div>
+            </div>
+
+            <div class="data-group" id="grpDate">
+                <span class="data-label">Bitiş Tarihi</span>
+                <div class="data-value-container">
+                    <div class="data-value" id="valDate">-</div>
+                    <button class="copy-btn" onclick="copyText('valDate', this)">Kopyala</button>
+                </div>
+            </div>
+
+            <div class="data-group" id="grpVersion">
+                <span class="data-label">Yazılım Versiyonu</span>
+                <div class="data-value-container">
+                    <div class="data-value" id="valVersion">-</div>
+                    <button class="copy-btn" onclick="copyText('valVersion', this)">Kopyala</button>
+                </div>
+            </div>
+
+            <div class="data-group" id="grpClients" style="display:none;">
+                <span class="data-label">Kayıtlı İstemciler (Client IDs)</span>
+                <div class="data-value-container" style="flex-direction:column; align-items:flex-start;">
+                    <ul id="valClients" style="list-style-type:none; padding:0; margin:0; width:100%;"></ul>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <button class="btn" style="background-color: var(--success-color);" onclick="saveToFile()">Bilgileri Kaydet (TSEinfo.txt)</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            document.getElementById('status').innerText = "Okunuyor...";
+
+            const reader = new FileReader();
+            reader.onload = function(event) {
+                try {
+                    const buffer = event.target.result;
+                    if (buffer.byteLength < 512) {
+                        throw new Error("Dosya boyutu çok küçük, geçersiz TSE_INFO.DAT dosyası.");
+                    }
+                    parseTseBuffer(buffer);
+                    document.getElementById('status').innerText = "Başarıyla okundu!";
+                    
+                    const groups = document.querySelectorAll('.data-group');
+                    groups.forEach(g => g.style.display = 'block');
+                } catch (err) {
+                    console.error(err);
+                    document.getElementById('status').innerText = "Hata: " + err.message;
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        function parseTseBuffer(buffer) {
+            const view = new DataView(buffer);
+            const uint8Array = new Uint8Array(buffer);
+
+            const decoder = new TextDecoder('ascii');
+            const bsiBytes = uint8Array.slice(288, 288 + 128);
+            let bsiCode = decoder.decode(bsiBytes).replace(/\0/g, '').trim();
+            if (bsiCode.startsWith("BSI-K-TR-")) {
+                bsiCode = bsiCode.substring(9);
+            }
+
+            const expSeconds = view.getBigUint64(64, false); 
+            let expDateStr = "Invalid/Uninitialized";
+            if (expSeconds > 0n && expSeconds < 253402300799n) {
+                const dt = new Date(Number(expSeconds) * 1000);
+                
+                const day = dt.getUTCDate().toString().padStart(2, '0');
+                const month = (dt.getUTCMonth() + 1).toString().padStart(2, '0');
+                const year = dt.getUTCFullYear();
+
+                expDateStr = `${day}.${month}.${year}`;
+            }
+
+            const swMajor = view.getUint16(84, false); 
+            const swMinor = view.getUint8(86);
+            const swBuild = view.getUint8(87);
+            const swVersion = `${swMajor}.${swMinor}.${swBuild}`;
+
+            const serialBytesArray = Array.from(uint8Array.slice(256, 256 + 32));
+            const serialStr = serialBytesArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+            document.getElementById('valSerial').innerText = serialStr || "Yok";
+            document.getElementById('valBsi').innerText = bsiCode || "Yok";
+            document.getElementById('valDate').innerText = expDateStr;
+            document.getElementById('valVersion').innerText = swVersion;
+        }
+
+        function saveToFile() {
+            const serial = document.getElementById('valSerial').innerText;
+            const bsi = document.getElementById('valBsi').innerText;
+            const date = document.getElementById('valDate').innerText;
+            const version = document.getElementById('valVersion').innerText;
+            
+            const content = `TSE Serial No: ${serial}\r\nBSI Kodu: ${bsi}\r\nBitiş Tarihi: ${date}\r\nYazılım Versiyonu: ${version}\r\n`;
+            
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'TSEinfo.txt';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function copyText(elementId, btn) {
+            const text = document.getElementById(elementId).innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = "Kopyalandı!";
+                btn.classList.add("copied");
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.classList.remove("copied");
+                }, 2000);
+            }).catch(err => {
+                alert("Kopyalama başarısız: " + err);
+            });
+        }
+
+        document.getElementById('tarFileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('tarStatus');
+            const listEl = document.getElementById('valClients');
+            document.getElementById('grpClients').style.display = 'block';
+            listEl.innerHTML = '';
+            
+            statusEl.innerText = "Arşiv taranıyor, lütfen bekleyin...";
+
+            const CHUNK_SIZE = 1024 * 1024 * 5; // 5 MB parçalar halinde oku
+            let offset = 0;
+            const clientIds = new Set();
+            const reader = new FileReader();
+
+            reader.onload = function(event) {
+                const buffer = event.target.result;
+                if (buffer.byteLength === 0) {
+                    statusEl.innerText = `Tarama tamamlandı! ${clientIds.size} farklı istemci bulundu.`;
+                    clientIds.forEach(id => {
+                        const li = document.createElement('li');
+                        li.style.padding = '5px 0';
+                        li.style.borderBottom = '1px solid #444';
+                        li.innerText = id;
+                        listEl.appendChild(li);
+                    });
+                    if(clientIds.size === 0) {
+                        listEl.innerHTML = '<li style="padding:5px 0;">İstemci bulunamadı.</li>';
+                    }
+                    return;
+                }
+
+                const text = new TextDecoder('ascii').decode(buffer);
+                const regex = /Client-([a-zA-Z0-9_]+)\.log/g;
+                let match;
+                while ((match = regex.exec(text)) !== null) {
+                    clientIds.add(match[1]);
+                }
+
+                offset += CHUNK_SIZE;
+                if (offset < file.size) {
+                    offset -= 100; // Kelime bölünmesine karşı örtüşme
+                    statusEl.innerText = `Arşiv taranıyor... %${Math.min(100, Math.round((offset/file.size)*100))}`;
+                    readNextChunk();
+                } else {
+                    readNextChunk(); // Son okuma boş dönüp işlemi bitirsin
+                }
+            };
+
+            reader.onerror = function() {
+                statusEl.innerText = "Dosya okuma hatası oluştu.";
+            };
+
+            function readNextChunk() {
+                const slice = file.slice(offset, offset + CHUNK_SIZE);
+                reader.readAsArrayBuffer(slice);
+            }
+
+            readNextChunk();
+        });
+    </script>
+</body>
+</html>

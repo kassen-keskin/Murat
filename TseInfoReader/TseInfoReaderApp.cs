@@ -8,7 +8,8 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Data.SqlClient;
 using System.Collections.Generic;
-
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 namespace TseInfoReader
 {
     public class ConfirmForm : Form
@@ -202,6 +203,9 @@ namespace TseInfoReader
 
         [Category("Sonstiges")]
         public bool TseTsecurityExportAllowedIfCspTestFails { get; internal set; }
+
+        [Category("Sonstiges")]
+        public string RegisteredClientList { get; internal set; }
     }
 
     public class CustomerItem
@@ -215,6 +219,7 @@ namespace TseInfoReader
     {
         private PropertyGrid propertyGrid;
         private Button btnScan;
+        private Button btnFindClients;
         private Label lblStatus;
         private Label lblDriveInfo;
         private ComboBox cmbCustomers;
@@ -260,6 +265,15 @@ namespace TseInfoReader
             btnScan.Margin = new Padding(3, 8, 3, 3);
             btnScan.Font = largeFont;
             btnScan.Click += BtnScan_Click;
+
+            btnFindClients = new Button();
+            btnFindClients.Text = "Kayıtlı İstemcileri Bul";
+            btnFindClients.Size = new Size(250, 50);
+            btnFindClients.Margin = new Padding(3, 8, 3, 3);
+            btnFindClients.Font = largeFont;
+            btnFindClients.BackColor = Color.FromArgb(59, 130, 246);
+            btnFindClients.ForeColor = Color.White;
+            btnFindClients.Click += BtnFindClients_Click;
 
             lblDriveInfo = new Label();
             lblDriveInfo.Text = "Sürücü: -";
@@ -313,6 +327,7 @@ namespace TseInfoReader
             btnThemeToggle.Click += BtnThemeToggle_Click;
 
             topPanel.Controls.Add(btnScan);
+            topPanel.Controls.Add(btnFindClients);
             topPanel.Controls.Add(lblDriveInfo);
             topPanel.Controls.Add(lblSearch);
             topPanel.Controls.Add(txtSearch);
@@ -763,6 +778,116 @@ namespace TseInfoReader
             }
         }
 
+        private void BtnFindClients_Click(object sender, EventArgs e)
+        {
+            lblStatus.Text = "USB sürücülerde TSE_TAR.001 aranıyor...";
+            btnFindClients.Enabled = false;
+            Application.DoEvents();
+
+            try
+            {
+                string foundPath = null;
+                foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Removable))
+                {
+                    if (drive.IsReady)
+                    {
+                        string path = Path.Combine(drive.RootDirectory.FullName, "TSE_TAR.001");
+                        if (File.Exists(path))
+                        {
+                            foundPath = path;
+                            break;
+                        }
+                    }
+                }
+
+                if (foundPath != null)
+                {
+                    lblStatus.Text = string.Format("Bulundu: {0}. Arşiv taranıyor, lütfen bekleyin (Bu işlem biraz sürebilir)...", foundPath);
+                    ScanForClientIds(foundPath);
+                }
+                else
+                {
+                    lblStatus.Text = "Hiçbir USB sürücüde TSE_TAR.001 dosyası bulunamadı!";
+                    btnFindClients.Enabled = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                lblStatus.Text = "Bir hata oluştu.";
+                btnFindClients.Enabled = true;
+            }
+        }
+
+        private void ScanForClientIds(string tarPath)
+        {
+            Task.Run(() =>
+            {
+                try
+                {
+                    HashSet<string> clientIds = new HashSet<string>();
+                    int bufferSize = 1024 * 1024 * 5; // 5 MB
+                    byte[] buffer = new byte[bufferSize];
+
+                    using (FileStream fs = new FileStream(tarPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                    {
+                        long totalSize = fs.Length;
+                        long bytesRead = 0;
+                        int read;
+                        
+                        Regex regex = new Regex(@"Client-([a-zA-Z0-9_]+)\.log");
+
+                        while ((read = fs.Read(buffer, 0, buffer.Length)) > 0)
+                        {
+                            string text = Encoding.ASCII.GetString(buffer, 0, read);
+                            MatchCollection matches = regex.Matches(text);
+                            foreach (Match match in matches)
+                            {
+                                clientIds.Add(match.Groups[1].Value);
+                            }
+
+                            bytesRead += read;
+                            
+                            this.Invoke(new Action(() => {
+                                int progress = (int)((bytesRead * 100) / totalSize);
+                                lblStatus.Text = string.Format("Arşiv taranıyor... %{0}", progress);
+                            }));
+
+                            // Overlap by 100 bytes to catch split strings
+                            if (bytesRead < totalSize && fs.Position >= 100)
+                            {
+                                fs.Position -= 100;
+                                bytesRead -= 100;
+                            }
+                        }
+                    }
+
+                    this.Invoke(new Action(() => {
+                        string result = string.Join(", ", clientIds);
+                        if (string.IsNullOrEmpty(result)) result = "Bulunamadı";
+                        
+                        TseStatus currentStatus = propertyGrid.SelectedObject as TseStatus;
+                        if (currentStatus == null) currentStatus = new TseStatus();
+                        
+                        currentStatus.RegisteredClientList = result;
+                        propertyGrid.SelectedObject = currentStatus;
+                        propertyGrid.Refresh();
+                        
+                        lblStatus.Text = string.Format("Tarama tamamlandı! {0} farklı istemci bulundu.", clientIds.Count);
+                        btnFindClients.Enabled = true;
+                    }));
+                }
+                catch (Exception ex)
+                {
+                    this.Invoke(new Action(() => {
+                        MessageBox.Show("Tarama hatası: " + ex.Message);
+                        lblStatus.Text = "Tarama sırasında hata oluştu.";
+                        btnFindClients.Enabled = true;
+                    }));
+                }
+            });
+        }
+
         private void ParseTseFile(string filePath)
         {
             byte[] b = new byte[512];
@@ -904,7 +1029,50 @@ namespace TseInfoReader
                 Console.WriteLine("  -s    : Sadece TSE Serial Numarasini gosterir.");
                 Console.WriteLine("  -b    : Sadece BIS Kodunu gosterir.");
                 Console.WriteLine("  -g    : Sadece Bitis (Gecerlilik) Tarihini gosterir.");
+                Console.WriteLine("  -c    : USB icindeki TSE_TAR.001 arsivinden Kayitli Istemcileri (Client IDs) bulur.");
                 Console.WriteLine("  -all  : Bu yardim menusunu gosterir.");
+                return;
+            }
+
+            if (args.Contains("-c"))
+            {
+                Console.WriteLine("USB suruculerde TSE_TAR.001 araniyor...");
+                string tarPath = null;
+                foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Removable))
+                {
+                    if (drive.IsReady)
+                    {
+                        string p = Path.Combine(drive.RootDirectory.FullName, "TSE_TAR.001");
+                        if (File.Exists(p)) { tarPath = p; break; }
+                    }
+                }
+                
+                if (tarPath == null) {
+                    Console.WriteLine("Hata: USB suruculerde TSE_TAR.001 bulunamadi.");
+                    return;
+                }
+                
+                Console.WriteLine("TSE_TAR.001 bulundu, taraniyor... Lutfen bekleyin.");
+                HashSet<string> clientIds = new HashSet<string>();
+                byte[] buffer = new byte[1024 * 1024 * 5];
+                using (FileStream fs = new FileStream(tarPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    int read;
+                    Regex regex = new Regex(@"Client-([a-zA-Z0-9_]+)\.log");
+                    while ((read = fs.Read(buffer, 0, buffer.Length)) > 0)
+                    {
+                        string text = Encoding.ASCII.GetString(buffer, 0, read);
+                        foreach (Match match in regex.Matches(text))
+                        {
+                            clientIds.Add(match.Groups[1].Value);
+                        }
+                        if (fs.Position >= 100 && fs.Position < fs.Length) fs.Position -= 100;
+                    }
+                }
+                
+                Console.WriteLine("Bulunan Istemci (Client ID) Listesi:");
+                foreach(var id in clientIds) Console.WriteLine(" - " + id);
+                if (clientIds.Count == 0) Console.WriteLine("  Hic istemci bulunamadi.");
                 return;
             }
 
