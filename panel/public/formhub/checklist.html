@@ -717,7 +717,10 @@
     <script>
         function printPDF() {
             const firmaName = document.getElementById("betriebsname") ? document.getElementById("betriebsname").value.trim() : "";
-            const newTitle = firmaName ? `${firmaName} - Checklist` : "Checklist";
+            const searchInput = document.getElementById("kundenSearchInput");
+            const kndNr = searchInput ? searchInput.value.trim() : "";
+            const prefix = kndNr ? `${kndNr} - ` : "";
+            const newTitle = firmaName ? `${prefix}${firmaName} - Checklist` : "Checklist";
             
             const origTitle = document.title;
             let origTopTitle = null;
@@ -858,10 +861,12 @@
 
             const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(data, null, 2));
             const downloadAnchorNode = document.createElement('a');
-            downloadAnchorNode.setAttribute("href", dataStr);
-            
             const firmaName = data.betrieb ? data.betrieb.trim() : "";
-            const filename = firmaName ? `${firmaName} - Checklist.json` : "Checklist.json";
+            const searchInput = document.getElementById("kundenSearchInput");
+            const kndNr = searchInput ? searchInput.value.trim() : "";
+            const prefix = kndNr ? `${kndNr} - ` : "";
+            const filename = firmaName ? `${prefix}${firmaName} - Checklist.json` : "Checklist.json";
+            downloadAnchorNode.setAttribute("href", dataStr);
             downloadAnchorNode.setAttribute("download", filename);
             document.body.appendChild(downloadAnchorNode);
             downloadAnchorNode.click();

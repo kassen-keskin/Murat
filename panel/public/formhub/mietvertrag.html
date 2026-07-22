@@ -427,8 +427,10 @@
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
-        const firmaVal = f_firma.value ? f_firma.value.trim() : "";
-        a.download = firmaVal ? `${firmaVal} - Mietvertrag.json` : "Mietvertrag.json"; a.click();
+        const searchInput = document.getElementById("kundenSearchInput");
+        const kndNr = (searchInput && searchInput.value.trim() !== "") ? searchInput.value.trim() : (f_knd.value ? f_knd.value.trim() : "");
+        const prefix = kndNr ? `${kndNr} - ` : "";
+        a.download = firmaVal ? `${prefix}${firmaVal} - Mietvertrag.json` : "Mietvertrag.json"; a.click();
     }
 
     function importData(e) {
@@ -448,7 +450,10 @@
         if(!check_id.checked || !check_gew.checked || !check_anm.checked) alert("Bitte bestätigen Sie die Unterlagen.");
         else {
             const firmaName = f_firma.value ? f_firma.value.trim() : "";
-            const newTitle = firmaName ? `${firmaName} - Mietvertrag` : "Mietvertrag";
+            const searchInput = document.getElementById("kundenSearchInput");
+            const kndNr = (searchInput && searchInput.value.trim() !== "") ? searchInput.value.trim() : (f_knd.value ? f_knd.value.trim() : "");
+            const prefix = kndNr ? `${kndNr} - ` : "";
+            const newTitle = firmaName ? `${prefix}${firmaName} - Mietvertrag` : "Mietvertrag";
             
             const origTitle = document.title;
             let origTopTitle = null;
