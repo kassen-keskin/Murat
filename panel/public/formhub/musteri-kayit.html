@@ -1234,7 +1234,10 @@
                 return name.replace(/[\\/:*?"<>|]/g, '_');
             };
             const sanitizedName = sanitizeFilename(companyName);
-            const fileName = sanitizedName ? `${sanitizedName} - Musteri-Kayit.pdf` : 'Musteri-Kayit.pdf';
+            const searchInput = document.getElementById("kundenSearchInput");
+            const kndNr = searchInput ? searchInput.value.trim() : "";
+            const prefix = kndNr ? `${kndNr} - ` : "";
+            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Musteri-Kayit.pdf` : `${prefix}Musteri-Kayit.pdf`;
             doc.save(fileName);
             showStatusMessage('PDF başarıyla oluşturuldu!', 'success');
         });
@@ -1357,7 +1360,10 @@
             };
 
             const sanitizedName = sanitizeFilename(formData.companyName);
-            const fileName = sanitizedName ? `${sanitizedName} - Musteri-Kayit.xml` : 'Musteri-Kayit.xml';
+            const searchInput = document.getElementById("kundenSearchInput");
+            const kndNr = searchInput ? searchInput.value.trim() : "";
+            const prefix = kndNr ? `${kndNr} - ` : "";
+            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Musteri-Kayit.xml` : `${prefix}Musteri-Kayit.xml`;
             a.download = fileName;
             document.body.appendChild(a);
             a.click();
@@ -1427,7 +1433,10 @@
             };
 
             const sanitizedName = sanitizeFilename(formData.companyName);
-            const fileName = sanitizedName ? `${sanitizedName} - Musteri-Kayit.json` : 'Musteri-Kayit.json';
+            const searchInput = document.getElementById("kundenSearchInput");
+            const kndNr = searchInput ? searchInput.value.trim() : "";
+            const prefix = kndNr ? `${kndNr} - ` : "";
+            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Musteri-Kayit.json` : `${prefix}Musteri-Kayit.json`;
             a.download = fileName;
             document.body.appendChild(a);
             a.click();
@@ -1699,7 +1708,10 @@
                 return name.replace(/[\\/:*?"<>|]/g, '_');
             };
             const sanitizedName = sanitizeFilename(formData.companyName);
-            const fileName = sanitizedName ? `${sanitizedName} - Musteri-Kayit.pdf` : 'Musteri-Kayit.pdf';
+            const searchInput = document.getElementById("kundenSearchInput");
+            const kndNr = searchInput ? searchInput.value.trim() : "";
+            const prefix = kndNr ? `${kndNr} - ` : "";
+            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Musteri-Kayit.pdf` : `${prefix}Musteri-Kayit.pdf`;
             doc.save(fileName);
             showStatusMessage('Komple Form PDF başarıyla oluşturuldu!', 'success');
         }

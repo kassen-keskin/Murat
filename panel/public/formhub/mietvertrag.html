@@ -427,6 +427,7 @@
         };
         const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
         const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
+        const firmaVal = f_firma.value ? f_firma.value.trim() : "";
         const searchInput = document.getElementById("kundenSearchInput");
         const kndNr = (searchInput && searchInput.value.trim() !== "") ? searchInput.value.trim() : (f_knd.value ? f_knd.value.trim() : "");
         const prefix = kndNr ? `${kndNr} - ` : "";
