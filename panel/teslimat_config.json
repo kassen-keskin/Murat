@@ -1,21 +1,21 @@
 {
     "steps": [
         {
-            "id": "step_1777455355097_0",
+            "id": "step_1784901932006_0",
             "title": "Müsteri Bilgileri",
             "questions": [
                 {
-                    "id": "q_1777455355097_0_0",
-                    "text": "Firma Ismi, Adresi, Firma Sahibi",
+                    "id": "q_1784901932006_0_0",
+                    "text": "Firma Ismi, Adresi, Firma Sahibi bilgileri alindi mi?",
                     "type": "radio",
                     "options": [
-                        "Var",
-                        "Eksik"
+                        "Eksik",
+                        "Var"
                     ]
                 },
                 {
-                    "id": "q_1777455355097_0_1",
-                    "text": "ELSTER yapilacak mi?",
+                    "id": "q_1784901932006_0_1",
+                    "text": "ESLTER bilgileri TAMAMEN toplandi mi , Bizde mi?",
                     "type": "radio",
                     "options": [
                         "Evet",
@@ -23,8 +23,26 @@
                     ]
                 },
                 {
-                    "id": "q_1777455355097_0_2",
-                    "text": "ESLTER bilgileri TAMAMEN toplandi mi , Bizde mi?",
+                    "id": "q_1784901932006_0_2",
+                    "text": "Kiralik kasa ise Kimlik fotokopisi var mi?",
+                    "type": "radio",
+                    "options": [
+                        "Evet",
+                        "Hayir"
+                    ]
+                },
+                {
+                    "id": "q_1784901932006_0_3",
+                    "text": "Kira Sözlesmesi imzasi var mi?",
+                    "type": "radio",
+                    "options": [
+                        "Evet",
+                        "Hayir"
+                    ]
+                },
+                {
+                    "id": "q_1784901932006_0_4",
+                    "text": "SEPA-Lastschirift imzasi var mi?",
                     "type": "radio",
                     "options": [
                         "Evet",
@@ -34,24 +52,24 @@
             ]
         },
         {
-            "id": "step_1777455355097_1",
+            "id": "step_1784901932006_1",
             "title": "Donanim",
             "questions": [
                 {
-                    "id": "q_1777455355097_1_0",
+                    "id": "q_1784901932006_1_0",
                     "text": "Kasa",
                     "type": "radio",
                     "options": [
                         "Noris / Olympia (Delta-X)",
                         "Prox (Lotus Pecas / LaCash)",
-                        "RCH",
-                        "Quorion",
                         "Jassway (Lotus Pecas / LaCash)",
-                        "Elines (Lotus Pecas / LaCash)"
+                        "Elines (Lotus Pecas / LaCash)",
+                        "Quorion",
+                        "RCH"
                     ]
                 },
                 {
-                    "id": "q_1777455355097_1_1",
+                    "id": "q_1784901932006_1_1",
                     "text": "Cekmece",
                     "type": "radio",
                     "options": [
@@ -60,7 +78,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777455355097_1_2",
+                    "id": "q_1784901932006_1_2",
                     "text": "Yazici",
                     "type": "radio",
                     "options": [
@@ -69,7 +87,7 @@
                     ]
                 },
                 {
-                    "id": "q_1777455355097_1_3",
+                    "id": "q_1784901932006_1_3",
                     "text": "Yazici Kac tane",
                     "type": "text",
                     "options": []
@@ -77,19 +95,11 @@
             ]
         },
         {
-            "id": "step_1777455355097_2",
+            "id": "step_1784901932006_2",
             "title": "Müsteriye Anlatilacaklar",
             "questions": [
                 {
-                    "id": "q_1777455355097_2_0",
-                    "text": "Storno Anlatildi mi?",
-                    "type": "checkbox",
-                    "options": [
-                        "Evet"
-                    ]
-                },
-                {
-                    "id": "q_1777455355097_2_1",
+                    "id": "q_1784901932006_2_0",
                     "text": "Retour Anlatildi mi?",
                     "type": "checkbox",
                     "options": [
@@ -97,7 +107,15 @@
                     ]
                 },
                 {
-                    "id": "q_1777455355097_2_2",
+                    "id": "q_1784901932006_2_1",
+                    "text": "Storno Anlatildi mi?",
+                    "type": "checkbox",
+                    "options": [
+                        "Evet"
+                    ]
+                },
+                {
+                    "id": "q_1784901932006_2_2",
                     "text": "Bon Storno Anlatildi mi?",
                     "type": "checkbox",
                     "options": [
@@ -105,22 +123,70 @@
                     ]
                 },
                 {
-                    "id": "q_1777455355097_2_3",
+                    "id": "q_1784901932006_2_3",
                     "text": "Wechelgeld Anlatildi mi?",
                     "type": "checkbox",
                     "options": [
                         "Evet"
                     ]
+                },
+                {
+                    "id": "q_1784901932006_2_4",
+                    "text": "X Bon Anlatildi mi?",
+                    "type": "radio",
+                    "options": [
+                        "Evet",
+                        "Hayir"
+                    ]
+                },
+                {
+                    "id": "q_1784901932006_2_5",
+                    "text": "Z Bon Anlatildi mi?",
+                    "type": "checkbox",
+                    "options": [
+                        "Evet",
+                        "Hayir"
+                    ]
                 }
             ]
         },
         {
-            "id": "step_1777455355097_3",
+            "id": "step_1784901932006_3",
             "title": "Yazilim Kontrolleri",
             "questions": [
                 {
-                    "id": "q_1777455355097_3_0",
+                    "id": "q_1784901932006_3_0",
                     "text": "Son sürüm yüklendi mi?",
+                    "type": "radio",
+                    "options": [
+                        "Evet",
+                        "Hayir"
+                    ]
+                },
+                {
+                    "id": "q_1784901932006_3_1",
+                    "text": "Hangi sürüm yüklendi?",
+                    "type": "text",
+                    "options": []
+                },
+                {
+                    "id": "q_1784901932006_3_2",
+                    "text": "TSE aktif edildi mi?",
+                    "type": "radio",
+                    "options": [
+                        "Evet",
+                        "Hayir"
+                    ]
+                },
+                {
+                    "id": "q_1784901932006_3_3",
+                    "text": "TSE ne zaman aktif edildi?",
+                    "type": "text",
+                    "options": []
+                },
+                {
+                    "id": "q_1784901932006_3_4",
+                    "text": "TSE bitis tarihi JTL e yazildi mi?",
                     "type": "radio",
                     "options": [
                         "Evet",

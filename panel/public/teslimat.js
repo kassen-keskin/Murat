@@ -127,6 +127,7 @@ function renderTeslimatAdmin() {
 let dragSrcEl = null;
 
 function handleDragStart(e) {
+    e.stopPropagation();
     dragSrcEl = this;
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/html', this.innerHTML);
@@ -137,41 +138,46 @@ function handleDragOver(e) {
     if (e.preventDefault) {
         e.preventDefault();
     }
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
     return false;
 }
 
 function handleDragEnter(e) {
+    e.stopPropagation();
     this.classList.add('drag-over');
 }
 
 function handleDragLeave(e) {
+    e.stopPropagation();
     this.classList.remove('drag-over');
 }
 
 function handleDrop(e) {
-    if (e.stopPropagation) {
-        e.stopPropagation();
-    }
+    e.stopPropagation();
     
-    if (dragSrcEl !== this) {
+    if (dragSrcEl !== this && dragSrcEl.classList[0] === this.classList[0]) {
         const container = this.parentNode;
-        const allItems = Array.from(container.querySelectorAll('.teslimat-step-card'));
+        const itemClass = dragSrcEl.classList[0];
+        const allItems = Array.from(container.querySelectorAll('.' + itemClass));
         const srcIndex = allItems.indexOf(dragSrcEl);
         const targetIndex = allItems.indexOf(this);
         
-        if (srcIndex < targetIndex) {
-            container.insertBefore(dragSrcEl, this.nextSibling);
-        } else {
-            container.insertBefore(dragSrcEl, this);
+        if (srcIndex > -1 && targetIndex > -1) {
+            if (srcIndex < targetIndex) {
+                container.insertBefore(dragSrcEl, this.nextSibling);
+            } else {
+                container.insertBefore(dragSrcEl, this);
+            }
         }
     }
     return false;
 }
 
 function handleDragEnd(e) {
+    e.stopPropagation();
     this.classList.remove('dragging');
-    const items = document.querySelectorAll('.teslimat-step-card');
+    const items = document.querySelectorAll('.drag-over');
     items.forEach(function (item) {
         item.classList.remove('drag-over');
     });
@@ -262,9 +268,25 @@ function createAdminStepElement(step = { title: '', questions: [] }, sIndex = nu
 function createAdminQuestionElement(question = { text: '', type: 'checkbox', options: [] }) {
     const div = document.createElement('div');
     div.className = 'teslimat-question-card';
+    div.draggable = true;
+    
+    div.addEventListener('dragstart', handleDragStart);
+    div.addEventListener('dragover', handleDragOver);
+    div.addEventListener('drop', handleDrop);
+    div.addEventListener('dragenter', handleDragEnter);
+    div.addEventListener('dragleave', handleDragLeave);
+    div.addEventListener('dragend', handleDragEnd);
     
     const header = document.createElement('div');
     header.className = 'teslimat-question-header';
+    
+    const dragHandle = document.createElement('span');
+    dragHandle.className = 'drag-handle';
+    dragHandle.innerHTML = '☰';
+    dragHandle.title = "Sürükle bırak ile sıralamayı değiştir";
+    dragHandle.style.cursor = 'grab';
+    dragHandle.style.marginRight = '10px';
+    dragHandle.style.color = 'var(--text-muted)';
     
     const qInput = document.createElement('input');
     qInput.type = 'text';
@@ -285,6 +307,7 @@ function createAdminQuestionElement(question = { text: '', type: 'checkbox', opt
     delBtn.textContent = 'X';
     delBtn.onclick = () => div.remove();
     
+    header.appendChild(dragHandle);
     header.appendChild(qInput);
     header.appendChild(typeSelect);
     header.appendChild(delBtn);
@@ -326,6 +349,22 @@ function createAdminQuestionElement(question = { text: '', type: 'checkbox', opt
 function createAdminOptionElement(text = '') {
     const row = document.createElement('div');
     row.className = 'teslimat-option-row';
+    row.draggable = true;
+
+    row.addEventListener('dragstart', handleDragStart);
+    row.addEventListener('dragover', handleDragOver);
+    row.addEventListener('drop', handleDrop);
+    row.addEventListener('dragenter', handleDragEnter);
+    row.addEventListener('dragleave', handleDragLeave);
+    row.addEventListener('dragend', handleDragEnd);
+    
+    const dragHandle = document.createElement('span');
+    dragHandle.className = 'drag-handle';
+    dragHandle.innerHTML = '☰';
+    dragHandle.title = "Sürükle bırak ile sıralamayı değiştir";
+    dragHandle.style.cursor = 'grab';
+    dragHandle.style.marginRight = '5px';
+    dragHandle.style.color = 'var(--text-muted)';
     
     const input = document.createElement('input');
     input.type = 'text';
@@ -338,6 +377,7 @@ function createAdminOptionElement(text = '') {
     delBtn.textContent = 'x';
     delBtn.onclick = () => row.remove();
     
+    row.appendChild(dragHandle);
     row.appendChild(input);
     row.appendChild(delBtn);
     return row;
