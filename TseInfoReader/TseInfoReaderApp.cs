@@ -218,8 +218,14 @@ namespace TseInfoReader
     public class MainForm : Form
     {
         private PropertyGrid propertyGrid;
+        private TableLayoutPanel centerPanel;
+        private TableLayoutPanel pnlSummary;
+        private Label lblSummaryBitisTarihi;
+        private Label lblSummaryBsi;
+        private Label lblSummarySeriNo;
+        private Label lblSummaryVersiyon;
+        private Button btnToggleDetails;
         private Button btnScan;
-        private Button btnFindClients;
         private Label lblStatus;
         private Label lblDriveInfo;
         private ComboBox cmbCustomers;
@@ -265,15 +271,6 @@ namespace TseInfoReader
             btnScan.Margin = new Padding(3, 8, 3, 3);
             btnScan.Font = largeFont;
             btnScan.Click += BtnScan_Click;
-
-            btnFindClients = new Button();
-            btnFindClients.Text = "Kayıtlı İstemcileri Bul";
-            btnFindClients.Size = new Size(250, 50);
-            btnFindClients.Margin = new Padding(3, 8, 3, 3);
-            btnFindClients.Font = largeFont;
-            btnFindClients.BackColor = Color.FromArgb(59, 130, 246);
-            btnFindClients.ForeColor = Color.White;
-            btnFindClients.Click += BtnFindClients_Click;
 
             lblDriveInfo = new Label();
             lblDriveInfo.Text = "Sürücü: -";
@@ -327,7 +324,6 @@ namespace TseInfoReader
             btnThemeToggle.Click += BtnThemeToggle_Click;
 
             topPanel.Controls.Add(btnScan);
-            topPanel.Controls.Add(btnFindClients);
             topPanel.Controls.Add(lblDriveInfo);
             topPanel.Controls.Add(lblSearch);
             topPanel.Controls.Add(txtSearch);
@@ -343,20 +339,68 @@ namespace TseInfoReader
             propertyGrid.PropertySort = PropertySort.Categorized;
             propertyGrid.ToolbarVisible = false;
             propertyGrid.SelectedGridItemChanged += PropertyGrid_SelectedGridItemChanged;
+            propertyGrid.Visible = false; // Initially hidden
+
+            centerPanel = new TableLayoutPanel();
+            centerPanel.Dock = DockStyle.Fill;
+            centerPanel.RowCount = 3;
+            centerPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            centerPanel.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            centerPanel.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+            centerPanel.ColumnCount = 1;
+
+            pnlSummary = new TableLayoutPanel();
+            pnlSummary.Dock = DockStyle.Fill;
+            pnlSummary.AutoSize = true;
+            pnlSummary.RowCount = 4;
+            pnlSummary.ColumnCount = 2;
+            pnlSummary.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 200));
+            pnlSummary.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+
+            Font summaryLabelFont = new Font("Segoe UI", 14, FontStyle.Bold);
+            Font summaryValueFont = new Font("Segoe UI", 14, FontStyle.Regular);
+
+            Label l1 = new Label { Text = "TSE Bitiş Tarihi:", Font = summaryLabelFont, AutoSize = true, Margin = new Padding(5) };
+            lblSummaryBitisTarihi = new Label { Text = "-", Font = summaryValueFont, AutoSize = true, Margin = new Padding(5) };
+            
+            Label l2 = new Label { Text = "BSI Numarası:", Font = summaryLabelFont, AutoSize = true, Margin = new Padding(5) };
+            lblSummaryBsi = new Label { Text = "-", Font = summaryValueFont, AutoSize = true, Margin = new Padding(5) };
+
+            Label l3 = new Label { Text = "TSE Seri Numarası:", Font = summaryLabelFont, AutoSize = true, Margin = new Padding(5) };
+            lblSummarySeriNo = new Label { Text = "-", Font = summaryValueFont, AutoSize = true, Margin = new Padding(5) };
+
+            Label l4 = new Label { Text = "TSE Versiyonu:", Font = summaryLabelFont, AutoSize = true, Margin = new Padding(5) };
+            lblSummaryVersiyon = new Label { Text = "-", Font = summaryValueFont, AutoSize = true, Margin = new Padding(5) };
+
+            pnlSummary.Controls.Add(l1, 0, 0); pnlSummary.Controls.Add(lblSummaryBitisTarihi, 1, 0);
+            pnlSummary.Controls.Add(l2, 0, 1); pnlSummary.Controls.Add(lblSummaryBsi, 1, 1);
+            pnlSummary.Controls.Add(l3, 0, 2); pnlSummary.Controls.Add(lblSummarySeriNo, 1, 2);
+            pnlSummary.Controls.Add(l4, 0, 3); pnlSummary.Controls.Add(lblSummaryVersiyon, 1, 3);
+
+            btnToggleDetails = new Button();
+            btnToggleDetails.Text = "Detayları Göster ▼";
+            btnToggleDetails.Size = new Size(250, 40);
+            btnToggleDetails.Margin = new Padding(3, 10, 3, 10);
+            btnToggleDetails.Font = new Font("Segoe UI", 12, FontStyle.Bold);
+            btnToggleDetails.Click += BtnToggleDetails_Click;
+
+            centerPanel.Controls.Add(pnlSummary, 0, 0);
+            centerPanel.Controls.Add(btnToggleDetails, 0, 1);
+            centerPanel.Controls.Add(propertyGrid, 0, 2);
 
             lblStatus = new Label();
-            lblStatus.Text = "Hazır.";
+            lblStatus.Text = "Hazır. Lütfen tara butonuna basın. (Üzerine tıkladığınız değerler otomatik kopyalanır)";
             lblStatus.Dock = DockStyle.Fill;
             lblStatus.TextAlign = ContentAlignment.MiddleLeft;
-            lblStatus.Text = "Hazır. Lütfen tara butonuna basın. (Üzerine tıkladığınız değerler otomatik kopyalanır)";
 
             layout.Controls.Add(topPanel, 0, 0);
-            layout.Controls.Add(propertyGrid, 0, 1);
+            layout.Controls.Add(centerPanel, 0, 1);
             layout.Controls.Add(lblStatus, 0, 2);
 
             this.Controls.Add(layout);
             
             this.Load += MainForm_Load;
+            this.Shown += MainForm_Shown;
             
             ApplyTheme();
         }
@@ -377,6 +421,19 @@ namespace TseInfoReader
             
             this.BackColor = backColor;
             this.ForeColor = foreColor;
+
+            if (pnlSummary != null)
+            {
+                foreach (Control c in pnlSummary.Controls)
+                {
+                    if (c is Label) c.ForeColor = foreColor;
+                }
+            }
+            if (btnToggleDetails != null)
+            {
+                btnToggleDetails.BackColor = buttonBackColor;
+                btnToggleDetails.ForeColor = foreColor;
+            }
 
             foreach (Control c in topPanel.Controls)
             {
@@ -420,6 +477,12 @@ namespace TseInfoReader
         {
             LoadDatabaseConfig();
             LoadCustomersFromDb();
+        }
+
+        private void MainForm_Shown(object sender, EventArgs e)
+        {
+            // Otomatik olarak tara butonunu tetikle
+            BtnScan_Click(null, null);
         }
 
         private void LoadDatabaseConfig()
@@ -683,6 +746,32 @@ namespace TseInfoReader
             }
         }
 
+        private void BtnToggleDetails_Click(object sender, EventArgs e)
+        {
+            propertyGrid.Visible = !propertyGrid.Visible;
+            btnToggleDetails.Text = propertyGrid.Visible ? "Detayları Gizle ▲" : "Detayları Göster ▼";
+        }
+
+        private void UpdateSummary(TseStatus status)
+        {
+            if (status == null)
+            {
+                lblSummaryBitisTarihi.Text = "-";
+                lblSummaryBsi.Text = "-";
+                lblSummarySeriNo.Text = "-";
+                lblSummaryVersiyon.Text = "-";
+                return;
+            }
+            lblSummaryBitisTarihi.Text = string.IsNullOrEmpty(status.CertificateExpirationDateTimeOffset) ? "-" : status.CertificateExpirationDateTimeOffset;
+            lblSummaryBsi.Text = string.IsNullOrEmpty(status.TseDescription) ? "-" : status.TseDescription;
+            lblSummarySeriNo.Text = string.IsNullOrEmpty(status.TseSerial) ? "-" : status.TseSerial;
+            
+            string ver = "";
+            if (!string.IsNullOrEmpty(status.TseHardwareVersion)) ver += "HW: " + status.TseHardwareVersion;
+            if (!string.IsNullOrEmpty(status.TseSoftwareVersion)) ver += (ver.Length > 0 ? " / " : "") + "SW: " + status.TseSoftwareVersion;
+            lblSummaryVersiyon.Text = string.IsNullOrEmpty(ver) ? "-" : ver;
+        }
+
         private void PropertyGrid_SelectedGridItemChanged(object sender, SelectedGridItemChangedEventArgs e)
         {
             if (e.NewSelection != null && e.NewSelection.Value != null)
@@ -764,6 +853,7 @@ namespace TseInfoReader
                     lblDriveInfo.Text = "Sürücü: Yok";
                     lblStatus.Text = "Hiçbir USB sürücüde TSE_INFO.DAT dosyası bulunamadı!";
                     propertyGrid.SelectedObject = null;
+                    UpdateSummary(null);
                     btnExportDb.Enabled = false;
                 }
             }
@@ -777,117 +867,6 @@ namespace TseInfoReader
                 btnScan.Enabled = true;
             }
         }
-
-        private void BtnFindClients_Click(object sender, EventArgs e)
-        {
-            lblStatus.Text = "USB sürücülerde TSE_TAR.001 aranıyor...";
-            btnFindClients.Enabled = false;
-            Application.DoEvents();
-
-            try
-            {
-                string foundPath = null;
-                foreach (var drive in DriveInfo.GetDrives().Where(d => d.DriveType == DriveType.Removable))
-                {
-                    if (drive.IsReady)
-                    {
-                        string path = Path.Combine(drive.RootDirectory.FullName, "TSE_TAR.001");
-                        if (File.Exists(path))
-                        {
-                            foundPath = path;
-                            break;
-                        }
-                    }
-                }
-
-                if (foundPath != null)
-                {
-                    lblStatus.Text = string.Format("Bulundu: {0}. Arşiv taranıyor, lütfen bekleyin (Bu işlem biraz sürebilir)...", foundPath);
-                    ScanForClientIds(foundPath);
-                }
-                else
-                {
-                    lblStatus.Text = "Hiçbir USB sürücüde TSE_TAR.001 dosyası bulunamadı!";
-                    btnFindClients.Enabled = true;
-                }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Hata oluştu: " + ex.Message, "Hata", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                lblStatus.Text = "Bir hata oluştu.";
-                btnFindClients.Enabled = true;
-            }
-        }
-
-        private void ScanForClientIds(string tarPath)
-        {
-            Task.Run(() =>
-            {
-                try
-                {
-                    HashSet<string> clientIds = new HashSet<string>();
-                    int bufferSize = 1024 * 1024 * 5; // 5 MB
-                    byte[] buffer = new byte[bufferSize];
-
-                    using (FileStream fs = new FileStream(tarPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
-                    {
-                        long totalSize = fs.Length;
-                        long bytesRead = 0;
-                        int read;
-                        
-                        Regex regex = new Regex(@"Client-([a-zA-Z0-9_]+)\.log");
-
-                        while ((read = fs.Read(buffer, 0, buffer.Length)) > 0)
-                        {
-                            string text = Encoding.ASCII.GetString(buffer, 0, read);
-                            MatchCollection matches = regex.Matches(text);
-                            foreach (Match match in matches)
-                            {
-                                clientIds.Add(match.Groups[1].Value);
-                            }
-
-                            bytesRead += read;
-                            
-                            this.Invoke(new Action(() => {
-                                int progress = (int)((bytesRead * 100) / totalSize);
-                                lblStatus.Text = string.Format("Arşiv taranıyor... %{0}", progress);
-                            }));
-
-                            // Overlap by 100 bytes to catch split strings
-                            if (bytesRead < totalSize && fs.Position >= 100)
-                            {
-                                fs.Position -= 100;
-                                bytesRead -= 100;
-                            }
-                        }
-                    }
-
-                    this.Invoke(new Action(() => {
-                        string result = string.Join(", ", clientIds);
-                        if (string.IsNullOrEmpty(result)) result = "Bulunamadı";
-                        
-                        TseStatus currentStatus = propertyGrid.SelectedObject as TseStatus;
-                        if (currentStatus == null) currentStatus = new TseStatus();
-                        
-                        currentStatus.RegisteredClientList = result;
-                        propertyGrid.SelectedObject = currentStatus;
-                        propertyGrid.Refresh();
-                        
-                        lblStatus.Text = string.Format("Tarama tamamlandı! {0} farklı istemci bulundu.", clientIds.Count);
-                        btnFindClients.Enabled = true;
-                    }));
-                }
-                catch (Exception ex)
-                {
-                    this.Invoke(new Action(() => {
-                        MessageBox.Show("Tarama hatası: " + ex.Message);
-                        lblStatus.Text = "Tarama sırasında hata oluştu.";
-                        btnFindClients.Enabled = true;
-                    }));
-                }
-            });
-        }
-
         private void ParseTseFile(string filePath)
         {
             byte[] b = new byte[512];
@@ -932,7 +911,7 @@ namespace TseInfoReader
                     status.CertificateExpirationDateTimeOffset = "Invalid/Uninitialized";
                 } else {
                     DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(seconds);
-                    status.CertificateExpirationDateTimeOffset = dt.ToString("dd.MM.yyyy HH:mm:ss") + " +00:00";
+                    status.CertificateExpirationDateTimeOffset = dt.ToString("dd.MM.yyyy");
                 }
             } catch { }
 
@@ -989,6 +968,7 @@ namespace TseInfoReader
                 status.TseInitializationState = "Initialized";
                 
             propertyGrid.SelectedObject = status;
+            UpdateSummary(status);
             lblStatus.Text = "Veriler okundu. Kopyalamak istediğiniz değere tıklayın.";
         }
     }
@@ -1140,7 +1120,7 @@ namespace TseInfoReader
                     status.CertificateExpirationDateTimeOffset = "Invalid/Uninitialized";
                 } else {
                     DateTime dt = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc).AddSeconds(seconds);
-                    status.CertificateExpirationDateTimeOffset = dt.ToString("dd.MM.yyyy HH:mm:ss") + " +00:00";
+                    status.CertificateExpirationDateTimeOffset = dt.ToString("dd.MM.yyyy");
                 }
             } catch { }
             try 

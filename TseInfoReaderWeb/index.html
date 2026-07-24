@@ -135,28 +135,29 @@
             margin-top: 10px;
             color: #aaa;
             font-size: 14px;
-        }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <h1>TSE Info Reader</h1>
+        <h2>TSE Bilgi & İstemci Okuyucu</h2>
+        <p style="color: #666; font-size:14px; margin-bottom: 20px;">
+            TSE cihazınızın (USB) takılı olduğu sürücüdeki TSE_INFO.DAT dosyasını seçin.
+        </p>
+
+        <div class="upload-btn-wrapper" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+            <!-- Klasör/Sürücü seçimi (Otomatik Tarama) -->
+            <div style="position: relative; overflow: hidden; display: inline-block;">
+                <button class="btn">TSE_INFO.DAT Dosyasını Seç</button>
+                <input type="file" id="folderInput" multiple accept=".DAT" style="font-size: 100px; position: absolute; left: 0; top: 0; opacity: 0; cursor: pointer; height: 100%;" title="TSE_INFO.DAT dosyasını seçin" />
+            </div>
+
+        </div>
         
-        <div class="upload-btn-wrapper">
-            <button class="btn">USB'den TSE_INFO.DAT Seç</button>
-            <input type="file" id="fileInput" accept=".dat,application/octet-stream" />
-        </div>
-        <div id="status">Lütfen USB diskinizden TSE_INFO.DAT dosyasını seçin.</div>
+        <div id="status" style="text-align:center; color:#aaa; font-size:14px; margin-top:10px;"></div>
 
-        <div class="upload-btn-wrapper" style="margin-top:10px;">
-            <button class="btn" style="background-color: #3b82f6;">USB'den TSE_TAR.001 Seç (Kayıtlı İstemciler)</button>
-            <input type="file" id="tarFileInput" accept=".001,application/octet-stream" />
-        </div>
-        <div id="tarStatus" style="text-align:center; color:#aaa; font-size:14px; margin-top:5px;"></div>
-
-        <div id="dataContainer">
-            <div class="data-group" id="grpSerial">
+        <div class="data-container">
+            <div class="data-group" style="display:none;">
                 <span class="data-label">TSE Serial No</span>
                 <div class="data-value-container">
                     <div class="data-value" id="valSerial">-</div>
@@ -164,15 +165,15 @@
                 </div>
             </div>
 
-            <div class="data-group" id="grpBsi">
-                <span class="data-label">BSI Kodu (Description)</span>
+            <div class="data-group" style="display:none;">
+                <span class="data-label">BSI Kodu</span>
                 <div class="data-value-container">
                     <div class="data-value" id="valBsi">-</div>
                     <button class="copy-btn" onclick="copyText('valBsi', this)">Kopyala</button>
                 </div>
             </div>
 
-            <div class="data-group" id="grpDate">
+            <div class="data-group" style="display:none;">
                 <span class="data-label">Bitiş Tarihi</span>
                 <div class="data-value-container">
                     <div class="data-value" id="valDate">-</div>
@@ -180,18 +181,11 @@
                 </div>
             </div>
 
-            <div class="data-group" id="grpVersion">
+            <div class="data-group" style="display:none;">
                 <span class="data-label">Yazılım Versiyonu</span>
                 <div class="data-value-container">
                     <div class="data-value" id="valVersion">-</div>
                     <button class="copy-btn" onclick="copyText('valVersion', this)">Kopyala</button>
-                </div>
-            </div>
-
-            <div class="data-group" id="grpClients" style="display:none;">
-                <span class="data-label">Kayıtlı İstemciler (Client IDs)</span>
-                <div class="data-value-container" style="flex-direction:column; align-items:flex-start;">
-                    <ul id="valClients" style="list-style-type:none; padding:0; margin:0; width:100%;"></ul>
                 </div>
             </div>
 
@@ -202,31 +196,39 @@
     </div>
 
     <script>
-        document.getElementById('fileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
+        function handleFiles(e) {
+            const files = Array.from(e.target.files);
+            if (files.length === 0) return;
 
-            document.getElementById('status').innerText = "Okunuyor...";
+            document.getElementById('status').innerText = "Klasör taranıyor, dosyalar aranıyor...";
+            
+            const infoFile = files.find(f => f.name.toUpperCase() === 'TSE_INFO.DAT');
 
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                try {
-                    const buffer = event.target.result;
-                    if (buffer.byteLength < 512) {
-                        throw new Error("Dosya boyutu çok küçük, geçersiz TSE_INFO.DAT dosyası.");
+            if (!infoFile) {
+                document.getElementById('status').innerText = "Seçilen sürücüde geçerli TSE dosyası bulunamadı!";
+                return;
+            }
+
+            const groups = document.querySelectorAll('.data-group');
+            groups.forEach(g => g.style.display = 'block');
+
+            if (infoFile) {
+                const reader = new FileReader();
+                reader.onload = function(event) {
+                    try {
+                        const buffer = event.target.result;
+                        if (buffer.byteLength < 512) throw new Error("Dosya boyutu çok küçük.");
+                        parseTseBuffer(buffer);
+                        document.getElementById('status').innerText = "TSE bilgileri okundu.";
+                    } catch (err) {
+                        document.getElementById('status').innerText = "INFO Okuma Hatası: " + err.message;
                     }
-                    parseTseBuffer(buffer);
-                    document.getElementById('status').innerText = "Başarıyla okundu!";
-                    
-                    const groups = document.querySelectorAll('.data-group');
-                    groups.forEach(g => g.style.display = 'block');
-                } catch (err) {
-                    console.error(err);
-                    document.getElementById('status').innerText = "Hata: " + err.message;
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        });
+                };
+                reader.readAsArrayBuffer(infoFile);
+            }
+        }
+
+        document.getElementById('folderInput').addEventListener('change', handleFiles);
 
         function parseTseBuffer(buffer) {
             const view = new DataView(buffer);
@@ -243,11 +245,9 @@
             let expDateStr = "Invalid/Uninitialized";
             if (expSeconds > 0n && expSeconds < 253402300799n) {
                 const dt = new Date(Number(expSeconds) * 1000);
-                
                 const day = dt.getUTCDate().toString().padStart(2, '0');
                 const month = (dt.getUTCMonth() + 1).toString().padStart(2, '0');
                 const year = dt.getUTCFullYear();
-
                 expDateStr = `${day}.${month}.${year}`;
             }
 
@@ -298,68 +298,6 @@
                 alert("Kopyalama başarısız: " + err);
             });
         }
-
-        document.getElementById('tarFileInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            const statusEl = document.getElementById('tarStatus');
-            const listEl = document.getElementById('valClients');
-            document.getElementById('grpClients').style.display = 'block';
-            listEl.innerHTML = '';
-            
-            statusEl.innerText = "Arşiv taranıyor, lütfen bekleyin...";
-
-            const CHUNK_SIZE = 1024 * 1024 * 5; // 5 MB parçalar halinde oku
-            let offset = 0;
-            const clientIds = new Set();
-            const reader = new FileReader();
-
-            reader.onload = function(event) {
-                const buffer = event.target.result;
-                if (buffer.byteLength === 0) {
-                    statusEl.innerText = `Tarama tamamlandı! ${clientIds.size} farklı istemci bulundu.`;
-                    clientIds.forEach(id => {
-                        const li = document.createElement('li');
-                        li.style.padding = '5px 0';
-                        li.style.borderBottom = '1px solid #444';
-                        li.innerText = id;
-                        listEl.appendChild(li);
-                    });
-                    if(clientIds.size === 0) {
-                        listEl.innerHTML = '<li style="padding:5px 0;">İstemci bulunamadı.</li>';
-                    }
-                    return;
-                }
-
-                const text = new TextDecoder('ascii').decode(buffer);
-                const regex = /Client-([a-zA-Z0-9_]+)\.log/g;
-                let match;
-                while ((match = regex.exec(text)) !== null) {
-                    clientIds.add(match[1]);
-                }
-
-                offset += CHUNK_SIZE;
-                if (offset < file.size) {
-                    offset -= 100; // Kelime bölünmesine karşı örtüşme
-                    statusEl.innerText = `Arşiv taranıyor... %${Math.min(100, Math.round((offset/file.size)*100))}`;
-                    readNextChunk();
-                } else {
-                    readNextChunk(); // Son okuma boş dönüp işlemi bitirsin
-                }
-            };
-
-            reader.onerror = function() {
-                statusEl.innerText = "Dosya okuma hatası oluştu.";
-            };
-
-            function readNextChunk() {
-                const slice = file.slice(offset, offset + CHUNK_SIZE);
-                reader.readAsArrayBuffer(slice);
-            }
-
-            readNextChunk();
-        });
     </script>
 </body>
 </html>
