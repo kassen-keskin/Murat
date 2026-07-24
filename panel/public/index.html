@@ -704,27 +704,7 @@
             margin-bottom: -1px;
             padding: 0 10px 6px 10px;
             flex-shrink: 0;
-            overflow-x: auto;
-            white-space: nowrap;
-            scrollbar-width: thin;
-        }
-
-        .tabs-container::-webkit-scrollbar {
-            height: 6px;
-        }
-
-        .tabs-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 4px;
-        }
-
-        .tabs-container::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 4px;
-        }
-
-        .tabs-container::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            flex-wrap: wrap;
         }
 
         .tab-item {
@@ -733,8 +713,7 @@
             white-space: nowrap;
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
-            border-bottom: none;
-            border-radius: 8px 8px 0 0;
+            border-radius: 8px;
             cursor: pointer;
             color: var(--text-muted);
             font-weight: 600;
