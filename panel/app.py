@@ -247,23 +247,25 @@ def get_customers():
             return make_cached_response(cached, 'HIT')
 
         query = """
-        SELECT [kKunde]
-              ,[KundenNr]
-              ,[Firma]
-              ,[InhabeName]
-              ,[Tel]
-              ,[Mobil]
-              ,[Strasse]
-              ,[PLZ]
-              ,[LisansNo]
-              ,[KundenKategorie]
-              ,[KundenGruppe]
-              ,[Elster]
-              ,[TamKontrolTarihi]
-              ,[TSEBitisTarihi]
-              ,[Servis]
-          FROM [Custom].[MieteKundenMaster] WITH (NOLOCK)
-          ORDER BY [KundenNr]
+        SELECT M.[kKunde]
+              ,M.[KundenNr]
+              ,M.[Firma]
+              ,M.[InhabeName]
+              ,M.[Tel]
+              ,M.[Mobil]
+              ,M.[Strasse]
+              ,M.[PLZ]
+              ,M.[LisansNo]
+              ,M.[KundenKategorie]
+              ,M.[KundenGruppe]
+              ,M.[Elster]
+              ,M.[TamKontrolTarihi]
+              ,M.[TSEBitisTarihi]
+              ,K.[EcCihazi]
+              ,M.[Servis]
+          FROM [Custom].[MieteKundenMaster] M WITH (NOLOCK)
+          LEFT JOIN [Custom].[Kunde] K WITH (NOLOCK) ON K.kKunde = M.kKunde
+          ORDER BY M.[KundenNr]
         """
         cursor.execute(query)
         columns = [column[0] for column in cursor.description]
@@ -310,6 +312,7 @@ def get_customers_custom():
               ,[Gesperrt]
               ,[TamKontrolTarihi]
               ,[TSEBitisTarihi]
+              ,[EcCihazi]
               ,[Servis]
           FROM [Custom].[KundenMaster] WITH (NOLOCK)
           ORDER BY [KundenNr]

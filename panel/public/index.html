@@ -1780,10 +1780,10 @@
                 return ordered.filter(key => keys.includes(key));
             }
             if (currentTab === 'custom') {
-                return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'TSEBitisTarihi', 'Servis', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi', 'AuftragSayisi'];
+                return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'TSEBitisTarihi', 'EcCihazi', 'Servis', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi', 'AuftragSayisi'];
             }
             // For rental tab, use specific ordering and exclude Tel/Mobil
-            return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'TSEBitisTarihi', 'Servis', 'PLZ', 'Strasse', 'LisansNo'];
+            return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'TSEBitisTarihi', 'EcCihazi', 'Servis', 'PLZ', 'Strasse', 'LisansNo'];
         }
 
         function renderCards(data) {
