@@ -1,0 +1,17 @@
+/* rma.css */
+/* Styles for RMA Tab */
+#rmaPaneli {
+    /* Shared styles handle most of it */
+}
+
+#rmaPrintPreview {
+    /* A4 styling defaults */
+    box-sizing: border-box;
+}
+
+#rmaPrintPreview p,
+#rmaPrintPreview h2,
+#rmaPrintPreview h3,
+#rmaPrintPreview li {
+    color: #000;
+}

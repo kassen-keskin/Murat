@@ -739,6 +739,7 @@
     <link rel="stylesheet" href="/lisans.css">
     <link rel="stylesheet" href="/ticket.css">
     <link rel="stylesheet" href="/elster.css">
+    <link rel="stylesheet" href="/rma.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -746,6 +747,7 @@
     <script src="/lisans.js" defer></script>
     <script src="/ticket.js" defer></script>
     <script src="/elster.js" defer></script>
+    <script src="/rma.js" defer></script>
 </head>
 
 <body>
@@ -763,6 +765,7 @@
             <div id="tabLisans" class="tab-item" onclick="switchTab('lisans')">🔗 Lisans Eşleştirme</div>
             <div id="tabTickets" class="tab-item active" onclick="switchTab('tickets')">🎫 Destek / Tickets</div>
             <div id="tabElster" class="tab-item" onclick="switchTab('elster')">📋 ELSTER</div>
+            <div id="tabRMA" class="tab-item" onclick="switchTab('rma')">🔧 RMA</div>
         </div>
 
         <!-- Filter Panel -->
@@ -1200,6 +1203,109 @@
             </div>
         </div>
 
+        <!-- ===== RMA PANELİ ===== -->
+        <div id="rmaPaneli" class="panel satis-panel" style="display:none; flex:1; flex-direction:column; overflow-y:auto;">
+            <div class="satis-top-bar">
+                <h2>🔧 RMA / Teknik Servis Formu</h2>
+            </div>
+            <div class="satis-inner" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+                <div class="wizard-wrap">
+                    <div class="form-grp">
+                        <label>Müşteri Seçin (Ticket Tabındaki Gibi)</label>
+                        <select id="rmaCustomerSelect" class="form-ctrl"></select>
+                    </div>
+                    
+                    <div class="form-grp" style="margin-top: 15px;">
+                        <label>Marka/Model</label>
+                        <input type="text" id="rmaModel" class="form-ctrl" list="rmaModelList" placeholder="Örn: L1323">
+                        <datalist id="rmaModelList"></datalist>
+                    </div>
+
+                    <div class="form-grp" style="margin-top: 15px;">
+                        <label>Seri Numarası (S/N)</label>
+                        <input type="text" id="rmaSernr" class="form-ctrl" placeholder="Örn: TN39232J40160">
+                    </div>
+
+                    <div class="form-grp" style="margin-top: 15px;">
+                        <label>Konu (Betreff)</label>
+                        <input type="text" id="rmaBetreff" class="form-ctrl" list="rmaBetreffList" placeholder="Örn: Auf Display kein Bild">
+                        <datalist id="rmaBetreffList"></datalist>
+                    </div>
+
+                    <div class="form-grp" style="margin-top: 15px;">
+                        <label>Açıklama</label>
+                        <textarea id="rmaDescription" class="form-ctrl" rows="5" placeholder="Açıklama metni giriniz...">Bei dieser Kasse ist anscheinend Mainboard defekt. Displaybild flatterte letzte Woche.
+Nun ist kein Bild auf dem Display nach Einschalten. Stromversorgung ist ok. Kunde möchte einen Kostenvoranschlag für Reparatur.
+Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
+                    </div>
+
+                    <div class="form-grp" style="margin-top: 15px;">
+                        <label>Kutu İçeriği (Gönderilen Materyaller)</label>
+                        <div style="display: flex; flex-direction: column; gap: 8px; background: rgba(0,0,0,0.2); padding: 10px; border-radius: 4px;">
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" class="rma-item" value="Netzteil" style="width:18px;height:18px;"> Netzteil (Adaptör)</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" class="rma-item" value="Netzkabel" style="width:18px;height:18px;"> Netzkabel (Güç Kablosu)</label>
+                            <label style="display:flex; align-items:center; gap:8px; cursor:pointer;"><input type="checkbox" class="rma-item" value="TSE" style="width:18px;height:18px;"> TSE</label>
+                            <div style="display: flex; gap: 10px; margin-top: 5px;">
+                                <input type="text" id="rmaCustomItem" class="form-ctrl" placeholder="Diğer (Eklemek için yazın ve Enter'a basın)" onkeydown="if(event.key==='Enter') addRmaCustomItem()">
+                                <button class="btn-s secondary" onclick="addRmaCustomItem()">Ekle</button>
+                            </div>
+                            <div id="rmaCustomItemsList" style="display:flex; flex-direction:column; gap:8px;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pdf-row" style="margin-top: 25px; display: flex; justify-content: center;">
+                    <button class="btn-s teal lg" onclick="rmaPdfOlustur()">📄 PDF Oluştur ve İndir</button>
+                </div>
+                
+                <!-- Gizli yazdırma alanı -->
+                <div id="rmaPrintPreview" style="position: absolute; left: -9999px; width: 210mm; background: white; color: black; font-family: 'Times New Roman', serif; padding: 20mm;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+                        <div style="width: 50%;">
+                            <h2 style="margin: 25px 0 10px 0; font-size: 16pt;">Kassenaufsteller: Kassen Keskin</h2>
+                            <p style="margin: 0; font-size: 12pt; line-height: 1.4;">
+                                Stülpnagelstraße 3 * 14059 Berlin<br>
+                                Tel.: 030/ 23 57 15 27<br>
+                                Mobil: 0176 222 04 117<br>
+                                www.kassen-keskin.de<br>
+                                info@kassen-keskin.de
+                            </p>
+                        </div>
+                        <div style="display: flex; flex-direction: column; align-items: center;">
+                            <img src="/logo.jpg" style="width: 250px; height: auto; margin-bottom: 10px;" onerror="this.style.display='none'">
+                            <p style="margin: 0; font-size: 12pt; text-align: center;">Berlin, <span id="rmaPrintDate"></span></p>
+                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 14pt; font-weight: bold;">Kunde:</h3>
+                        <p id="rmaPrintCustomer" style="margin: 0; font-size: 12pt; white-space: pre-wrap; line-height: 1.4;"></p>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <p style="margin: 0; font-size: 12pt;"><strong>Marka/Model:</strong> <span id="rmaPrintModel"></span></p>
+                        <p style="margin: 0; font-size: 12pt;"><strong>S/N:</strong> <span id="rmaPrintSernr"></span></p>
+                    </div>
+
+                    <div style="margin-bottom: 30px;">
+                        <p style="margin: 0; font-size: 12pt; font-weight: bold;">Betreff: <span id="rmaPrintBetreff"></span></p>
+                    </div>
+                    
+                    <div style="margin-bottom: 40px;">
+                        <p style="margin: 0 0 10px 0; font-size: 12pt;">Sehr geehrte Damen und Herren,</p>
+                        <p id="rmaPrintDescription" style="margin: 0; font-size: 12pt; white-space: pre-wrap; line-height: 1.4;"></p>
+                        <p style="margin: 20px 0 0 0; font-size: 12pt;">Mit freundlichen Grüßen,</p>
+                        <p style="margin: 5px 0 0 0; font-size: 12pt;">Kassen Keskin Team</p>
+                    </div>
+
+                    <div>
+                        <p style="margin: 0 0 10px 0; font-size: 12pt; font-weight: bold; text-decoration: underline;">Beigefügte Materialien:</p>
+                        <ol id="rmaPrintItemsList" style="margin: 0; padding-left: 20px; font-size: 12pt; line-height: 1.6;"></ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div><!-- /dashboard-container -->
 
     <!-- Hidden Print Area -->
@@ -1436,6 +1542,7 @@
             document.getElementById('tabLisans').classList.toggle('active', tab === 'lisans');
             document.getElementById('tabTickets').classList.toggle('active', tab === 'tickets');
             document.getElementById('tabElster').classList.toggle('active', tab === 'elster');
+            document.getElementById('tabRMA').classList.toggle('active', tab === 'rma');
 
             const filterPanel = document.querySelector('.filter-panel');
             const listPanel   = document.querySelector('.panel.list-panel');
@@ -1445,6 +1552,7 @@
             const lisansPaneli = document.getElementById('lisansPaneli');
             const ticketsPaneli = document.getElementById('ticketsPaneli');
             const elsterPaneli = document.getElementById('elsterPaneli');
+            const rmaPaneli = document.getElementById('rmaPaneli');
             const aylikControls = document.getElementById('aylikControls');
 
             aylikControls.style.display = tab === 'aylik' ? 'flex' : 'none';
@@ -1506,8 +1614,20 @@
                 formHubPaneli.style.display = 'none';
                 lisansPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'flex';
                 if (typeof initElsterTab === 'function') initElsterTab();
+            } else if (tab === 'rma') {
+                filterPanel.style.display = 'none';
+                listPanel.style.display   = 'none';
+                satisPaneli.style.display = 'none';
+                teslimatPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'none';
+                ticketsPaneli.style.display = 'none';
+                elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'flex';
+                if (typeof initRmaTab === 'function') initRmaTab();
             } else {
                 filterPanel.style.display = '';
                 listPanel.style.display   = '';
