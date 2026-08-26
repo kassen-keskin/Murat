@@ -744,7 +744,10 @@ function updateNewTicketCustomerOptions() {
     }
 }
 
-async function showNewTicketForm() {
+async function showNewTicketForm(defaultDateStr = null) {
+    if (typeof isCalendarView !== 'undefined' && isCalendarView) {
+        toggleTicketCalendarView();
+    }
     currentTicketId = null;
     filterTicketsList(); // clear active selection
 
@@ -804,6 +807,11 @@ async function showNewTicketForm() {
     `;
 
     updateNewTicketCustomerOptions();
+    
+    if (defaultDateStr) {
+        const el = document.getElementById('newTicketDueDate');
+        if (el) el.value = `${defaultDateStr}T12:00`;
+    }
 }
 
 async function submitNewTicket() {
@@ -1062,7 +1070,7 @@ function renderTicketCalendar(filteredTickets) {
             
             const isToday = (new Date().toDateString() === currentDay.toDateString());
             
-            html += `<div class="cal-day-cell ${isToday ? "cal-today" : ""}" ondragover="handleTicketDragOver(event)" ondrop="handleTicketDrop(event, '${dateStr}')">`;
+            html += `<div class="cal-day-cell ${isToday ? "cal-today" : ""}" ondragover="handleTicketDragOver(event)" ondrop="handleTicketDrop(event, '${dateStr}')" onclick="handleDayCellClick(event, '${dateStr}')">`;
             html += `<div class="cal-day-number">${currentDay.getDate()}</div>`;
             
             const dayTickets = ticketsByDate[dateStr] || [];
@@ -1168,3 +1176,8 @@ function toggleTicketLeftPane() {
     }
 }
 
+
+function handleDayCellClick(e, dateStr) {
+    if (e.target.closest('.cal-ticket-box')) return;
+    showNewTicketForm(dateStr);
+}
