@@ -1038,7 +1038,7 @@ function renderTicketCalendar(filteredTickets) {
     `;
 
     const cols = showWeekends ? 7 : 5;
-    html += `<div class="ticket-calendar-grid" style="grid-template-columns: 60px repeat(${cols}, 1fr);">`;
+    html += `<div class="ticket-calendar-grid" style="grid-template-columns: 60px repeat(${cols}, 1fr) 60px;">`;
     html += `<div class="cal-header">Hafta</div>`;
     
     const daysArr = ["Pzt", "Sal", "Çar", "Per", "Cum"];
@@ -1048,6 +1048,7 @@ function renderTicketCalendar(filteredTickets) {
     daysArr.forEach(d => {
         html += `<div class="cal-header">${d}</div>`;
     });
+    html += `<div class="cal-header">Ay</div>`;
     
     for (let w = 0; w < 4; w++) {
         const weekStartDay = days[w*7];
@@ -1081,6 +1082,9 @@ function renderTicketCalendar(filteredTickets) {
             
             html += `</div>`;
         }
+        const monthNames = ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"];
+        const weekMonthStr = monthNames[weekStartDay.getMonth()];
+        html += `<div class="cal-week-cell">${weekMonthStr}</div>`;
     }
     
     html += `</div>`;
