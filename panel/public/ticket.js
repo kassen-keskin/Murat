@@ -980,7 +980,7 @@ function getWeekNumber(d) {
 }
 
 let calendarWeekOffset = 0;
-let showWeekends = true;
+let showWeekends = false;
 
 function changeCalendarOffset(offset) {
     calendarWeekOffset += offset;
