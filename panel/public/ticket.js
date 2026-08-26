@@ -1062,7 +1062,7 @@ function renderTicketCalendar(filteredTickets) {
             
             const isToday = (new Date().toDateString() === currentDay.toDateString());
             
-            html += `<div class="cal-day-cell ${isToday ? "cal-today" : ""}">`;
+            html += `<div class="cal-day-cell ${isToday ? "cal-today" : ""}" ondragover="handleTicketDragOver(event)" ondrop="handleTicketDrop(event, '${dateStr}')">`;
             html += `<div class="cal-day-number">${currentDay.getDate()}</div>`;
             
             const dayTickets = ticketsByDate[dateStr] || [];
@@ -1075,7 +1075,7 @@ function renderTicketCalendar(filteredTickets) {
                 const userName = userObj ? getShortDisplayName(userObj) : "Bilinmeyen";
                 const tooltipText = `${userName} - ${displayId ? displayId + ' - ' : ''}${title}`;
                 
-                html += `<div class="cal-ticket-box" style="background-color: ${color};" onclick="openTicketFromCalendar(${t.kTicket})" title="${tooltipText}">
+                html += `<div class="cal-ticket-box" style="background-color: ${color};" onclick="openTicketFromCalendar(${t.kTicket})" title="${tooltipText}" draggable="true" ondragstart="handleTicketDragStart(event, ${t.kTicket}, ${t.kBenutzer_Ersteller})">
                     <b>${displayId}</b> ${title}
                 </div>`;
             });
@@ -1098,5 +1098,57 @@ function openTicketFromCalendar(ticketId) {
     document.getElementById("ticketCalendarPane").style.display = "none";
     document.getElementById("ticketDetailPane").style.display = "flex";
     selectTicket(ticketId);
+}
+
+
+
+function handleTicketDragStart(e, ticketId, ticketOwnerId) {
+    if (!loggedInTicketUser || loggedInTicketUser.kBenutzer != ticketOwnerId) {
+        e.preventDefault();
+        alert("Sadece kendi biletlerinizi taşıyabilirsiniz.");
+        return;
+    }
+    e.dataTransfer.setData("text/plain", ticketId);
+    e.dataTransfer.effectAllowed = "move";
+}
+
+function handleTicketDragOver(e) {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = "move";
+}
+
+async function handleTicketDrop(e, targetDateStr) {
+    e.preventDefault();
+    const ticketId = e.dataTransfer.getData("text/plain");
+    if (!ticketId) return;
+    
+    const ticket = ticketsData.find(t => t.kTicket == ticketId);
+    if (!ticket) return;
+    
+    let timePart = "09:00:00";
+    if (ticket.dFaelligAm) {
+        const timeMatch = String(ticket.dFaelligAm).match(/\d{2}:\d{2}:\d{2}/);
+        if (timeMatch) timePart = timeMatch[0];
+    }
+    
+    const dFaelligAm = `${targetDateStr}T${timePart}`;
+    const kBenutzer = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
+    
+    try {
+        const res = await fetch(`/api/tickets/${ticketId}/duedate`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ dFaelligAm, kBenutzer })
+        });
+        
+        if (res.ok) {
+            ticket.dFaelligAm = dFaelligAm.replace('T', ' ');
+            filterTicketsList();
+        } else {
+            alert("Tarih güncellenemedi.");
+        }
+    } catch (err) {
+        alert("Bağlantı hatası.");
+    }
 }
 
