@@ -1,4 +1,4 @@
-let ticketsData = [];
+﻿let ticketsData = [];
 let ticketUsers = [];
 let currentTicketId = null;
 let loggedInTicketUser = null;
@@ -148,6 +148,9 @@ function filterTicketsList() {
     if (countBadge) countBadge.textContent = filtered.length;
 
     renderTicketsList(filtered);
+    if (typeof renderTicketCalendar === 'function' && typeof isCalendarView !== 'undefined' && isCalendarView) {
+        renderTicketCalendar(filtered);
+    }
 }
 
 function parseRawDatetimeLocal(value) {
