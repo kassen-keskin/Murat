@@ -1069,7 +1069,12 @@ function renderTicketCalendar(filteredTickets) {
                 const color = getUserColor(t.kBenutzer_Ersteller);
                 const title = t.cTitelErsteNachricht || t.Firma || "Bilet";
                 const displayId = t.KundenNr || "";
-                html += `<div class="cal-ticket-box" style="background-color: ${color};" onclick="openTicketFromCalendar(${t.kTicket})" title="${title}">
+                
+                const userObj = ticketUsers.find(u => u.kBenutzer == t.kBenutzer_Ersteller);
+                const userName = userObj ? getShortDisplayName(userObj) : "Bilinmeyen";
+                const tooltipText = `${userName} - ${displayId ? displayId + ' - ' : ''}${title}`;
+                
+                html += `<div class="cal-ticket-box" style="background-color: ${color};" onclick="openTicketFromCalendar(${t.kTicket})" title="${tooltipText}">
                     <b>${displayId}</b> ${title}
                 </div>`;
             });
