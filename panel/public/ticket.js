@@ -937,3 +937,154 @@ async function saveTicketDueDate(ticketId) {
         alert("Takip tarihi kaydedilemedi.");
     }
 }
+
+
+// --- Ticket Calendar Implementation ---
+let isCalendarView = false;
+
+function toggleTicketCalendarView() {
+    isCalendarView = !isCalendarView;
+    const btn = document.querySelector('.tickets-list-header button[onclick="toggleTicketCalendarView()"]');
+    if (btn) { btn.innerHTML = isCalendarView ? '📝 Biletler' : '📅 Takvim'; }
+    const detailPane = document.getElementById("ticketDetailPane");
+    const calendarPane = document.getElementById("ticketCalendarPane");
+    
+    if (isCalendarView) {
+        detailPane.style.display = "none";
+        calendarPane.style.display = "flex";
+        filterTicketsList(); // Re-render calendar with current filters
+    } else {
+        calendarPane.style.display = "none";
+        detailPane.style.display = "flex";
+    }
+}
+
+const userColors = {};
+const defaultColors = ["#ef5350", "#ab47bc", "#5c6bc0", "#29b6f6", "#26a69a", "#66bb6a", "#d4e157", "#ffa726", "#ff7043", "#8d6e63"];
+function getUserColor(userId) {
+    if (!userId) return "#777";
+    if (!userColors[userId]) {
+        userColors[userId] = defaultColors[Object.keys(userColors).length % defaultColors.length];
+    }
+    return userColors[userId];
+}
+
+function getWeekNumber(d) {
+    const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+    date.setUTCDate(date.getUTCDate() + 4 - (date.getUTCDay()||7));
+    const yearStart = new Date(Date.UTC(date.getUTCFullYear(),0,1));
+    return Math.ceil(( ( (date - yearStart) / 86400000) + 1)/7);
+}
+
+let calendarWeekOffset = 0;
+let showWeekends = true;
+
+function changeCalendarOffset(offset) {
+    calendarWeekOffset += offset;
+    filterTicketsList();
+}
+
+function toggleWeekends() {
+    showWeekends = !showWeekends;
+    filterTicketsList();
+}
+
+function renderTicketCalendar(filteredTickets) {
+    const pane = document.getElementById("ticketCalendarPane");
+    if (!pane) return;
+    
+    const today = new Date();
+    today.setDate(today.getDate() + (calendarWeekOffset * 7));
+    const day = today.getDay();
+    const diff = today.getDate() - day + (day === 0 ? -6 : 1);
+    const startOfWeek = new Date(today.setDate(diff));
+    startOfWeek.setHours(0,0,0,0);
+    
+    const days = [];
+    for(let i=0; i<28; i++) {
+        const d = new Date(startOfWeek);
+        d.setDate(startOfWeek.getDate() + i);
+        days.push(d);
+    }
+    
+    const ticketsByDate = {};
+    filteredTickets.forEach(t => {
+        let dateVal = t.dFaelligAm || t.dAenderung || t.dErstellung;
+        if (!dateVal) return;
+        const d = new Date(parseRawDatetimeLocal(dateVal));
+        if (isNaN(d.getTime())) return;
+        const dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+        if (!ticketsByDate[dateStr]) ticketsByDate[dateStr] = [];
+        ticketsByDate[dateStr].push(t);
+    });
+    
+    let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+            <div>
+                <button class="btn-s secondary" onclick="changeCalendarOffset(-4)">⬅️ Önceki 4 Hafta</button>
+                <button class="btn-s secondary" onclick="changeCalendarOffset(4)">Sonraki 4 Hafta ➡️</button>
+                <button class="btn-s secondary" onclick="calendarWeekOffset=0; filterTicketsList();">Bugün</button>
+            </div>
+            <div>
+                <label style="cursor:pointer; display:flex; align-items:center; gap:5px; color:var(--text-color); font-size: 0.95rem;">
+                    <input type="checkbox" ${showWeekends ? "" : "checked"} onchange="toggleWeekends()" style="width: 16px; height: 16px; cursor: pointer;">
+                    Hafta Sonunu Gizle
+                </label>
+            </div>
+        </div>
+    `;
+
+    const cols = showWeekends ? 7 : 5;
+    html += `<div class="ticket-calendar-grid" style="grid-template-columns: 60px repeat(${cols}, 1fr);">`;
+    html += `<div class="cal-header">Hafta</div>`;
+    
+    const daysArr = ["Pzt", "Sal", "Çar", "Per", "Cum"];
+    if (showWeekends) {
+        daysArr.push("Cmt", "Paz");
+    }
+    daysArr.forEach(d => {
+        html += `<div class="cal-header">${d}</div>`;
+    });
+    
+    for (let w = 0; w < 4; w++) {
+        const weekStartDay = days[w*7];
+        const wn = getWeekNumber(weekStartDay);
+        html += `<div class="cal-week-cell">Hafta ${wn}</div>`;
+        for (let d = 0; d < 7; d++) {
+            if (!showWeekends && (d === 5 || d === 6)) continue;
+            
+            const currentDay = days[w*7 + d];
+            const dateStr = currentDay.getFullYear() + "-" + String(currentDay.getMonth()+1).padStart(2,"0") + "-" + String(currentDay.getDate()).padStart(2,"0");
+            
+            const isToday = (new Date().toDateString() === currentDay.toDateString());
+            
+            html += `<div class="cal-day-cell ${isToday ? "cal-today" : ""}">`;
+            html += `<div class="cal-day-number">${currentDay.getDate()}</div>`;
+            
+            const dayTickets = ticketsByDate[dateStr] || [];
+            dayTickets.forEach(t => {
+                const color = getUserColor(t.kBenutzer_Ersteller);
+                const title = t.cTitelErsteNachricht || t.Firma || "Bilet";
+                const displayId = t.KundenNr || "";
+                html += `<div class="cal-ticket-box" style="background-color: ${color};" onclick="openTicketFromCalendar(${t.kTicket})" title="${title}">
+                    <b>${displayId}</b> ${title}
+                </div>`;
+            });
+            
+            html += `</div>`;
+        }
+    }
+    
+    html += `</div>`;
+    pane.innerHTML = html;
+}
+
+function openTicketFromCalendar(ticketId) {
+    isCalendarView = false;
+    const btn = document.querySelector('.tickets-list-header button[onclick="toggleTicketCalendarView()"]');
+    if (btn) { btn.innerHTML = '📅 Takvim'; }
+    document.getElementById("ticketCalendarPane").style.display = "none";
+    document.getElementById("ticketDetailPane").style.display = "flex";
+    selectTicket(ticketId);
+}
+
