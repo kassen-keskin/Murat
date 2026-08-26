@@ -1152,3 +1152,19 @@ async function handleTicketDrop(e, targetDateStr) {
     }
 }
 
+
+
+function toggleTicketLeftPane() {
+    const pane = document.querySelector('.tickets-list-pane');
+    const icon = document.getElementById('ticketPaneTogglerIcon');
+    if (!pane) return;
+    
+    if (pane.style.display === 'none') {
+        pane.style.display = 'flex';
+        icon.innerHTML = '&#9664;'; // Left pointing triangle
+    } else {
+        pane.style.display = 'none';
+        icon.innerHTML = '&#9654;'; // Right pointing triangle
+    }
+}
+
