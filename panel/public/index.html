@@ -1565,6 +1565,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 lisansPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
                 satisPaneli.style.display = 'flex';
                 initSatisTab();
             } else if (tab === 'teslimat') {
@@ -1575,6 +1576,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 lisansPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
                 teslimatPaneli.style.display = 'flex';
                 if (typeof initTeslimatTab === 'function') initTeslimatTab();
             } else if (tab === 'formhub') {
@@ -1585,6 +1587,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 lisansPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
                 formHubPaneli.style.display = 'flex';
             } else if (tab === 'lisans') {
                 filterPanel.style.display = 'none';
@@ -1594,6 +1597,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 formHubPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
                 lisansPaneli.style.display = 'flex';
                 if (typeof initLisansTab === 'function') initLisansTab();
             } else if (tab === 'tickets') {
@@ -1604,6 +1608,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 formHubPaneli.style.display = 'none';
                 lisansPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'flex';
                 if (typeof initTicketsTab === 'function') initTicketsTab();
             } else if (tab === 'elster') {
@@ -1637,6 +1642,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 lisansPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
                 if (tab === 'aylik') {
                     if (!aylikLoaded) {
                         await fetchAylikData();
