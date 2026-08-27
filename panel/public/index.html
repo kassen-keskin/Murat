@@ -1221,7 +1221,17 @@
             </div>
             <div class="satis-inner" style="max-width: 800px; margin: 0 auto; padding: 20px;">
                 <div class="wizard-wrap">
-                    <div class="form-grp">
+                    <div class="form-grp" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+                        <div style="flex:1; min-width:220px;">
+                            <label>Müşteri Ara</label>
+                            <input type="text" id="rmaCustomerSearch" class="form-ctrl" placeholder="Firma veya müşteri numarası ara..." oninput="updateRmaCustomerOptions()">
+                        </div>
+                        <div style="display:flex; align-items:center; gap:8px; white-space:nowrap;">
+                            <label style="margin:0; font-size:0.95rem; color:var(--text-muted);">Sonuç:</label>
+                            <span id="rmaCustomerCount" style="font-weight:bold;">0</span>
+                        </div>
+                    </div>
+                    <div class="form-grp" style="margin-top: 15px;">
                         <label>Müşteri Seçin (Ticket Tabındaki Gibi)</label>
                         <select id="rmaCustomerSelect" class="form-ctrl"></select>
                     </div>

@@ -1,28 +1,24 @@
 // rma.js
 async function initRmaTab() {
     // Populate Customer Dropdown
-    try {
-        const response = await fetch('/api/customers');
-        if (response.ok) {
-            const customers = await response.json();
-            const select = document.getElementById('rmaCustomerSelect');
-            select.innerHTML = '<option value="">-- Müşteri Seçin --</option>';
-            customers.forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c.kKunde;
-                opt.textContent = `${c.KundenNr || ''} - ${c.Firma || c.InhabeName || 'Bilinmiyor'}`;
-                // Store data in data attributes for print view
-                opt.dataset.firma = c.Firma || '';
-                opt.dataset.inhabe = c.InhabeName || '';
-                opt.dataset.nr = c.KundenNr || '';
-                opt.dataset.strasse = c.Strasse || '';
-                opt.dataset.plz = c.PLZ || '';
-                select.appendChild(opt);
-            });
+    if (typeof ensureTicketCustomersLoaded === 'function') {
+        await ensureTicketCustomersLoaded();
+    } else {
+        if (!datasets.custom || datasets.custom.length === 0) {
+            try {
+                const res = await fetch('/api/customers_custom');
+                if (res.ok) datasets.custom = await res.json();
+            } catch (e) { }
         }
-    } catch (e) {
-        console.error("Error loading customers for RMA:", e);
+        if (!datasets.rental || datasets.rental.length === 0) {
+            try {
+                const res = await fetch('/api/customers');
+                if (res.ok) datasets.rental = await res.json();
+            } catch (e) { }
+        }
     }
+    
+    updateRmaCustomerOptions();
 
     // Load history for Model and Betreff
     try {
@@ -102,7 +98,8 @@ async function rmaPdfOlustur() {
     document.getElementById('rmaPrintDate').textContent = dateStr;
     
     // Set Customer Info
-    const customerHtml = `${opt.dataset.nr} - ${opt.dataset.firma}\n${opt.dataset.inhabe}\n${opt.dataset.strasse}\n${opt.dataset.plz}`;
+    const ort = opt.dataset.ort || '';
+    const customerHtml = `${opt.dataset.nr} - ${opt.dataset.firma}\n${opt.dataset.inhabe}\n${opt.dataset.strasse}\n${opt.dataset.plz} ${ort}`;
     document.getElementById('rmaPrintCustomer').textContent = customerHtml.trim().replace(/\n+/g, '\n');
     
     // Set inputs
@@ -184,5 +181,56 @@ async function rmaPdfOlustur() {
         printArea.style.left = '-9999px';
         printArea.style.top = 'auto';
         printArea.style.zIndex = 'auto';
+    }
+}
+
+function updateRmaCustomerOptions() {
+    const filter = document.getElementById('rmaCustomerSearch')?.value || '';
+    const select = document.getElementById('rmaCustomerSelect');
+    const countLabel = document.getElementById('rmaCustomerCount');
+    if (!select) return;
+
+    let customers = [];
+    if (typeof getTicketCustomers === 'function') {
+        customers = getTicketCustomers(filter);
+    } else {
+        const customCustomers = Array.isArray(datasets?.custom) ? datasets.custom : [];
+        const rentalCustomers = Array.isArray(datasets?.rental) ? datasets.rental : [];
+        const allCustomers = customCustomers.length > 0 ? customCustomers : rentalCustomers;
+        
+        const searchValue = filter.trim().toLowerCase();
+        if (!searchValue) {
+            customers = allCustomers;
+        } else {
+            customers = allCustomers.filter(c => {
+                const firma = String(c.Firma || c.InhabeName || '').toLowerCase();
+                const kundenNr = String(c.KundenNr || c.kundenNr || '').toLowerCase();
+                return firma.includes(searchValue) || kundenNr.includes(searchValue);
+            });
+        }
+    }
+
+    let customerOptions = '<option value="">-- Müşteri Seçin --</option>';
+
+    if (customers.length === 0) {
+        customerOptions += '<option value="" disabled>Sonuç bulunamadı</option>';
+    } else {
+        customers.forEach((c, idx) => {
+            const label = `${c.KundenNr || ''} - ${c.Firma || c.InhabeName || 'Bilinmeyen'}`;
+            const selected = idx === 0 ? ' selected' : '';
+            customerOptions += `<option value="${c.kKunde}" data-firma="${c.Firma || ''}" data-inhabe="${c.InhabeName || ''}" data-nr="${c.KundenNr || ''}" data-strasse="${c.Strasse || ''}" data-plz="${c.PLZ || ''}" data-ort="${c.Ort || ''}"${selected}>${label}</option>`;
+        });
+    }
+
+    select.innerHTML = customerOptions;
+
+    if (customers.length > 0) {
+        select.value = String(customers[0].kKunde);
+    } else {
+        select.value = '';
+    }
+
+    if (countLabel) {
+        countLabel.textContent = customers.length;
     }
 }

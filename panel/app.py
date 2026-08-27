@@ -263,6 +263,7 @@ def get_customers():
               ,M.[TSEBitisTarihi]
               ,K.[EcCihazi]
               ,M.[Servis]
+              ,K.[Ort]
           FROM [Custom].[MieteKundenMaster] M WITH (NOLOCK)
           LEFT JOIN [Custom].[Kunde] K WITH (NOLOCK) ON K.kKunde = M.kKunde
           ORDER BY M.[KundenNr]
@@ -294,28 +295,32 @@ def get_customers_custom():
             return make_cached_response(cached, 'HIT')
 
         query = """
-        SELECT [kKunde]
-              ,[KundenNr]
-              ,[Firma]
-              ,[InhabeName]
-              ,[KundenKategorie]
-              ,[KundenGruppe]
-              ,[KasaSayisi]
-              ,[SeriKodluKasaSayisi]
-              ,[ElsterSayisi]
-              ,[AuftragSayisi]
-              ,[NotSayisi]
-              ,CASE WHEN [ElsterSayisi] > 0 THEN 1 ELSE 0 END AS [Elster]
-              ,[BorcToplami]
-              ,[BorcTarihi]
-              ,[BorcTarihiGunSayisi]
-              ,[Gesperrt]
-              ,[TamKontrolTarihi]
-              ,[TSEBitisTarihi]
-              ,[EcCihazi]
-              ,[Servis]
-          FROM [Custom].[KundenMaster] WITH (NOLOCK)
-          ORDER BY [KundenNr]
+        SELECT M.[kKunde]
+              ,M.[KundenNr]
+              ,M.[Firma]
+              ,M.[InhabeName]
+              ,M.[KundenKategorie]
+              ,M.[KundenGruppe]
+              ,M.[KasaSayisi]
+              ,M.[SeriKodluKasaSayisi]
+              ,M.[ElsterSayisi]
+              ,M.[AuftragSayisi]
+              ,M.[NotSayisi]
+              ,CASE WHEN M.[ElsterSayisi] > 0 THEN 1 ELSE 0 END AS [Elster]
+              ,M.[BorcToplami]
+              ,M.[BorcTarihi]
+              ,M.[BorcTarihiGunSayisi]
+              ,M.[Gesperrt]
+              ,M.[TamKontrolTarihi]
+              ,M.[TSEBitisTarihi]
+              ,M.[EcCihazi]
+              ,M.[Servis]
+              ,K.[FirmaAdress] AS [Strasse]
+              ,K.[PLZ]
+              ,K.[Ort]
+          FROM [Custom].[KundenMaster] M WITH (NOLOCK)
+          LEFT JOIN [Custom].[Kunde] K WITH (NOLOCK) ON K.kKunde = M.kKunde
+          ORDER BY M.[KundenNr]
         """
         cursor.execute(query)
         columns = [column[0] for column in cursor.description]
