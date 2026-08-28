@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <title>Kassen Keskin Katalog</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body { 
+      font-family: 'Poppins', sans-serif; 
+      background-color: #f3f4f6;
+    }
+    
+    .print-page {
+      width: 210mm;
+      height: 297mm;
+      background: white;
+      margin: 0 auto;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+
+    @media print {
+      @page { size: A4; margin: 0; }
+      body { margin: 0; padding: 0; background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .no-print { display: none !important; }
+      .no-print-bg { background: none !important; padding: 0 !important; }
+      .print-page { width: 210mm !important; height: 297mm !important; page-break-after: always; margin: 0 !important; box-shadow: none !important; border: none !important; }
+      .print-page:last-child { page-break-after: auto; }
+      .slider-img, .ec-img { opacity: 0 !important; z-index: 0 !important; }
+      .slider-img-0, .ec-img-1 { opacity: 1 !important; z-index: 10 !important; }
+    }
+    /* Hand-drawn sketchy border with jitter */
+    @keyframes jitter {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      20% { transform: translate(-1px, -1px) rotate(-0.5deg); }
+      40% { transform: translate(1px, -1px) rotate(0.5deg); }
+      60% { transform: translate(-1px, 1px) rotate(0deg); }
+      80% { transform: translate(-1px, -1px) rotate(0.5deg); }
+      100% { transform: translate(1px, 1px) rotate(-0.5deg); }
+    }
+    .sketch-border {
+      border: 6px solid #2563eb;
+      border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+      animation: jitter 0.5s infinite steps(3);
+    }
+    @media print {
+      .sketch-border { animation: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <nav class="no-print bg-blue-700 text-white p-4 flex justify-between items-center shadow-md sticky top-0 z-50">
+      <div class="text-2xl font-black tracking-wider flex items-center gap-3">
+        <i class="fas fa-book-open"></i> {{ t('title') }}
+      </div>
+      <div class="flex items-center gap-4">
+        <!-- Language Switcher -->
+        <div class="flex bg-blue-900 rounded-lg overflow-hidden border-2 border-blue-800 shadow-inner">
+          <button @click="changeLang('tr')" :class="lang === 'tr' ? 'bg-white text-blue-900 font-bold' : 'text-gray-300 hover:bg-blue-600'" class="px-4 py-1.5 transition-colors text-sm">TR</button>
+          <button @click="changeLang('de')" :class="lang === 'de' ? 'bg-white text-blue-900 font-bold' : 'text-gray-300 hover:bg-blue-600'" class="px-4 py-1.5 transition-colors text-sm">DE</button>
+          <button @click="changeLang('en')" :class="lang === 'en' ? 'bg-white text-blue-900 font-bold' : 'text-gray-300 hover:bg-blue-600'" class="px-4 py-1.5 transition-colors text-sm">EN</button>
+        </div>
+
+        <button @click="mode = 'view'" :class="mode === 'view' ? 'bg-blue-900 border-2 border-white' : 'bg-blue-600 border-2 border-transparent hover:bg-blue-500'" class="px-5 py-2 rounded-lg font-bold transition-all shadow-md">
+          <i class="fas fa-images"></i> {{ t('catalogView') }}
+        </button>
+        <button @click="mode = 'admin'" :class="mode === 'admin' ? 'bg-blue-900 border-2 border-white' : 'bg-blue-600 border-2 border-transparent hover:bg-blue-500'" class="px-5 py-2 rounded-lg font-bold transition-all shadow-md">
+          <i class="fas fa-cog"></i> {{ t('adminPanel') }}
+        </button>
+      </div>
+    </nav>
+
+    <div v-if="mode === 'view'" class="min-h-screen">
+      <div class="no-print p-6 bg-white shadow-md mb-8 flex flex-wrap gap-6 items-end justify-center border-b-4 border-blue-500">
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">{{ t('brand') }}</label>
+          <select v-model="filterBrand" class="block w-56 rounded-md shadow-sm p-3 border-2 border-gray-300 focus:border-blue-500 font-semibold text-lg outline-none cursor-pointer">
+            <option value="">{{ t('allBrands') }}</option>
+            <option v-for="b in brands" :key="b" :value="b">{{b}}</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">{{ t('industry') }}</label>
+          <select v-model="filterIndustry" class="block w-56 rounded-md shadow-sm p-3 border-2 border-gray-300 focus:border-blue-500 font-semibold text-lg outline-none cursor-pointer">
+            <option value="">{{ t('allIndustries') }}</option>
+            <option v-for="i in industries" :key="i" :value="i">{{i}}</option>
+          </select>
+        </div>
+        <button onclick="window.print()" class="px-8 py-3 bg-green-500 text-white font-black text-lg rounded-md shadow-lg hover:bg-green-600 hover:shadow-xl transition-all flex items-center gap-3">
+          <i class="fas fa-print text-2xl"></i> {{ t('printCatalog') }}
+        </button>
+      </div>
+
+      <div class="no-print text-center text-gray-500 mb-6 text-xl font-semibold" v-if="filteredProducts.length === 0">
+        <i class="fas fa-search mb-2 text-3xl"></i><br>
+        {{ t('noProducts') }}
+      </div>
+
+      <div class="no-print-bg py-8 flex flex-col items-center gap-12">
+        <div v-for="p in filteredProducts" :key="p.id" class="print-page shadow-2xl bg-white border border-gray-200">
+          
+          <div class="absolute top-0 right-0 w-80 h-80 bg-blue-600 rounded-bl-full opacity-5 z-0 pointer-events-none"></div>
+          
+          <div class="flex justify-between items-start p-6 z-10 w-full shrink-0">
+            <img src="logo.jpg" alt="Logo" class="h-20 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'80\'><text x=\'10\' y=\'45\' font-size=\'30\' font-family=\'sans-serif\' font-weight=\'bold\'>KASSEN KESKİN</text></svg>'">
+            <div class="text-right">
+              <h2 class="text-5xl font-black text-gray-900 tracking-tight uppercase">{{ p.brand }}</h2>
+              <h3 class="text-3xl font-bold text-blue-600 mt-1 tracking-wide">{{ p.model }}</h3>
+            </div>
+          </div>
+
+          <div class="px-10 w-full z-10 shrink-0">
+            <div class="h-[380px] w-full relative flex flex-col items-center justify-center p-4 group cursor-pointer bg-white bg-opacity-50" @click="nextImage(p.id)">
+              <!-- Sketch Border Background -->
+              <div class="absolute inset-0 pointer-events-none sketch-border z-0"></div>
+
+              <!-- Smooth Crossfade Images -->
+              <div v-if="p.images && p.images.length > 0" class="w-full h-full relative z-10">
+                <img v-for="(img, idx) in p.images" :key="idx" 
+                     :src="img" 
+                     class="slider-img absolute top-0 bottom-0 left-0 right-0 m-auto max-w-full max-h-full drop-shadow-2xl transition-opacity duration-1000 ease-in-out rounded-[2.5rem]"
+                     :class="[(activeIndices[p.id] || 0) === idx ? 'opacity-100 z-10' : 'opacity-0 z-0', 'slider-img-' + idx]">
+              </div>
+              
+              <!-- Placeholder -->
+              <div v-else class="text-gray-300 flex flex-col items-center justify-center bg-gray-50 rounded-3xl p-8 border-4 border-dashed border-gray-200 h-full w-2/3">
+                <i class="fas fa-cash-register text-7xl mb-4"></i>
+                <span class="text-2xl font-bold">{{ t('noImage') }}</span>
+              </div>
+              
+              <!-- Dots -->
+              <div v-if="p.images && p.images.length > 1" class="absolute bottom-2 left-0 w-full flex justify-center gap-2 z-20">
+                <div v-for="(img, idx) in p.images" :key="idx" 
+                     @click.stop="setImage(p.id, idx)"
+                     class="w-3 h-3 rounded-full transition-colors shadow-sm cursor-pointer"
+                     :class="(activeIndices[p.id] || 0) === idx ? 'bg-blue-600 scale-125' : 'bg-gray-300 hover:bg-gray-400'">
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="px-10 py-4 z-10 flex flex-col items-center w-full flex-grow">
+            <div class="bg-blue-600 text-white px-8 py-4 rounded-2xl shadow-xl mb-8 w-full text-center transform -rotate-1 border-b-4 border-blue-800">
+              <h1 class="text-3xl font-black italic tracking-wide leading-tight">
+                "{{ p.translations[lang].slogan }}"
+              </h1>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-x-10 gap-y-8 w-full max-w-4xl px-4 mt-2">
+              <div v-for="(feat, idx) in p.translations[lang].features" :key="idx" class="flex items-center gap-5">
+                <div class="bg-green-500 text-white rounded-2xl flex items-center justify-center h-14 w-14 shrink-0 shadow-md border-b-4 border-green-700">
+                  <i class="fas fa-check text-2xl"></i>
+                </div>
+                <span class="text-2xl font-bold text-gray-800 leading-snug">{{ feat }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Price Tag -->
+          <div v-if="p.price" class="absolute bottom-[225px] right-[35px] transform -rotate-[15deg] z-40 drop-shadow-2xl opacity-90 scale-110 origin-bottom-right">
+            <div class="bg-yellow-400 text-red-700 px-6 py-2 rounded-lg border-4 border-red-600 shadow-xl inline-block" style="font-family: 'Impact', 'Arial Black', sans-serif;">
+              <span class="text-6xl uppercase tracking-tighter">{{ p.price }}</span>
+            </div>
+          </div>
+
+          <div class="mt-auto w-full bg-blue-800 text-white flex justify-between items-center px-10 py-6 relative shrink-0 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
+            <!-- Notes and EC Slider Container -->
+            <div class="absolute bottom-8 left-10 flex shadow-2xl z-30">
+              <div class="w-[5cm] h-[5cm] border-4 border-dashed border-gray-400 bg-white p-3 flex flex-col" style="background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-right-width: 0;">
+                <span class="text-sm text-gray-500 font-bold mb-2 border-b-2 border-gray-200 pb-1 uppercase tracking-wider text-center">{{ t('notes') }}</span>
+                <p class="text-[10px] font-light text-gray-700 leading-tight flex-grow overflow-hidden text-center whitespace-pre-wrap">{{ p.translations[lang].note }}</p>
+              </div>
+              <div class="w-[5cm] h-[5cm] border-4 border-dashed border-gray-400 bg-white relative overflow-hidden flex items-center justify-center p-2" style="background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+                <img v-for="i in 5" :key="i"
+                     :src="'image/ec/' + i + '.png'"
+                     class="ec-img absolute max-w-full max-h-full object-contain transition-opacity duration-1000 ease-in-out p-2"
+                     :class="[ecActiveIndex === (i-1) ? 'opacity-100 z-10' : 'opacity-0 z-0', 'ec-img-' + i]">
+              </div>
+            </div>
+
+            <div class="w-10"></div> <!-- Small flexible spacer -->
+
+            <div class="text-right z-10 max-w-[10cm]">
+              <div class="text-3xl font-black text-white mb-2">
+                <i class="fab fa-whatsapp text-green-400 drop-shadow-md"></i> +49 176 222 0 4117
+              </div>
+              <div class="text-xl font-bold text-blue-100 leading-tight">
+                <i class="fas fa-map-marker-alt text-red-400 drop-shadow-md"></i> Stülpnagelstraße 3<br>14059 Berlin
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div v-if="mode === 'admin'" class="p-8 max-w-7xl mx-auto">
+      <div class="flex justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-sm border-l-8 border-blue-600">
+        <div>
+          <h2 class="text-3xl font-black text-gray-800">{{ t('adminModule') }}</h2>
+          <p class="text-gray-500 font-medium mt-1">{{ t('adminDesc') }}</p>
+        </div>
+        <button @click="addNewProduct" class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600 font-bold text-lg flex items-center gap-2 transition-transform hover:scale-105">
+          <i class="fas fa-plus-circle"></i> {{ t('addNew') }}
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div class="lg:col-span-1 bg-white p-4 rounded-xl shadow border border-gray-200 flex flex-col h-[75vh]">
+          <h3 class="font-bold text-lg border-b pb-2 mb-4 text-gray-700">{{ t('existingPages') }} ({{ products.length }})</h3>
+          <div class="overflow-y-auto flex-grow pr-2 space-y-2">
+            <div v-for="p in products" :key="p.id" 
+                 class="p-4 border rounded-lg cursor-pointer transition-all flex justify-between items-center group"
+                 :class="editingProduct && editingProduct.id === p.id ? 'bg-blue-50 border-blue-500 shadow-md ring-2 ring-blue-200' : 'hover:bg-gray-50 border-gray-200'"
+                 @click="editProduct(p)">
+              <div class="flex items-center gap-4">
+                <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center overflow-hidden shrink-0 border">
+                  <img v-if="p.images && p.images.length > 0" :src="p.images[0]" class="w-full h-full object-cover">
+                  <i v-else class="fas fa-box text-gray-400"></i>
+                </div>
+                <div>
+                  <div class="font-bold text-gray-800 text-lg">{{p.brand}} {{p.model}}</div>
+                  <div class="text-xs font-semibold text-blue-600 bg-blue-100 px-2 py-0.5 rounded inline-block mt-1">
+                    {{p.industries.length}} {{ t('sectors') }}
+                  </div>
+                </div>
+              </div>
+              <button @click.stop="deleteProduct(p.id)" class="text-gray-300 hover:text-red-600 transition-colors bg-white p-2 rounded-full hover:bg-red-50">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="lg:col-span-2">
+          <div v-if="editingProduct" class="bg-white p-8 rounded-xl shadow-lg border border-gray-200">
+            <div class="flex justify-between items-center mb-6 border-b pb-4">
+              <h3 class="text-2xl font-black text-gray-800">
+                {{ isNew ? t('addNew') : t('editProduct') + ': ' + editingProduct.brand + ' ' + editingProduct.model }}
+              </h3>
+            </div>
+            
+            <div class="grid grid-cols-2 gap-6 mb-6">
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">{{ t('brandReq') }} <span class="text-red-500">*</span></label>
+                <input type="text" v-model="editingProduct.brand" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" list="brand-list">
+                <datalist id="brand-list">
+                  <option v-for="b in brands" :value="b"></option>
+                </datalist>
+                <p class="text-xs text-gray-500 mt-1">{{ t('brandSelect') }}</p>
+              </div>
+              <div>
+                <label class="block text-sm font-bold text-gray-700 mb-2">{{ t('modelReq') }} <span class="text-red-500">*</span></label>
+                <input type="text" v-model="editingProduct.model" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none">
+              </div>
+              <div class="col-span-2">
+                <label class="block text-sm font-bold text-gray-700 mb-2">{{ t('priceLabel') || 'Aylık Kiralama Fiyatı' }} (Opsiyonel)</label>
+                <input type="text" v-model="editingProduct.price" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="Örn: SADECE 49€ / AY">
+              </div>
+            </div>
+
+            <div class="mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
+              <label class="block text-sm font-bold text-gray-700 mb-4">{{ t('images') }}</label>
+              
+              <div class="flex flex-col gap-4">
+                <div class="relative border-2 border-dashed border-gray-400 bg-white rounded-xl p-6 text-center hover:bg-gray-50 cursor-pointer transition-colors" onclick="document.getElementById('img-upload').click()">
+                  <i class="fas fa-images text-4xl text-blue-500 mb-2"></i>
+                  <p class="font-bold text-gray-700">{{ t('clickToSelect') }}</p>
+                  <p class="text-sm text-gray-500 mt-1">{{ t('autoOptimize') }}</p>
+                  <input id="img-upload" type="file" @change="handleImageUpload" class="hidden" accept="image/png, image/jpeg, image/webp" multiple>
+                </div>
+                
+                <div v-if="editingProduct.images && editingProduct.images.length > 0" class="flex flex-wrap gap-4 p-2 bg-white rounded-lg border border-gray-200">
+                  <div v-for="(img, idx) in editingProduct.images" :key="idx" class="w-32 h-32 shrink-0 bg-gray-100 border-2 border-gray-200 rounded-xl relative overflow-hidden shadow-sm group">
+                    <img :src="img" class="w-full h-full object-contain p-2">
+                    <button @click="editingProduct.images.splice(idx, 1)" class="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-600 shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                      <i class="fas fa-times text-xs"></i>
+                    </button>
+                    <div class="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white text-[10px] text-center py-0.5 opacity-0 group-hover:opacity-100">{{ t('delete') }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Translation Tabs for Slogan and Features -->
+            <div class="mb-2 flex gap-2">
+              <button @click.prevent="editLang = 'tr'" :class="editLang === 'tr' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'" class="px-5 py-2 rounded-t-lg font-bold transition-colors">TR</button>
+              <button @click.prevent="editLang = 'de'" :class="editLang === 'de' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'" class="px-5 py-2 rounded-t-lg font-bold transition-colors">DE</button>
+              <button @click.prevent="editLang = 'en'" :class="editLang === 'en' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'" class="px-5 py-2 rounded-t-lg font-bold transition-colors">EN</button>
+            </div>
+            
+            <div class="bg-blue-50 p-6 rounded-b-xl rounded-tr-xl border border-blue-200 mb-8">
+              <div class="mb-6">
+                <label class="block text-sm font-bold text-blue-900 mb-2">{{ t('sloganReq') }} [{{ editLang.toUpperCase() }}] <span class="text-red-500">*</span></label>
+                <input type="text" v-model="editingProduct.translations[editLang].slogan" class="w-full border-2 border-gray-300 focus:border-blue-500 p-4 rounded-lg text-xl font-bold italic outline-none text-blue-900">
+              </div>
+
+              <div>
+                <label class="block text-sm font-bold text-blue-900 mb-3">{{ t('featuresReq') }} [{{ editLang.toUpperCase() }}] <span class="text-red-500">*</span></label>
+                <div class="grid grid-cols-2 gap-4">
+                  <div class="relative" v-for="i in 4" :key="i">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <i class="fas fa-check-circle text-green-500"></i>
+                    </div>
+                    <input type="text" v-model="editingProduct.translations[editLang].features[i-1]" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 pl-10 rounded-lg font-semibold outline-none" :placeholder="t('feature' + i)">
+                  </div>
+                </div>
+              </div>
+              <div class="mt-6">
+                <label class="block text-sm font-bold text-blue-900 mb-2">{{ t('notesDesc') }} [{{ editLang.toUpperCase() }}]</label>
+                <textarea v-model="editingProduct.translations[editLang].note" rows="2" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg text-sm outline-none" placeholder="Ürünle ilgili küçük notlar..."></textarea>
+              </div>
+            </div>
+
+            <div class="mb-8">
+              <label class="block text-sm font-bold text-gray-700 mb-3">{{ t('industriesFilter') }}</label>
+              <div class="flex flex-wrap gap-3">
+                <label v-for="ind in industries" :key="ind" 
+                       class="flex items-center gap-2 px-4 py-2 rounded-full cursor-pointer transition-colors border-2 font-bold"
+                       :class="editingProduct.industries.includes(ind) ? 'bg-blue-100 border-blue-500 text-blue-800' : 'bg-gray-100 border-transparent text-gray-600 hover:bg-gray-200'">
+                  <input type="checkbox" :value="ind" v-model="editingProduct.industries" class="hidden">
+                  <i class="fas fa-tag text-sm" :class="editingProduct.industries.includes(ind) ? 'text-blue-500' : 'text-gray-400'"></i> {{ind}}
+                </label>
+              </div>
+            </div>
+            
+            <div class="flex justify-end gap-4 border-t pt-6">
+              <button @click="editingProduct = null" class="px-6 py-3 rounded-lg font-bold text-gray-600 hover:bg-gray-100 transition-colors">
+                {{ t('cancel') }}
+              </button>
+              <button @click="saveProduct" class="bg-blue-600 text-white px-10 py-3 rounded-lg shadow-lg font-black text-lg hover:bg-blue-700 transition-transform hover:scale-105 flex items-center gap-2">
+                <i class="fas fa-save"></i> {{ t('save') }}
+              </button>
+            </div>
+
+          </div>
+          
+          <div v-else class="bg-gray-50 border-2 border-dashed border-gray-300 rounded-xl h-full flex flex-col items-center justify-center text-gray-400 min-h-[500px]">
+            <i class="fas fa-hand-pointer text-6xl mb-4 text-gray-300"></i>
+            <h3 class="text-2xl font-bold text-gray-500">{{ t('selectFromLeft') }}</h3>
+            <p class="mt-2">{{ t('orUseNew') }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const { createApp, ref, computed, watch, onMounted, onUnmounted } = Vue;
+
+    const i18nDictionary = {
+      tr: {
+        title: 'KASSEN KESKİN KATALOG', catalogView: 'Katalog Görünümü', adminPanel: 'Yönetim Paneli',
+        brand: 'Marka', industry: 'Müşteri Branşı', allBrands: 'Tüm Markalar', allIndustries: 'Tüm Sektörler',
+        printCatalog: 'KATALOĞU YAZDIR', noProducts: 'Seçilen filtrelere uygun ürün bulunamadı.', noImage: 'Görsel Eklenmemiş',
+        notes: 'NOTLAR', sectors: 'Sektör', adminModule: 'Katalog Yönetim Modülü', adminDesc: 'Sayfaları, görselleri, sloganları ve özellikleri düzenleyin.',
+        addNew: 'Yeni Ürün Ekle', existingPages: 'Mevcut Sayfalar', editProduct: 'Ürün Düzenle', brandReq: 'Marka', brandSelect: 'Listeden seçin veya yeni yazın.',
+        modelReq: 'Model Adı', images: 'Ürün Görselleri (Birden Fazla Eklenebilir)', clickToSelect: 'Resim Seçmek İçin Tıklayın (Çoklu Seçim Yapabilirsiniz)',
+        autoOptimize: 'PNG veya JPG (Otomatik optimize edilir)', delete: 'Sil', sloganReq: 'Çarpıcı Slogan (1 Cümle)', featuresReq: '4 Çarpıcı Özellik',
+        feature1: '1. Özellik', feature2: '2. Özellik', feature3: '3. Özellik', feature4: '4. Özellik', industriesFilter: 'Uygun Müşteri Branşları (Filtreleme İçin)',
+        cancel: 'İptal Et', save: 'Ürünü Kaydet', selectFromLeft: 'Düzenlemek için sol listeden bir ürün seçin', orUseNew: 'veya "Yeni Ürün Ekle" butonunu kullanın.',
+        confirmDelete: 'Bu sayfayı katalogdan silmek istediğinize emin misiniz?', fieldsRequired: 'Marka ve Model alanları zorunludur!', priceLabel: 'Aylık Kiralama Fiyatı', notesDesc: 'Notlar (İsteğe Bağlı İçerik)'
+      },
+      de: {
+        title: 'KASSEN KESKİN KATALOG', catalogView: 'Katalog Ansicht', adminPanel: 'Admin Panel',
+        brand: 'Marke', industry: 'Kundenbranche', allBrands: 'Alle Marken', allIndustries: 'Alle Branchen',
+        printCatalog: 'KATALOG DRUCKEN', noProducts: 'Keine Produkte für die ausgewählten Filter gefunden.', noImage: 'Kein Bild hinzugefügt',
+        notes: 'NOTIZEN', sectors: 'Branchen', adminModule: 'Katalog Management Modul', adminDesc: 'Seiten, Bilder, Slogans und Funktionen bearbeiten.',
+        addNew: 'Neues Produkt', existingPages: 'Bestehende Seiten', editProduct: 'Produkt bearbeiten', brandReq: 'Marke', brandSelect: 'Aus Liste wählen oder neu eingeben.',
+        modelReq: 'Modellname', images: 'Produktbilder (Mehrfachauswahl möglich)', clickToSelect: 'Klicken um Bilder auszuwählen',
+        autoOptimize: 'PNG oder JPG (wird automatisch optimiert)', delete: 'Löschen', sloganReq: 'Auffälliger Slogan (1 Satz)', featuresReq: '4 Auffällige Merkmale',
+        feature1: 'Merkmal 1', feature2: 'Merkmal 2', feature3: 'Merkmal 3', feature4: 'Merkmal 4', industriesFilter: 'Passende Kundenbranchen (Zum Filtern)',
+        cancel: 'Abbrechen', save: 'Produkt speichern', selectFromLeft: 'Wählen Sie ein Produkt aus der linken Liste zum Bearbeiten', orUseNew: 'oder verwenden Sie die Schaltfläche "Neues Produkt".',
+        confirmDelete: 'Sind Sie sicher, dass Sie diese Seite aus dem Katalog löschen möchten?', fieldsRequired: 'Marke und Modell sind Pflichtfelder!', priceLabel: 'Monatlicher Mietpreis', notesDesc: 'Notizen (Optionaler Inhalt)'
+      },
+      en: {
+        title: 'KASSEN KESKİN CATALOG', catalogView: 'Catalog View', adminPanel: 'Admin Panel',
+        brand: 'Brand', industry: 'Customer Industry', allBrands: 'All Brands', allIndustries: 'All Industries',
+        printCatalog: 'PRINT CATALOG', noProducts: 'No products found for the selected filters.', noImage: 'No Image Added',
+        notes: 'NOTES', sectors: 'Sectors', adminModule: 'Catalog Management Module', adminDesc: 'Edit pages, images, slogans, and features.',
+        addNew: 'Add New Product', existingPages: 'Existing Pages', editProduct: 'Edit Product', brandReq: 'Brand', brandSelect: 'Select from list or type new.',
+        modelReq: 'Model Name', images: 'Product Images (Multiple allowed)', clickToSelect: 'Click to Select Images',
+        autoOptimize: 'PNG or JPG (Auto optimized)', delete: 'Delete', sloganReq: 'Striking Slogan (1 Sentence)', featuresReq: '4 Striking Features',
+        feature1: 'Feature 1', feature2: 'Feature 2', feature3: 'Feature 3', feature4: 'Feature 4', industriesFilter: 'Suitable Customer Industries (For Filtering)',
+        cancel: 'Cancel', save: 'Save Product', selectFromLeft: 'Select a product from the left list to edit', orUseNew: 'or use the "Add New Product" button.',
+        confirmDelete: 'Are you sure you want to delete this page from the catalog?', fieldsRequired: 'Brand and Model fields are required!', priceLabel: 'Monthly Rental Price', notesDesc: 'Notes (Optional Content)'
+      }
+    };
+
+    const defaultProducts = [
+      { id: 1, brand: 'Noris', model: 'S-43', slogan: 'Kompakt ve Güçlü Performans!', features: ['39 Tuşlu Kullanım', '4,3" Renkli Ekran', '58mm Termal Yazıcı', 'Küçük İşletmeler İçin İdeal'], industries: ['Kiosk', 'Spätikauf'], images: [] },
+      { id: 2, brand: 'Noris', model: 'S-70', slogan: 'Dokunmatik Ekranla Kolay Yönetim!', features: ['7" Renkli Dokunmatik Ekran', '58mm Termal Yazıcı', 'Adisyon ve Tartı Uyumu', 'Hızlı İşlem Kapasitesi'], industries: ['Imbiss', 'Berber'], images: [] },
+      { id: 3, brand: 'Noris', model: 'S-70+', slogan: 'Büyüyen İşletmeler İçin Ekstra Güç!', features: ['7" Dokunmatik Ekran', '80mm Otomatik Kesicili Yazıcı', 'Detaylı Raporlama', 'Geniş Bağlantı Seçenekleri'], industries: ['Restaurant', 'Imbiss'], images: [] },
+      { id: 4, brand: 'Noris', model: 'M-101', slogan: 'All-in-One Şıklığı ve Verimlilik!', features: ['10,1" Geniş Dokunmatik Ekran', '80mm Termal Yazıcı', 'Şık Antrasit Tasarım', 'Kompakt Yapı'], industries: ['Restaurant', 'Kiosk'], images: [] },
+      { id: 5, brand: 'Noris', model: 'MX-116', slogan: 'Grafik Masa Planı ile Tam Kontrol!', features: ['11,6" Full-HD Ekran', 'Grafik Masa Yönetimi', 'Renkli Müşteri Ekranı', 'Yüksek Performans (4GB RAM)'], industries: ['Restaurant'], images: [] },
+      { id: 6, brand: 'Noris', model: 'LK-133', slogan: 'Standlı ve Şık Tasarım!', features: ['13,3" Full-HD Ekran', 'Gizli Kablo Yönetimi', 'Esnek Konumlandırma', 'Güçlü İşlemci'], industries: ['Restaurant', 'Imbiss', 'Berber'], images: [] },
+      { id: 7, brand: 'Noris', model: 'LK-156', slogan: 'Büyük Ekran, Büyük Rahatlık!', features: ['15,6" Full-HD Ekran', 'Standlı Zarif Yapı', 'Geniş Görüş Açısı', 'Hızlı ve Kesintisiz Hizmet'], industries: ['Restaurant', 'Spätikauf'], images: [] },
+      { id: 8, brand: 'Noris', model: 'LA-156', slogan: 'Alüminyum Kasa ile Prestij Katın!', features: ['15,6" Full-HD Ekran', 'Dayanıklı Alüminyum Gövde', 'Şık ve Modern Görünüm', 'Zorlu Ortamlara Uygun'], industries: ['Restaurant'], images: [] },
+      { id: 9, brand: 'Noris', model: 'LX-156', slogan: 'Esnek VESA Montaj Çözümü!', features: ['15,6" Full-HD Ekran', 'Harici Barebone PC', 'VESA Askı Desteği', 'Yerden Tasarruf Sağlar'], industries: ['Kiosk', 'Berber'], images: [] }
+    ];
+
+    createApp({
+      setup() {
+        const mode = ref('view');
+        
+        // Multi-language State
+        const lang = ref(localStorage.getItem('catalog_lang') || 'tr');
+        const changeLang = (l) => {
+          lang.value = l;
+          localStorage.setItem('catalog_lang', l);
+        };
+        const t = (key) => i18nDictionary[lang.value][key] || key;
+
+        const stored = localStorage.getItem('catalog_products');
+        const products = ref(stored ? JSON.parse(stored) : defaultProducts);
+        
+        // Migrate old data to multi-language and multi-image
+        products.value.forEach(p => {
+          if (!p.images) { p.images = p.image ? [p.image] : []; delete p.image; }
+          if (p.price === undefined) p.price = '';
+          if (!p.translations) {
+            p.translations = {
+              tr: { slogan: p.slogan || '', note: '', features: p.features || ['', '', '', ''] },
+              de: { slogan: '', note: '', features: ['', '', '', ''] },
+              en: { slogan: '', note: '', features: ['', '', '', ''] }
+            };
+            delete p.slogan;
+            delete p.features;
+          } else {
+            if (p.translations.tr.note === undefined) {
+              p.translations.tr.note = '';
+              p.translations.de.note = '';
+              p.translations.en.note = '';
+            }
+          }
+        });
+
+        watch(products, (newVal) => {
+          localStorage.setItem('catalog_products', JSON.stringify(newVal));
+        }, { deep: true });
+
+        const brands = ref(['Noris', 'Quorion', 'Olympia', 'RCH', 'Lotus Pecas', 'Lacash']);
+        const industries = ref(['Imbiss', 'Restaurant', 'Kiosk', 'Spätikauf', 'Berber', 'Market', 'Cafe']);
+        const filterBrand = ref('Noris');
+        const filterIndustry = ref('');
+
+        const filteredProducts = computed(() => {
+          return products.value.filter(p => {
+            const matchBrand = filterBrand.value === '' || p.brand === filterBrand.value;
+            const matchIndustry = filterIndustry.value === '' || (p.industries && p.industries.includes(filterIndustry.value));
+            return matchBrand && matchIndustry;
+          });
+        });
+
+        // Image Slider
+        const activeIndices = ref({});
+        let slideInterval = null;
+        const startInterval = () => {
+          if (slideInterval) clearInterval(slideInterval);
+          slideInterval = setInterval(() => {
+            products.value.forEach(p => {
+              if (p.images && p.images.length > 1) {
+                let current = activeIndices.value[p.id] || 0;
+                activeIndices.value[p.id] = (current + 1) % p.images.length;
+              }
+            });
+          }, 5000);
+        };
+        const nextImage = (id) => {
+          const p = products.value.find(x => x.id === id);
+          if (p && p.images && p.images.length > 1) {
+            activeIndices.value[id] = ((activeIndices.value[id] || 0) + 1) % p.images.length;
+            startInterval();
+          }
+        };
+        const setImage = (id, idx) => {
+          activeIndices.value[id] = idx;
+          startInterval();
+        };
+
+        // EC Image Slider
+        const ecActiveIndex = ref(0);
+        let ecInterval = null;
+        const startEcInterval = () => {
+          if (ecInterval) clearInterval(ecInterval);
+          ecInterval = setInterval(() => {
+            ecActiveIndex.value = (ecActiveIndex.value + 1) % 5;
+          }, 3000);
+        };
+
+        onMounted(() => { startInterval(); startEcInterval(); });
+        onUnmounted(() => { 
+          if (slideInterval) clearInterval(slideInterval); 
+          if (ecInterval) clearInterval(ecInterval);
+        });
+
+        // Admin State
+        const editingProduct = ref(null);
+        const isNew = ref(false);
+        const editLang = ref('tr');
+
+        const addNewProduct = () => {
+          isNew.value = true;
+          editLang.value = 'tr';
+          editingProduct.value = {
+            id: Date.now(),
+            brand: 'Noris',
+            model: '',
+            price: '',
+            industries: [],
+            images: [],
+            translations: {
+              tr: { slogan: '', note: '', features: ['', '', '', ''] },
+              de: { slogan: '', note: '', features: ['', '', '', ''] },
+              en: { slogan: '', note: '', features: ['', '', '', ''] }
+            }
+          };
+        };
+
+        const editProduct = (p) => {
+          isNew.value = false;
+          editLang.value = 'tr';
+          editingProduct.value = JSON.parse(JSON.stringify(p));
+        };
+
+        const saveProduct = () => {
+          if (!editingProduct.value.brand || !editingProduct.value.model) {
+            alert(t('fieldsRequired'));
+            return;
+          }
+          const index = products.value.findIndex(p => p.id === editingProduct.value.id);
+          if (index > -1) {
+            products.value[index] = editingProduct.value;
+          } else {
+            products.value.push(editingProduct.value);
+          }
+          if (editingProduct.value.brand && !brands.value.includes(editingProduct.value.brand)) {
+            brands.value.push(editingProduct.value.brand);
+          }
+          editingProduct.value = null;
+        };
+
+        const deleteProduct = (id) => {
+          if (confirm(t('confirmDelete'))) {
+            products.value = products.value.filter(p => p.id !== id);
+            if (editingProduct.value && editingProduct.value.id === id) {
+              editingProduct.value = null;
+            }
+          }
+        };
+
+        const handleImageUpload = (e) => {
+          const files = e.target.files;
+          if (!files || files.length === 0) return;
+          if (!editingProduct.value.images) editingProduct.value.images = [];
+          
+          Array.from(files).forEach(file => {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+              const img = new Image();
+              img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 1000;
+                const MAX_HEIGHT = 1000;
+                let width = img.width;
+                let height = img.height;
+                if (width > height) {
+                  if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
+                } else {
+                  if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
+                }
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                editingProduct.value.images.push(canvas.toDataURL('image/jpeg', 0.8));
+              };
+              img.src = event.target.result;
+            };
+            reader.readAsDataURL(file);
+          });
+        };
+
+        return {
+          mode, lang, changeLang, t,
+          products, brands, industries,
+          filterBrand, filterIndustry, filteredProducts,
+          activeIndices, nextImage, setImage,
+          ecActiveIndex,
+          editingProduct, isNew, editLang,
+          addNewProduct, editProduct, saveProduct, deleteProduct,
+          handleImageUpload
+        };
+      }
+    }).mount('#app')
+  </script>
+</body>
+</html>
