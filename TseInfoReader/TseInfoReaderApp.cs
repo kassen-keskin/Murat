@@ -487,6 +487,18 @@ namespace TseInfoReader
 
         private void LoadDatabaseConfig()
         {
+            try
+            {
+                string root = Path.GetPathRoot(AppDomain.CurrentDomain.BaseDirectory);
+                DriveInfo di = new DriveInfo(root);
+                if (di.DriveType == DriveType.Removable)
+                {
+                    lblStatus.Text = "USB üzerinden çalıştırılıyor, SQL bağlantısı yapılmayacak.";
+                    return;
+                }
+            }
+            catch { }
+
             string envFile = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "TseInfoReader.env");
             string server = "";
             string db = "";
@@ -509,6 +521,7 @@ namespace TseInfoReader
                     SqlConnectionStringBuilder builder = new SqlConnectionStringBuilder();
                     builder.DataSource = server;
                     builder.InitialCatalog = db;
+                    builder.ConnectTimeout = 3; // Timeout'u kısalt
                     if (!string.IsNullOrEmpty(user))
                     {
                         builder.UserID = user;

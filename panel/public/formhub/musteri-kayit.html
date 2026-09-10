@@ -1237,7 +1237,7 @@
             const searchInput = document.getElementById("kundenSearchInput");
             const kndNr = searchInput ? searchInput.value.trim() : "";
             const prefix = kndNr ? `${kndNr} - ` : "";
-            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Musteri-Kayit.pdf` : `${prefix}Musteri-Kayit.pdf`;
+            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Meldeverfahren.pdf` : `${prefix}Meldeverfahren.pdf`;
             doc.save(fileName);
             showStatusMessage('PDF başarıyla oluşturuldu!', 'success');
         });
@@ -1363,7 +1363,7 @@
             const searchInput = document.getElementById("kundenSearchInput");
             const kndNr = searchInput ? searchInput.value.trim() : "";
             const prefix = kndNr ? `${kndNr} - ` : "";
-            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Musteri-Kayit.xml` : `${prefix}Musteri-Kayit.xml`;
+            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Elster.xml` : `${prefix}Elster.xml`;
             a.download = fileName;
             document.body.appendChild(a);
             a.click();
@@ -1711,7 +1711,7 @@
             const searchInput = document.getElementById("kundenSearchInput");
             const kndNr = searchInput ? searchInput.value.trim() : "";
             const prefix = kndNr ? `${kndNr} - ` : "";
-            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Musteri-Kayit.pdf` : `${prefix}Musteri-Kayit.pdf`;
+            const fileName = sanitizedName ? `${prefix}${sanitizedName} - Komple Form.pdf` : `${prefix}Komple Form.pdf`;
             doc.save(fileName);
             showStatusMessage('Komple Form PDF başarıyla oluşturuldu!', 'success');
         }
@@ -1792,7 +1792,16 @@
 
             const a = document.createElement('a');
             a.href = url;
-            a.download = `JTL_Kunde_Import_${new Date().toISOString().slice(0, 10)}.csv`;
+            
+            const sanitizeFilename = (name) => {
+                if (!name) return '';
+                return name.replace(/[\\/:*?"<>|]/g, '_');
+            };
+            const sanitizedName = sanitizeFilename(firma);
+            const searchInput = document.getElementById("kundenSearchInput");
+            const kndNr = searchInput ? searchInput.value.trim() : "";
+            const prefix = kndNr ? `${kndNr} - ` : "";
+            a.download = sanitizedName ? `${prefix}${sanitizedName} - Meldeverfahren.csv` : `${prefix}Meldeverfahren.csv`;
 
             document.body.appendChild(a);
             a.click();
