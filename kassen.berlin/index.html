@@ -473,6 +473,83 @@ function pauseAuto() {
     .slide-content h2 { font-size: 1.4em; }
     .slide-content p { font-size: 1em; }
   }
+
+  .kk-booking-section {
+    margin: 48px auto;
+    max-width: 1120px;
+    padding: clamp(24px, 5vw, 56px);
+    border: 1px solid rgba(38, 51, 82, .18);
+    border-radius: 28px;
+    background:
+      radial-gradient(circle at 90% 0, rgba(108, 140, 255, .22), transparent 38%),
+      linear-gradient(135deg, #101a33, #172342);
+    color: #f4f7ff;
+    box-shadow: 0 24px 70px rgba(15, 25, 55, .18);
+  }
+
+  .kk-booking-header {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(220px, .65fr);
+    gap: 32px;
+    align-items: end;
+    margin-bottom: 28px;
+  }
+
+  .kk-booking-eyebrow {
+    color: #a9bbff;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+  }
+
+  .kk-booking-header h2 {
+    max-width: 660px;
+    margin: 10px 0 12px;
+    color: #fff;
+    font-size: clamp(2rem, 4vw, 3.5rem);
+    line-height: 1.05;
+    letter-spacing: -.04em;
+  }
+
+  .kk-booking-header p {
+    max-width: 620px;
+    margin: 0;
+    color: #bdc8e3;
+    font-size: 1.05rem;
+    line-height: 1.65;
+  }
+
+  .kk-booking-trust {
+    display: grid;
+    gap: 10px;
+    color: #dce4ff;
+    font-size: .9rem;
+  }
+
+  .kk-booking-trust span::before {
+    margin-right: 8px;
+    color: #43d19e;
+    content: "✓";
+    font-weight: 800;
+  }
+
+  .kk-booking-frame {
+    overflow: hidden;
+    min-height: 420px;
+    border-radius: 18px;
+    background: #fff;
+  }
+
+  .kk-booking-frame iframe {
+    display: block;
+    min-height: 420px;
+  }
+
+  @media (max-width: 700px) {
+    .kk-booking-header { grid-template-columns: 1fr; gap: 20px; }
+    .kk-booking-section { margin: 28px 12px; border-radius: 20px; }
+  }
 </style>
 </head>
 <body>
@@ -546,7 +623,23 @@ Gerne empfehlen wir weiter.<!-- R-CONTENT --></div> <span class="ti-read-more" d
 
 
 
-<iframe src="https://kassen.berlin/wp-json/ssa/v1/embed-inner?integration&type&label&types&edit&view&payment_provider&ssa_locale=de_DE&ssa_is_rtl&sid=68ebe1c9d0293ebfa513aedef335dd8f6d12bcc3&availability_start_date&availability_end_date&suggest_first_available&suggest_first_available_within_minutes&flow&fallback_flow&time_view&date_view&appointment_types_view&version&accent_color&background&padding&font&booking_url=https%3A%2F%2Fkassen.berlin%2F&booking_post_id=88&booking_title=Home&_wpnonce=917af2cd32&redirect_post_id&defer&hide_header&mepr_membership_id#/" height="400px" width="100%" name="ssa_booking" loading="eager" frameborder="0" data-skip-lazy="1" class="ssa_booking_iframe skip-lazy" title="Buche eine Uhrzeit"></iframe>
+<section class="kk-booking-section" id="randevu" aria-labelledby="kk-booking-title">
+  <div class="kk-booking-header">
+    <div>
+      <span class="kk-booking-eyebrow">Kassen Keskin · Berlin</span>
+      <h2 id="kk-booking-title">Planen Sie Ihren persönlichen Termin.</h2>
+      <p>Wählen Sie direkt einen passenden Zeitpunkt für Beratung, Einrichtung oder technischen Support. Ihre Anfrage wird sicher über unser Buchungssystem übermittelt.</p>
+    </div>
+    <div class="kk-booking-trust" aria-label="Vorteile der Terminbuchung">
+      <span>Ohne zusätzliches Kundenkonto buchen</span>
+      <span>Verfügbare Zeiten in Echtzeit</span>
+      <span>Bestätigung direkt nach der Buchung</span>
+    </div>
+  </div>
+  <div class="kk-booking-frame">
+    <iframe src="https://kassen.berlin/wp-json/ssa/v1/embed-inner?integration&type&label&types&edit&view&payment_provider&ssa_locale=de_DE&ssa_is_rtl&sid=68ebe1c9d0293ebfa513aedef335dd8f6d12bcc3&availability_start_date&availability_end_date&suggest_first_available&suggest_first_available_within_minutes&flow&fallback_flow&time_view&date_view&appointment_types_view&version&accent_color&background&padding&font&booking_url=https%3A%2F%2Fkassen.berlin%2F&booking_post_id=88&booking_title=Home&_wpnonce=917af2cd32&redirect_post_id&defer&hide_header&mepr_membership_id#/" height="420" width="100%" name="ssa_booking" loading="eager" frameborder="0" data-skip-lazy="1" class="ssa_booking_iframe skip-lazy" title="Termin buchen"></iframe>
+  </div>
+</section>
 
 
 
