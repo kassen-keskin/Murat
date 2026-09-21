@@ -221,6 +221,12 @@ const reviewData = {
 
 const videos = [{
     url: 'https://youtube.com/shorts/VrG25GPLOPk?si=aLWnhClvOTfCkXcc'
+}, {
+    url: 'https://www.instagram.com/reel/C58kCJQt1Kk/?stkn=MzRlODBiNWFlZA=='
+}, {
+    url: 'https://youtube.com/shorts/neR36UuDhaU?si=Hy1Fd89MtbrbchAN'
+}, {
+    url: 'https://youtu.be/hJihf-dsrxQ'
 }];
 let videoIndex = 0;
 
@@ -254,13 +260,28 @@ function setLanguage(language) {
     if (langSelect) langSelect.value = language;
 }
 
+// Load YouTube Iframe API
+const ytApiScript = document.createElement('script');
+ytApiScript.src = "https://www.youtube.com/iframe_api";
+document.head.appendChild(ytApiScript);
+
 function videoSource(url) {
     try {
         const parsed = new URL(url);
         if (parsed.hostname.includes('youtube.com') || parsed.hostname.includes('youtu.be')) {
             let id = parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop();
             if (parsed.pathname.includes('/shorts/')) id = parsed.pathname.split('/shorts/')[1].split('/')[0];
-            return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1`;
+            return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&enablejsapi=1`;
+        }
+        if (parsed.hostname.includes('instagram.com')) {
+            let path = parsed.pathname.replace(/\/$/, '');
+            if (!path.endsWith('/embed')) {
+                return `https://www.instagram.com${path}/embed/`;
+            }
+        }
+        if (parsed.hostname.includes('tiktok.com')) {
+            const videoId = parsed.pathname.split('/').filter(Boolean).pop();
+            return `https://www.tiktok.com/embed/v2/${videoId}`;
         }
         return url;
     } catch {
@@ -268,14 +289,53 @@ function videoSource(url) {
     }
 }
 
+let videoAdvanceTimer;
+
+function advanceVideo() {
+    videoIndex = (videoIndex + 1) % videos.length;
+    renderVideo();
+}
+
 function renderVideo() {
+    clearTimeout(videoAdvanceTimer);
     const item = videos[videoIndex];
     const screen = document.getElementById('videoScreen');
     const source = videoSource(item.url);
     const locale = translations[currentLanguage];
-    screen.innerHTML = source.endsWith('.mp4') ? `<video src="${source}" autoplay muted playsinline controls></video>` : source
-        ? `<iframe src="${source}" title="Short video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`
-        : `<div class="video-placeholder"><i class="fa-solid fa-link-slash"></i>${locale.invalidVideoTitle}</div>`;
+    
+    if (source.endsWith('.mp4')) {
+        screen.innerHTML = `<video id="nativeVideoPlayer" src="${source}" autoplay muted playsinline controls></video>`;
+        document.getElementById('nativeVideoPlayer').addEventListener('ended', advanceVideo);
+    } else if (source.includes('youtube.com')) {
+        screen.innerHTML = `<iframe id="ytIframePlayer" src="${source}" title="Short video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+        
+        const attachYT = () => {
+            if (window.YT && window.YT.Player) {
+                new YT.Player('ytIframePlayer', {
+                    events: {
+                        'onStateChange': (event) => {
+                            // YT.PlayerState.ENDED is 0
+                            if (event.data === 0) {
+                                advanceVideo();
+                            }
+                        }
+                    }
+                });
+            } else {
+                setTimeout(attachYT, 250);
+            }
+        };
+        attachYT();
+        // Fallback safety timeout for youtube in case api fails or video is too long
+        videoAdvanceTimer = setTimeout(advanceVideo, 65000);
+    } else if (source) {
+        screen.innerHTML = `<iframe src="${source}" title="Short video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`;
+        // Instagram and others don't emit ended events through iframe, so we use a fixed 15 second timer.
+        videoAdvanceTimer = setTimeout(advanceVideo, 15000);
+    } else {
+        screen.innerHTML = `<div class="video-placeholder"><i class="fa-solid fa-link-slash"></i>${locale.invalidVideoTitle}</div>`;
+        videoAdvanceTimer = setTimeout(advanceVideo, 5000);
+    }
 }
 
 document.getElementById('videoPrevious').addEventListener('click', () => {
@@ -290,9 +350,9 @@ document.getElementById('videoNext').addEventListener('click', () => {
 // Infinite Scroll and Auto-play Logic
 function setupInfiniteScroll(trackId, prevId, nextId, autoDirection, intervalMs = 5000) {
     const track = document.getElementById(trackId);
-    const prev = document.getElementById(prevId);
-    const next = document.getElementById(nextId);
-    if (!track || !prev || !next) return;
+    const prev = prevId ? document.getElementById(prevId) : null;
+    const next = nextId ? document.getElementById(nextId) : null;
+    if (!track) return;
 
     let isAnimating = false;
     let autoInterval;
@@ -319,13 +379,14 @@ function setupInfiniteScroll(trackId, prevId, nextId, autoDirection, intervalMs 
         requestAnimationFrame(() => {
             requestAnimationFrame(() => {
                 track.style.scrollBehavior = 'smooth';
-                track.style.scrollSnapType = 'x mandatory';
+                // Do not re-enable scrollSnapType here; let it animate freely
                 
                 let done = false;
                 const onScrollEnd = () => {
                     if (done) return;
                     done = true;
                     track.removeEventListener('scrollend', onScrollEnd);
+                    track.style.scrollSnapType = 'x mandatory';
                     isAnimating = false;
                 };
                 const fallback = setTimeout(onScrollEnd, 600);
@@ -334,7 +395,7 @@ function setupInfiniteScroll(trackId, prevId, nextId, autoDirection, intervalMs 
                     onScrollEnd();
                 }, { once: true });
 
-                track.scrollTo({ left: track.scrollLeft - step, behavior: 'smooth' });
+                track.scrollBy({ left: -step, behavior: 'smooth' });
             });
         });
     }
@@ -374,8 +435,8 @@ function setupInfiniteScroll(trackId, prevId, nextId, autoDirection, intervalMs 
         track.scrollBy({ left: step, behavior: 'smooth' });
     }
 
-    prev.addEventListener('click', moveLeft);
-    next.addEventListener('click', moveRight);
+    if (prev) prev.addEventListener('click', moveLeft);
+    if (next) next.addEventListener('click', moveRight);
 
     // Auto-scroll loop
     function startAuto() {
