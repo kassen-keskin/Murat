@@ -21,7 +21,7 @@
     <nav class="glass-navbar">
         <div class="nav-container">
             <a href="#top" class="logo-link" aria-label="Kassen Keskin Startseite">
-                <img src="../d3sunmi/assets/logo.png" alt="Kassen Keskin Logo" class="logo-img">
+                <img src="assets/logo.png" alt="Kassen Keskin Logo" class="logo-img">
             </a>
             <div class="nav-contact-links">
                 <a href="https://wa.me/4917622204117" target="_blank" rel="noopener noreferrer" class="nav-contact-link"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
@@ -29,10 +29,12 @@
                 <a href="tel:+4917622204117" class="nav-contact-link"><i class="fa-solid fa-phone"></i><span>+49 176 22204117</span></a>
             </div>
             <div class="nav-actions">
-                <div class="language-switch" role="group" aria-label="Sprachauswahl">
-                    <button type="button" class="language-button active" data-language="de">DE</button>
-                    <button type="button" class="language-button" data-language="tr">TR</button>
-                    <button type="button" class="language-button" data-language="en">EN</button>
+                <div class="language-switch dropdown-wrapper">
+                    <select id="languageSelect" class="language-dropdown" aria-label="Select language">
+                        <option value="de">DE</option>
+                        <option value="tr">TR</option>
+                        <option value="en">EN</option>
+                    </select>
                 </div>
                 <a href="#appointment" class="nav-btn" data-i18n="navRequest">Termin anfragen</a>
             </div>
@@ -81,23 +83,17 @@
         <section class="reviews-section" id="reviews">
             <section class="reviews-showcase glass-section" aria-labelledby="reviews-title">
                 <h2 id="reviews-title" data-i18n="reviewsTitle">Ihre Bewertungen</h2>
-                <div class="reviews-window"><div class="reviews-track" id="reviewsTrack"></div></div>
+                <div class="reviews-window">
+                    <button class="reviews-arrow left" id="reviewsPrevious" type="button" aria-label="Vorherige Bewertungen" data-i18n-aria="previousReview"><i class="fa-solid fa-chevron-left"></i></button>
+                    <div class="reviews-track" id="reviewsTrack"></div>
+                    <button class="reviews-arrow right" id="reviewsNext" type="button" aria-label="Nächste Bewertungen" data-i18n-aria="nextReview"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
             </section>
             <section class="partner-slider-section glass-section" aria-labelledby="partner-slider-title">
                 <h2 id="partner-slider-title" data-i18n="partnerSliderTitle">Unsere Partner</h2>
                 <div class="slider-container">
                     <button class="partner-slider-arrow left" id="partnerPrevious" type="button" aria-label="Vorherige Partner" data-i18n-aria="previousPartner"><i class="fa-solid fa-chevron-left"></i></button>
                     <div class="logo-track" id="partnerTrack">
-                        <div class="logo"><img src="assets/partner-logos/logo1.png" alt="Partner 1"></div>
-                        <div class="logo"><img src="assets/partner-logos/logo2.png" alt="Partner 2"></div>
-                        <div class="logo"><img src="assets/partner-logos/logo3.png" alt="Partner 3"></div>
-                        <div class="logo"><img src="assets/partner-logos/logo4.png" alt="Partner 4"></div>
-                        <div class="logo"><img src="assets/partner-logos/logo5.png" alt="Partner 5"></div>
-                        <div class="logo"><img src="assets/partner-logos/logo6.png" alt="Partner 6"></div>
-                        <div class="logo"><img src="assets/partner-logos/logo7.png" alt="Partner 7"></div>
-                        <div class="logo"><img src="assets/partner-logos/logo8.png" alt="Partner 8"></div>
-                        <div class="logo"><img src="assets/partner-logos/logo9.png" alt="Partner 9"></div>
-                        <div class="logo"><img src="assets/partner-logos/logo10.png" alt="Partner 10"></div>
                         <div class="logo"><img src="assets/partner-logos/logo1.png" alt="Partner 1"></div>
                         <div class="logo"><img src="assets/partner-logos/logo2.png" alt="Partner 2"></div>
                         <div class="logo"><img src="assets/partner-logos/logo3.png" alt="Partner 3"></div>
@@ -134,7 +130,7 @@
 
     <footer>
         <div class="footer-social-links" aria-label="Social Media">
-            <a href="https://www.instagram.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="https://www.facebook.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="https://www.youtube.com/@KassenKeskin" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a><a href="https://www.tiktok.com/@kassenkeskin" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a><a href="https://www.linkedin.com/in/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+            <a href="https://www.instagram.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="https://www.facebook.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="https://www.youtube.com/@KassenKeskin" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a><a href="https://www.tiktok.com/@kassenkeskin" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>            <a href="https://www.linkedin.com/in/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>            <a href="https://x.com/KassenKeskin" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X"><span class="x-twitter-mark" aria-hidden="true">X</span></a><a href="https://wa.me/4917622204117" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a><a href="https://maps.app.goo.gl/CxSuDaSSADDdxb86A" target="_blank" rel="noopener noreferrer" aria-label="Google Maps"><i class="fa-solid fa-map-location-dot"></i></a><a href="tel:+4917622204117" aria-label="Telefon"><i class="fa-solid fa-phone"></i></a>
         </div>
         <p data-i18n="footerText">&copy; 2026 Kassen Keskin | Ihr Partner für moderne Geschäftslösungen.</p>
     </footer>

@@ -1,6 +1,6 @@
 const translations = {
     de: {
-        navRequest: 'Termin anfragen',
+        navRequest: 'Termin',
         heroEyebrow: 'Kassen Keskin · Berlin',
         heroTitle: 'Ihr Geschäft.',
         heroSolution: 'Unsere Lösung.',
@@ -42,6 +42,8 @@ const translations = {
         footerText: '&copy; 2026 Kassen Keskin | Ihr Partner für moderne Geschäftslösungen.',
         previousVideo: 'Vorheriges Video',
         nextVideo: 'Nächstes Video',
+        previousReview: 'Vorherige Bewertungen',
+        nextReview: 'Nächste Bewertungen',
         formStatusPreparing: 'Ihre E-Mail wird vorbereitet …',
         invalidVideo: 'Bitte einen gültigen Video-Link eingeben.',
         videoAdded: 'Video hinzugefügt.',
@@ -58,7 +60,7 @@ const translations = {
         mailMessage: 'Nachricht',
     },
     tr: {
-        navRequest: 'Randevu iste',
+        navRequest: 'Randevu',
         heroEyebrow: 'Kassen Keskin · Berlin',
         heroTitle: 'İşletmeniz.',
         heroSolution: 'Çözümümüz.',
@@ -100,6 +102,8 @@ const translations = {
         footerText: '&copy; 2026 Kassen Keskin | Modern iş çözümlerinin ortağınız.',
         previousVideo: 'Önceki video',
         nextVideo: 'Sonraki video',
+        previousReview: 'Önceki yorumlar',
+        nextReview: 'Sonraki yorumlar',
         formStatusPreparing: 'E-postanız hazırlanıyor …',
         invalidVideo: 'Lütfen geçerli bir video bağlantısı girin.',
         videoAdded: 'Video eklendi.',
@@ -116,7 +120,7 @@ const translations = {
         mailMessage: 'Mesaj',
     },
     en: {
-        navRequest: 'Book appointment',
+        navRequest: 'Booking',
         heroEyebrow: 'Kassen Keskin · Berlin',
         heroTitle: 'Your business.',
         heroSolution: 'Our solution.',
@@ -158,6 +162,8 @@ const translations = {
         footerText: '&copy; 2026 Kassen Keskin | Your partner for modern business solutions.',
         previousVideo: 'Previous video',
         nextVideo: 'Next video',
+        previousReview: 'Previous reviews',
+        nextReview: 'Next reviews',
         formStatusPreparing: 'Preparing your email …',
         invalidVideo: 'Please enter a valid video link.',
         videoAdded: 'Video added.',
@@ -175,7 +181,6 @@ const translations = {
     }
 };
 
-const languageButtons = [...document.querySelectorAll('.language-button')];
 let currentLanguage = 'de';
 
 const reviewData = {
@@ -242,12 +247,11 @@ function setLanguage(language) {
     const reviewTrack = document.getElementById('reviewsTrack');
     if (reviewTrack) {
         const cards = reviewData[language].map(([name, text]) => `<article class="review-card"><header><cite>${name}</cite><span class="stars">★★★★★</span></header><p>${text}</p></article>`).join('');
-        reviewTrack.innerHTML = cards + cards;
+        reviewTrack.innerHTML = cards;
     }
 
-    languageButtons.forEach(button => {
-        button.classList.toggle('active', button.dataset.language === language);
-    });
+    const langSelect = document.getElementById('languageSelect');
+    if (langSelect) langSelect.value = language;
 }
 
 function videoSource(url) {
@@ -256,7 +260,7 @@ function videoSource(url) {
         if (parsed.hostname.includes('youtube.com') || parsed.hostname.includes('youtu.be')) {
             let id = parsed.searchParams.get('v') || parsed.pathname.split('/').filter(Boolean).pop();
             if (parsed.pathname.includes('/shorts/')) id = parsed.pathname.split('/shorts/')[1].split('/')[0];
-            return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&loop=1&playlist=${id}`;
+            return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1`;
         }
         return url;
     } catch {
@@ -269,7 +273,7 @@ function renderVideo() {
     const screen = document.getElementById('videoScreen');
     const source = videoSource(item.url);
     const locale = translations[currentLanguage];
-    screen.innerHTML = source.endsWith('.mp4') ? `<video src="${source}" autoplay muted loop playsinline controls></video>` : source
+    screen.innerHTML = source.endsWith('.mp4') ? `<video src="${source}" autoplay muted playsinline controls></video>` : source
         ? `<iframe src="${source}" title="Short video" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>`
         : `<div class="video-placeholder"><i class="fa-solid fa-link-slash"></i>${locale.invalidVideoTitle}</div>`;
 }
@@ -282,49 +286,120 @@ document.getElementById('videoNext').addEventListener('click', () => {
     videoIndex = (videoIndex + 1) % videos.length;
     renderVideo();
 });
-const reviewTrack = document.getElementById('reviewsTrack');
 
-const partnerTrack = document.getElementById('partnerTrack');
-const partnerSlider = document.querySelector('.slider-container');
-const partnerPrevious = document.getElementById('partnerPrevious');
-const partnerNext = document.getElementById('partnerNext');
-let partnerPosition = 0;
-let partnerPaused = false;
-let partnerResumeTimer;
+// Infinite Scroll and Auto-play Logic
+function setupInfiniteScroll(trackId, prevId, nextId, autoDirection, intervalMs = 5000) {
+    const track = document.getElementById(trackId);
+    const prev = document.getElementById(prevId);
+    const next = document.getElementById(nextId);
+    if (!track || !prev || !next) return;
 
-function movePartners() {
-    if (!partnerTrack || partnerPaused) return;
-    partnerPosition -= 0.45;
-    const loopWidth = partnerTrack.scrollWidth / 2;
-    if (loopWidth > 0 && Math.abs(partnerPosition) >= loopWidth) partnerPosition = 0;
-    partnerTrack.style.transform = `translateX(${partnerPosition}px)`;
+    let isAnimating = false;
+    let autoInterval;
+
+    function getScrollStep() {
+        const item = track.firstElementChild;
+        if (!item) return 320;
+        const gap = parseFloat(getComputedStyle(track).gap) || 0;
+        return item.offsetWidth + gap;
+    }
+
+    function moveLeft() {
+        if (isAnimating) return;
+        isAnimating = true;
+
+        track.style.scrollBehavior = 'auto';
+        track.style.scrollSnapType = 'none';
+        
+        const last = track.lastElementChild;
+        track.prepend(last);
+        const step = getScrollStep();
+        track.scrollLeft += step;
+        
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                track.style.scrollBehavior = 'smooth';
+                track.style.scrollSnapType = 'x mandatory';
+                
+                let done = false;
+                const onScrollEnd = () => {
+                    if (done) return;
+                    done = true;
+                    track.removeEventListener('scrollend', onScrollEnd);
+                    isAnimating = false;
+                };
+                const fallback = setTimeout(onScrollEnd, 600);
+                track.addEventListener('scrollend', () => {
+                    clearTimeout(fallback);
+                    onScrollEnd();
+                }, { once: true });
+
+                track.scrollTo({ left: track.scrollLeft - step, behavior: 'smooth' });
+            });
+        });
+    }
+
+    function moveRight() {
+        if (isAnimating) return;
+        isAnimating = true;
+        
+        const step = getScrollStep();
+        let done = false;
+        const onScrollEnd = () => {
+            if (done) return;
+            done = true;
+            track.removeEventListener('scrollend', onScrollEnd);
+            
+            track.style.scrollBehavior = 'auto';
+            track.style.scrollSnapType = 'none';
+            
+            const first = track.firstElementChild;
+            track.append(first);
+            track.scrollLeft -= step;
+            
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    track.style.scrollBehavior = 'smooth';
+                    track.style.scrollSnapType = 'x mandatory';
+                    isAnimating = false;
+                });
+            });
+        };
+        const fallback = setTimeout(onScrollEnd, 600);
+        track.addEventListener('scrollend', () => {
+            clearTimeout(fallback);
+            onScrollEnd();
+        }, { once: true });
+
+        track.scrollBy({ left: step, behavior: 'smooth' });
+    }
+
+    prev.addEventListener('click', moveLeft);
+    next.addEventListener('click', moveRight);
+
+    // Auto-scroll loop
+    function startAuto() {
+        autoInterval = setInterval(() => {
+            if (autoDirection === 'left') moveLeft();
+            else moveRight();
+        }, intervalMs);
+    }
+    function stopAuto() {
+        clearInterval(autoInterval);
+    }
+
+    // Pause on hover or touch
+    const container = track.closest('.glass-section') || track.parentElement;
+    container.addEventListener('mouseenter', stopAuto);
+    container.addEventListener('mouseleave', startAuto);
+    container.addEventListener('touchstart', stopAuto, {passive: true});
+    container.addEventListener('touchend', startAuto, {passive: true});
+
+    startAuto();
 }
 
-function pausePartners() {
-    partnerPaused = true;
-    clearTimeout(partnerResumeTimer);
-    partnerResumeTimer = setTimeout(() => { partnerPaused = false; }, 3000);
-}
-
-if (partnerTrack && partnerSlider && partnerPrevious && partnerNext) {
-    partnerPrevious.addEventListener('click', () => {
-        partnerPosition += 200;
-        partnerTrack.style.transform = `translateX(${partnerPosition}px)`;
-        pausePartners();
-    });
-    partnerNext.addEventListener('click', () => {
-        partnerPosition -= 200;
-        partnerTrack.style.transform = `translateX(${partnerPosition}px)`;
-        pausePartners();
-    });
-    partnerSlider.addEventListener('mouseenter', () => { partnerPaused = true; });
-    partnerSlider.addEventListener('mouseleave', () => { partnerPaused = false; });
-    const partnerAnimation = () => {
-        movePartners();
-        requestAnimationFrame(partnerAnimation);
-    };
-    partnerAnimation();
-}
+setupInfiniteScroll('partnerTrack', 'partnerPrevious', 'partnerNext', 'right', 3000);
+setupInfiniteScroll('reviewsTrack', 'reviewsPrevious', 'reviewsNext', 'right', 5000);
 
 document.getElementById('appointmentForm').addEventListener('submit', event => {
     event.preventDefault();
@@ -342,9 +417,10 @@ document.getElementById('appointmentForm').addEventListener('submit', event => {
     window.location.href = `mailto:info@kassen-keskin.de?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 });
 
-languageButtons.forEach(button => {
-    button.addEventListener('click', () => setLanguage(button.dataset.language));
-});
+const langSelect = document.getElementById('languageSelect');
+if (langSelect) {
+    langSelect.addEventListener('change', (e) => setLanguage(e.target.value));
+}
 
 document.querySelectorAll('a[href="#appointment"]').forEach(link => {
     link.addEventListener('click', event => {
