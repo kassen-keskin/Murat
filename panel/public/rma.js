@@ -109,7 +109,15 @@ async function rmaPdfOlustur() {
     document.getElementById('rmaPrintModel').textContent = modelVal || '-';
     document.getElementById('rmaPrintSernr').textContent = document.getElementById('rmaSernr').value || '-';
     document.getElementById('rmaPrintBetreff').textContent = betreffVal || '-';
-    document.getElementById('rmaPrintDescription').textContent = document.getElementById('rmaDescription').value || '';
+    const descText = document.getElementById('rmaDescription').value || '';
+    const descContainer = document.getElementById('rmaPrintDescription');
+    descContainer.innerHTML = '';
+    descText.split('\n').forEach(line => {
+        const div = document.createElement('div');
+        div.textContent = line || ' '; // preserve empty lines
+        div.style.pageBreakInside = 'avoid';
+        descContainer.appendChild(div);
+    });
     
     // Save history
     try {
@@ -137,11 +145,18 @@ async function rmaPdfOlustur() {
     const itemsList = document.getElementById('rmaPrintItemsList');
     itemsList.innerHTML = '';
     const checkboxes = document.querySelectorAll('.rma-item:checked');
-    checkboxes.forEach(cb => {
-        const li = document.createElement('li');
-        li.textContent = cb.value;
-        itemsList.appendChild(li);
-    });
+    const materialsBlock = document.getElementById('rmaPrintMaterialsBlock');
+    
+    if (checkboxes.length === 0) {
+        if (materialsBlock) materialsBlock.style.display = 'none';
+    } else {
+        if (materialsBlock) materialsBlock.style.display = 'block';
+        checkboxes.forEach(cb => {
+            const li = document.createElement('li');
+            li.textContent = cb.value;
+            itemsList.appendChild(li);
+        });
+    }
 
     // Make visible briefly for html2canvas
     const printArea = document.getElementById('rmaPrintPreview');
@@ -155,6 +170,54 @@ async function rmaPdfOlustur() {
     printArea.style.zIndex = '9999';
 
     try {
+        // --- SMART PAGE BREAK LOGIC ---
+        // Calculate approximate page height in pixels (A4 ratio 297/210)
+        const pageHeightPx = printArea.offsetWidth * (297 / 210);
+        
+        // Find all description line divs
+        const descDivs = document.getElementById('rmaPrintDescription').children;
+        let currentOffset = 0;
+        
+        for (let i = 0; i < descDivs.length; i++) {
+            const div = descDivs[i];
+            div.style.marginTop = '0'; // reset first
+            
+            // Get position relative to the printArea
+            const rect = div.getBoundingClientRect();
+            const parentRect = printArea.getBoundingClientRect();
+            const topPx = rect.top - parentRect.top;
+            const bottomPx = topPx + rect.height;
+            
+            // If this element crosses a page boundary
+            const pageNumTop = Math.floor(topPx / pageHeightPx);
+            const pageNumBottom = Math.floor(bottomPx / pageHeightPx);
+            
+            if (pageNumTop !== pageNumBottom) {
+                // Push it down to the next page + some margin (e.g. 20px)
+                const pushAmount = (pageHeightPx * pageNumBottom) - topPx + 20;
+                div.style.marginTop = pushAmount + 'px';
+            }
+        }
+        
+        // Also check if the Materials Block crosses the boundary
+        const materialsBlock = document.getElementById('rmaPrintMaterialsBlock');
+        if (materialsBlock && materialsBlock.style.display !== 'none') {
+            materialsBlock.style.marginTop = '0';
+            const rect = materialsBlock.getBoundingClientRect();
+            const parentRect = printArea.getBoundingClientRect();
+            const topPx = rect.top - parentRect.top;
+            const bottomPx = topPx + rect.height;
+            
+            const pageNumTop = Math.floor(topPx / pageHeightPx);
+            const pageNumBottom = Math.floor(bottomPx / pageHeightPx);
+            
+            if (pageNumTop !== pageNumBottom) {
+                const pushAmount = (pageHeightPx * pageNumBottom) - topPx + 20;
+                materialsBlock.style.marginTop = pushAmount + 'px';
+            }
+        }
+        // --- END SMART PAGE BREAK ---
+
         const canvas = await html2canvas(printArea, { scale: 2 });
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
         
@@ -166,9 +229,20 @@ async function rmaPdfOlustur() {
         });
         
         const pdfWidth = pdf.internal.pageSize.getWidth();
-        const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
         
-        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
+        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+        heightLeft -= pageHeight;
+        
+        while (heightLeft > 5) {
+            position -= pageHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
         
         const firmaAdi = opt.dataset.firma || opt.dataset.inhabe || 'Bilinmiyor';
         const safeFirmaAdi = firmaAdi.replace(/[\\/:*?"<>|]/g, '').trim();
