@@ -1,330 +1,401 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="de">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title data-i18n="pageTitle">Kassen Keskin | Sunmi D3 & SamPOS One</title>
-    <meta name="description" data-i18n-content="pageDescription" content="Sunmi D3 Android Cihazı ve SamPOS One programı sadece 599€ Netto. Üstelik 5 Yıl TSE dahil!">
+    <title>Kassen Keskin | Ihr Partner für Kassensysteme</title>
+    <meta name="description" content="Kassen Keskin – persönliche Beratung, zuverlässiger Service und moderne Lösungen für Unternehmen in Berlin.">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="icon" type="image/bmp" href="assets/k.bmp">
+	
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-F04L2121CT"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'G-F04L2121CT');
+	</script>	
+	
 </head>
 <body>
-    <div class="background-effects">
+    <div class="background-effects" aria-hidden="true">
         <div class="glow-orb orb-1"></div>
         <div class="glow-orb orb-2"></div>
         <div class="glow-orb orb-3"></div>
     </div>
 
-    <!-- Navigation -->
     <nav class="glass-navbar">
         <div class="nav-container">
-            <a href="https://kassen-keskin.de" class="logo-link">
+            <a href="#top" class="logo-link" aria-label="Kassen Keskin Startseite">
                 <img src="assets/logo.png" alt="Kassen Keskin Logo" class="logo-img">
             </a>
             <div class="nav-contact-links">
-                <a href="https://wa.me/4917622204117" target="_blank" class="nav-contact-link">
-                    <i class="fa-brands fa-whatsapp"></i>
-                    <span data-i18n="whatsapp">WhatsApp Destek Hattı</span>
-                </a>
-                <a href="https://maps.app.goo.gl/CxSuDaSSADDdxb86A" target="_blank" class="nav-contact-link">
-                    <i class="fa-solid fa-map-location-dot"></i>
-                    <span>Stülpnagelstraße 3</span>
-                </a>
-                <a href="tel:+4917622204117" class="nav-contact-link">
-                    <i class="fa-solid fa-phone"></i>
-                    <span>+49 176 22204117</span>
-                </a>
+                <a href="https://wa.me/4917622204117" target="_blank" rel="noopener noreferrer" class="nav-contact-link"><i class="fa-brands fa-whatsapp"></i><span>WhatsApp</span></a>
+                <a href="https://maps.app.goo.gl/CxSuDaSSADDdxb86A" target="_blank" rel="noopener noreferrer" class="nav-contact-link"><i class="fa-solid fa-map-location-dot"></i><span>Stülpnagelstraße 3</span></a>
+                <a href="tel:+4917622204117" class="nav-contact-link"><i class="fa-solid fa-phone"></i><span>+49 176 22204117</span></a>
             </div>
             <div class="nav-actions">
-                <div class="language-switch" role="group" aria-label="Dil seçimi">
-                    <button type="button" class="language-button" data-language="tr">TR</button>
-                    <button type="button" class="language-button active" data-language="de">DE</button>
-                    <button type="button" class="language-button" data-language="en">EN</button>
+                <div class="language-switch dropdown-wrapper">
+                    <select id="languageSelect" class="language-dropdown" aria-label="Select language">
+                        <option value="de">DE</option>
+                        <option value="tr">TR</option>
+                        <option value="en">EN</option>
+                    </select>
                 </div>
-                <a href="#contact" class="nav-btn" data-i18n="buyNow">Hemen Satın Al</a>
+                <a href="#appointment" class="nav-btn" data-i18n="navRequest">Termin anfragen</a>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <header class="hero-section">
-        <div class="hero-content">
-            <div class="badge" data-i18n="campaign">Sınırlı Süreli Kampanya</div>
-            <h1 class="hero-title" data-i18n="heroTitle">İhtiyacınız Olan <span class="highlight">Tek Kasa Sistemi.</span></h1>
-            <p class="hero-subtitle" data-i18n="heroSubtitle">Sunmi D3 Android Cihazı + SamPOS One programı. Hızlı, şık ve işletmeniz için mükemmel çözüm.</p>
+    <main id="top">
+        <header class="hero-section">
+            <div class="hero-content">
+                <div class="badge" data-i18n="campaign">Sınırlı Süreli Kampanya</div>
+                <h1 class="hero-title" data-i18n="heroTitle">İhtiyacınız Olan <span class="highlight">Tek Kasa Sistemi.</span></h1>
+                <p class="hero-subtitle" data-i18n="heroSubtitle">Sunmi D3 Android Cihazı + SamPOS One programı. Hızlı, şık ve işletmeniz için mükemmel çözüm.</p>
 
-            <div class="hero-visual">
-                <div class="product-video-container fade-in">
-                    <video autoplay loop muted playsinline preload="auto" style="width:100%; height:100%; object-fit:cover; display:block; transform: scale(1.12); transform-origin: center;">
-                        <source src="assets/hero-video.mp4" type="video/mp4">
-                        <span data-i18n="videoFallback">Tarayıcınız video etiketini desteklemiyor.</span>
-                    </video>
+                <div class="hero-visual">
+                    <div class="product-video-container fade-in">
+                        <video autoplay loop muted playsinline preload="auto" style="width:100%; height:100%; object-fit:cover; display:block; transform: scale(1.12); transform-origin: center;">
+                            <source src="assets/hero-video.mp4" type="video/mp4">
+                            <span data-i18n="videoFallback">Tarayıcınız video etiketini desteklemiyor.</span>
+                        </video>
+                    </div>
                 </div>
-            </div>
-            
-            <div class="price-container" style="display:flex; flex-direction:column; gap:0.8rem; margin-bottom:2.5rem;">
-                <!-- Tek Seferlik Ücret -->
-                <div class="price-showcase" style="margin-bottom:0;">
-                    <span class="price-value">599€</span>
-                    <span class="price-label">Netto <span data-i18n="oneTime" style="font-size:0.6em; opacity:0.8; letter-spacing:1px; font-weight:400;">(Tek Seferlik)</span></span>
+                
+                <div class="price-container" style="display:flex; flex-direction:column; gap:0.8rem; margin-bottom:2.5rem;">
+                    <!-- Tek Seferlik Ücret -->
+                    <div class="price-showcase" style="margin-bottom:0;">
+                        <span class="price-value">599€</span>
+                        <span class="price-label">Netto <span data-i18n="oneTime" style="font-size:0.6em; opacity:0.8; letter-spacing:1px; font-weight:400;">(Tek Seferlik)</span></span>
+                    </div>
+                    <!-- Aylık Ücret -->
+                    <div class="price-showcase" style="margin-bottom:0; align-items:center;">
+                        <span class="price-value" style="font-size:2.5rem; color:var(--accent-blue); text-shadow:none;">+ 39€</span>
+                        <span class="price-label" style="color:var(--text-secondary);"><span style="color:var(--text-primary);">Netto</span> <span data-i18n="perMonth">/ Ay</span> <span data-i18n="license" style="font-size:0.6em; opacity:0.8; letter-spacing:1px; font-weight:400;">(Lisans)</span></span>
+                    </div>
                 </div>
-                <!-- Aylık Ücret -->
-                <div class="price-showcase" style="margin-bottom:0; align-items:center;">
-                    <span class="price-value" style="font-size:2.5rem; color:var(--accent-blue); text-shadow:none;">+ 39€</span>
-                    <span class="price-label" style="color:var(--text-secondary);"><span style="color:var(--text-primary);">Netto</span> <span data-i18n="perMonth">/ Ay</span> <span data-i18n="license" style="font-size:0.6em; opacity:0.8; letter-spacing:1px; font-weight:400;">(Lisans)</span></span>
+                
+                <div class="hero-features">
+                    <div class="feature-tag"><i class="fa-solid fa-shield-halved"></i> <span data-i18n="featureTse">5 Yıl TSE Dahil</span></div>
+                    <div class="feature-tag"><i class="fa-solid fa-print"></i> <span data-i18n="featurePrinter">80mm Yazıcı</span></div>
+                    <div class="feature-tag"><i class="fa-solid fa-desktop"></i> <span data-i18n="featureTouch">10.1" Dokunmatik</span></div>
                 </div>
-            </div>
-            
-            <div class="hero-features">
-                <div class="feature-tag"><i class="fa-solid fa-shield-halved"></i> <span data-i18n="featureTse">5 Yıl TSE Dahil</span></div>
-                <div class="feature-tag"><i class="fa-solid fa-print"></i> <span data-i18n="featurePrinter">80mm Yazıcı</span></div>
-                <div class="feature-tag"><i class="fa-solid fa-desktop"></i> <span data-i18n="featureTouch">10.1" Dokunmatik</span></div>
-            </div>
 
-            <div class="cta-group">
-                <a href="#contact" class="primary-btn glass-btn"><span data-i18n="orderNow">Sipariş Ver</span> <i class="fa-solid fa-arrow-right"></i></a>
+                <div class="cta-group">
+                    <a href="#appointment" class="primary-btn glass-btn"><span data-i18n="orderNow">Sipariş Ver</span> <i class="fa-solid fa-arrow-right"></i></a>
+                </div>
             </div>
+        </header>
+
+        <!-- Details Section -->
+        <section class="details-section glass-section" id="features">
+            <div class="details-grid">
+                <div class="detail-text">
+                    <h2 data-i18n="detailsTitle">Tek Pakette <br><span class="highlight-orange">Kusursuz Performans</span></h2>
+                    <p data-i18n="detailsText">SamPOS One programı ve yüksek performanslı Sunmi D3 donanımının birleşmesiyle satış süreçlerinizi anında optimize edin. Qualcomm hexa-core işlemcisi ve 32GB hafızasıyla asla yavaşlamaz.</p>
+                    <ul class="specs-list">
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="spec1"><strong>Sunmi D3 Mini:</strong> 10.1" Ekran & Müşteri Ekranı</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="spec2"><strong>SamPOS One:</strong> Profesyonel yazılım, kolay kullanım</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="spec3"><strong>Swissbit USB-TSE:</strong> 5 yıl güvenli veri koruması</span></li>
+                        <li><i class="fa-solid fa-check"></i> <span data-i18n="spec4"><strong>Hediye:</strong> 5 rulo termal kağıt dahildir!</span></li>
+                    </ul>
+                </div>
+                <div class="detail-image glass-card" style="background:rgba(255,255,255,0.02); padding:2rem; overflow:hidden;">
+                    <img src="assets/official-product.png" alt="SamPOS One özellikler" class="detail-img fade-in-delayed" style="object-fit:contain; width:100%; height:100%; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5));">
+                </div>
+            </div>
+        </section>
+
+        <!-- Gallery Section -->
+        <section class="gallery-section glass-section" id="gallery">
+            <h2 class="section-title" data-i18n="galleryTitle">Tüm Açılardan İnceleyin</h2>
+            <div class="gallery-grid fade-in-delayed">
+                <div class="gallery-item glass-card"><img src="assets/capraz.png" data-i18n-alt="altCross" alt="Çapraz Görünüm" loading="lazy"></div>
+                <div class="gallery-item glass-card"><img src="assets/karsidan.png" data-i18n-alt="altFront" alt="Karşıdan Görünüm" loading="lazy"></div>
+                <div class="gallery-item glass-card"><img src="assets/zoom.png" data-i18n-alt="altClose" alt="Yakından Bakış" loading="lazy"></div>
+                <div class="gallery-item glass-card"><img src="assets/bon.png" data-i18n-alt="altPrint" alt="Baskı Detayı" loading="lazy"></div>
+                <div class="gallery-item glass-card"><img src="assets/olcu.png" data-i18n-alt="altDimensions" alt="Ölçüleri" loading="lazy"></div>
+                <div class="gallery-item glass-card"><img src="assets/olcu2.png" data-i18n-alt="altDimensions2" alt="Ölçüleri 2" loading="lazy"></div>
+                <div class="gallery-item glass-card"><img src="assets/yazici.png" data-i18n-alt="altPrinter" alt="Yazıcı" loading="lazy"></div>
+                <div class="gallery-item glass-card"><img src="assets/official-product.png" data-i18n-alt="altProduct" alt="Sunmi D3 Mini" loading="lazy"></div>
+            </div>
+        </section>
+
+        <!-- Image Modal (Lightbox) -->
+        <div id="imageModal" class="modal">
+            <span class="close-modal">&times;</span>
+            <span class="prev-modal">&#10094;</span>
+            <span class="next-modal">&#10095;</span>
+            <img class="modal-content" id="modalImg">
         </div>
 
-    </header>
+        <section class="appointment-section glass-section" id="appointment">
+            <div class="appointment-copy"><span class="eyebrow" data-i18n="appointEyebrow">Persönlich sprechen</span><h2><span data-i18n="appointTitleA">Jetzt Ihren</span><br><span class="highlight" data-i18n="appointTitleB">Termin sichern.</span></h2><div class="opening-hours"><strong><i class="fa-regular fa-clock"></i> <span data-i18n="openingHoursLabel">Öffnungszeiten</span></strong><span data-i18n="openingHoursText">Montag – Freitag · 10:00 – 17:00 Uhr</span></div><a class="map-link" href="https://maps.app.goo.gl/CxSuDaSSADDdxb86A" target="_blank" rel="noopener noreferrer" aria-label="Kassensysteme Keskin auf Google Maps"><iframe class="location-map" title="Kassensysteme Keskin auf Google Maps" src="https://www.google.com/maps?q=Kassensysteme+Keskin&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe></a></div>
+            <form class="appointment-form glass-card" id="appointmentForm">
+                <p class="appointment-form-intro" data-i18n="appointText">Senden Sie uns Ihre Kontaktdaten und eine kurze Nachricht. Ihre Anfrage wird als E-Mail an unser Team vorbereitet.</p>
+                <div class="form-grid">
+                    <label><span data-i18n="formFirstNameLabel">Vorname</span><input name="firstName" type="text" autocomplete="given-name" required></label>
+                    <label><span data-i18n="formLastNameLabel">Nachname</span><input name="lastName" type="text" autocomplete="family-name" required></label>
+                    <label><span data-i18n="formPhoneLabel">Telefon</span><input name="phone" type="tel" autocomplete="tel" required></label>
+                    <label><span data-i18n="formEmailLabel">E-Mail</span><input name="email" type="email" autocomplete="email" required></label>
+                </div>
+                <label><span data-i18n="formMessageLabel">Kurze Nachricht</span><textarea name="message" rows="4" data-i18n-placeholder="messagePlaceholder" placeholder="Worum dürfen wir uns kümmern?"></textarea></label>
+                <button type="submit" class="primary-btn form-submit"><span data-i18n="appointmentSubmit">TERMIN anfragen</span> <i class="fa-solid fa-paper-plane"></i></button>
+                <p class="form-note" data-i18n="formNote">Beim Absenden öffnet sich Ihr E-Mail-Programm mit einer fertigen Nachricht an info@kassen-keskin.de.</p>
+                <p class="form-status" id="formStatus" role="status"></p>
+            </form>
+        </section>
+    </main>
 
-    <!-- Details Section -->
-    <section class="details-section glass-section" id="features">
-        <div class="details-grid">
-            <div class="detail-text">
-                <h2 data-i18n="detailsTitle">Tek Pakette <br><span class="highlight-orange">Kusursuz Performans</span></h2>
-                <p data-i18n="detailsText">SamPOS One programı ve yüksek performanslı Sunmi D3 donanımının birleşmesiyle satış süreçlerinizi anında optimize edin. Qualcomm hexa-core işlemcisi ve 32GB hafızasıyla asla yavaşlamaz.</p>
-                <ul class="specs-list">
-                    <li><i class="fa-solid fa-check"></i> <span data-i18n="spec1"><strong>Sunmi D3 Mini:</strong> 10.1" Ekran & Müşteri Ekranı</span></li>
-                    <li><i class="fa-solid fa-check"></i> <span data-i18n="spec2"><strong>SamPOS One:</strong> Profesyonel yazılım, kolay kullanım</span></li>
-                    <li><i class="fa-solid fa-check"></i> <span data-i18n="spec3"><strong>Swissbit USB-TSE:</strong> 5 yıl güvenli veri koruması</span></li>
-                    <li><i class="fa-solid fa-check"></i> <span data-i18n="spec4"><strong>Hediye:</strong> 5 rulo termal kağıt dahildir!</span></li>
+<section id="agb" style="display: none; padding: 120px 20px 60px; background: var(--bg);">
+        <div class="container">
+            <h1 data-i18n="agb_title" style="margin-bottom: 40px; font-size: 2.5rem;">AGB</h1>
+
+            <div style="max-width: 800px; line-height: 1.8; font-size: 0.95rem;">
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="agb_1_title">Geltungsbereich</h3>
+                <p data-i18n="agb_1_text">
+                    Diese Allgemeinen Geschäftsbedingungen gelten für alle Dienstleistungen und Produkte der Kassen
+                    Keskin gegenüber ihren Kunden.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="agb_2_title">Leistungen</h3>
+                <p data-i18n="agb_2_text">
+                    Kassen Keskin bietet Kassensysteme, Softwarelösungen, Installation, Wartung und technischen Support
+                    an.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="agb_3_title">Vertragsschluss</h3>
+                <p data-i18n="agb_3_text">
+                    Ein Vertrag kommt durch schriftliche Bestätigung oder durch Lieferung/Installation der vereinbarten
+                    Leistungen zustande.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="agb_4_title">Preise und Zahlung</h3>
+                <p data-i18n="agb_4_text">
+                    Alle Preise verstehen sich in Euro zzgl. der gesetzlichen Mehrwertsteuer. Zahlungen sind innerhalb
+                    der vereinbarten Frist ohne Abzug zu leisten.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="agb_5_title">Support und Wartung</h3>
+                <p data-i18n="agb_5_text">
+                    Supportleistungen erfolgen je nach Wartungsvertrag telefonisch, remote oder vor Ort.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="agb_6_title">Haftung</h3>
+                <p data-i18n="agb_6_text">
+                    Für Schäden, die nicht vorsätzlich oder grob fahrlässig verursacht wurden, ist die Haftung
+                    ausgeschlossen.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="agb_7_title">Gewährleistung</h3>
+                <p data-i18n="agb_7_text">
+                    Es gelten die gesetzlichen Gewährleistungsrechte.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="agb_8_title">Datenschutz</h3>
+                <p data-i18n="agb_8_text">
+                    Kundendaten werden ausschließlich im Rahmen der gesetzlichen Datenschutzbestimmungen verarbeitet.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="agb_9_title">Gerichtsstand</h3>
+                <p data-i18n="agb_9_text">
+                    Gerichtsstand ist, soweit gesetzlich zulässig, der Sitz der Firma Kassen Keskin.
+                </p>
+
+            </div>
+
+            <button class="primary-btn" onclick="hideLegal()" style="margin-top: 40px;"
+                data-i18n="agb_back">Zurück</button>
+        </div>
+    </section>
+<section id="datenschutz" style="display: none; padding: 120px 20px 60px; background: var(--bg);">
+        <div class="container">
+            <h1 data-i18n="datenschutz_title" style="margin-bottom: 40px; font-size: 2.5rem;">Datenschutzerklärung</h1>
+
+            <div style="max-width: 800px; line-height: 1.8; font-size: 0.95rem;">
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_1_title">1. Datenschutz auf
+                    einen Blick</h3>
+                <p data-i18n="datenschutz_1_text">
+                    Wir freuen uns über Ihr Interesse an unserer Website. Der Schutz Ihrer persönlichen Daten ist uns
+                    sehr wichtig. Nachfolgend informieren wir Sie über die Verarbeitung personenbezogener Daten bei der
+                    Nutzung unserer Website gemäß Art. 13 DSGVO.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_2_title">2. Verantwortliche
+                    Stelle</h3>
+                <p style="margin: 0;">Kassen Keskin</p>
+                <p style="margin: 0;"><strong data-i18n="datenschutz_owner">Inhaber:</strong> Erol Keskin</p>
+                <p style="margin: 0;">Stülpnagelstraße 3</p>
+                <p style="margin: 0;">14059 Berlin</p>
+                <p style="margin: 0;">Deutschland</p>
+                <p style="margin: 10px 0 0 0;">📧 <a href="mailto:info@kassen-keskin.de"
+                        style="color: var(--accent-primary); text-decoration: none;">info@kassen-keskin.de</a></p>
+                <p style="margin: 0;">📞 +49 (0)176 222 0 4117</p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_3_title">3. Hosting bei Strato
+                </h3>
+                <p data-i18n="datenschutz_3_text">
+                    Unsere Website wird bei der Strato AG, Pascalstraße 10, 10587 Berlin, Deutschland gehostet. Beim
+                    Besuch der Website werden durch Strato Logfiles erstellt (z. B. IP-Adresse, Datum, Uhrzeit,
+                    Browsertyp, Betriebssystem). Die Erfassung dieser Daten ist technisch erforderlich, um die Website
+                    bereitzustellen.
+                </p>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);" data-i18n="datenschutz_3_legal">
+                    <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. f DSGVO (berechtigtes Interesse an einer
+                    sicheren und funktionsfähigen Website).
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_4_title">4. Erhebung und
+                    Speicherung personenbezogener Daten</h3>
+                <p data-i18n="datenschutz_4_intro">
+                    Beim Aufruf unserer Website werden automatisch Daten durch Ihren Browser an unseren Server
+                    übermittelt. Diese Daten umfassen:
+                </p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li>IP-Adresse (anonymisiert)</li>
+                    <li>Datum und Uhrzeit des Zugriffs</li>
+                    <li>Verwendeter Browser und Betriebssystem</li>
+                    <li>Referrer-URL (die zuvor besuchte Seite)</li>
                 </ul>
+                <p data-i18n="datenschutz_4_note">
+                    Diese Daten werden nicht mit anderen Datenquellen zusammengeführt.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_5_title">5. Kontaktformular
+                </h3>
+                <p data-i18n="datenschutz_5_text">
+                    Wenn Sie uns über das Kontaktformular kontaktieren, werden Ihre Angaben inklusive der Kontaktdaten
+                    (Name, E-Mail, Telefonnummer, Nachricht) zur Bearbeitung Ihrer Anfrage gespeichert. Eine Weitergabe
+                    erfolgt nicht ohne Ihre Einwilligung.
+                </p>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);" data-i18n="datenschutz_5_legal">
+                    <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. b DSGVO (Vertragserfüllung oder vorvertragliche
+                    Maßnahmen).
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_6_title">6. Cookies</h3>
+                <p data-i18n="datenschutz_6_text">
+                    Unsere Website verwendet Cookies. Cookies sind kleine Textdateien, die auf Ihrem Endgerät
+                    gespeichert werden. Einige sind notwendig (z. B. für die Funktionalität), andere dienen der Analyse
+                    oder Personalisierung. Sie können Ihre Cookie-Einstellungen jederzeit in Ihrem Browser ändern oder
+                    über das Cookie-Banner anpassen.
+                </p>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);" data-i18n="datenschutz_6_legal">
+                    <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. a DSGVO (Einwilligung).
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_7_title">7. Google Fonts</h3>
+                <p data-i18n="datenschutz_7_text">
+                    Diese Seite nutzt Google Fonts zur einheitlichen Darstellung von Schriftarten. Beim Aufruf lädt Ihr
+                    Browser die benötigten Fonts direkt von den Servern von Google (Google Ireland Limited, Gordon
+                    House, Barrow Street, Dublin 4, Irland). Dabei kann Ihre IP-Adresse an Google übermittelt werden.
+                </p>
+                <p style="font-size: 0.9rem; color: var(--text-secondary);" data-i18n="datenschutz_7_legal">
+                    <strong>Rechtsgrundlage:</strong> Art. 6 Abs. 1 lit. a DSGVO. <strong>Mehr Informationen:</strong>
+                    <a href="https://policies.google.com/privacy"
+                        style="color: var(--accent-primary); text-decoration: none;">https://policies.google.com/privacy</a>
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_8_title">8. Datensicherheit
+                </h3>
+                <p data-i18n="datenschutz_8_text">
+                    Wir verwenden eine SSL-/TLS-Verschlüsselung, um Ihre Daten sicher zu übertragen.
+                </p>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_9_title">9. Rechte der
+                    betroffenen Person</h3>
+                <p data-i18n="datenschutz_9_intro">
+                    Sie haben das Recht auf:
+                </p>
+                <ul style="margin: 10px 0; padding-left: 20px;">
+                    <li data-i18n="datenschutz_9_1">Auskunft über Ihre gespeicherten Daten (Art. 15 DSGVO)</li>
+                    <li data-i18n="datenschutz_9_2">Berichtigung unrichtiger Daten (Art. 16 DSGVO)</li>
+                    <li data-i18n="datenschutz_9_3">Löschung Ihrer Daten (Art. 17 DSGVO)</li>
+                    <li data-i18n="datenschutz_9_4">Einschränkung der Verarbeitung (Art. 18 DSGVO)</li>
+                    <li data-i18n="datenschutz_9_5">Datenübertragbarkeit (Art. 20 DSGVO)</li>
+                    <li data-i18n="datenschutz_9_6">Widerspruch gegen die Verarbeitung (Art. 21 DSGVO)</li>
+                    <li data-i18n="datenschutz_9_7">Beschwerde bei einer Aufsichtsbehörde (Art. 77 DSGVO)</li>
+                </ul>
+
+                <h3 style="margin-top: 30px; margin-bottom: 15px;" data-i18n="datenschutz_10_title">10. Änderungen
+                    dieser Datenschutzerklärung</h3>
+                <p data-i18n="datenschutz_10_text">
+                    Wir behalten uns vor, diese Datenschutzerklärung bei Bedarf anzupassen, um sie an aktuelle
+                    rechtliche Anforderungen oder technische Änderungen anzupassen.
+                </p>
+
             </div>
-            <div class="detail-image glass-card" style="background:rgba(255,255,255,0.02); padding:2rem; overflow:hidden;">
-                <img src="assets/official-product.png" alt="SamPOS One özellikler" class="detail-img fade-in-delayed" style="object-fit:contain; width:100%; height:100%; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.5));">
+
+            <button class="primary-btn" onclick="hideLegal()" style="margin-top: 40px;"
+                data-i18n="datenschutz_back">Zurück</button>
+        </div>
+    </section>
+<section id="impressum" style="display: none; padding: 120px 20px 60px; background: var(--bg);">
+        <div class="container">
+            <h1 data-i18n="impressum_title" style="margin-bottom: 40px; font-size: 2.5rem;">Impressum</h1>
+
+            <div style="max-width: 800px; line-height: 2; font-size: 1rem; color: var(--text-primary);">
+                <p style="margin: 0;"><strong data-i18n="impressum_legal_info">Angaben gemäß § 5 TMG</strong></p>
+                <p style="margin: 20px 0 0 0;"></p>
+
+                <p style="margin: 0;"><strong>Kassen Keskin</strong></p>
+                <p style="margin: 0;"><strong data-i18n="impressum_owner">Inhaber:</strong> Erol Keskin</p>
+                <p style="margin: 0;">Stülpnagelstraße 3</p>
+                <p style="margin: 0;">14059 Berlin</p>
+                <p style="margin: 0 0 20px 0;">Deutschland</p>
+
+                <p style="margin: 0;">📞 <strong data-i18n="impressum_phone">Telefon:</strong> +49 (0)176 222 0 4117</p>
+                <p style="margin: 0;">📧 <strong data-i18n="impressum_email">E-Mail:</strong> <a
+                        href="mailto:info@kassen-keskin.de"
+                        style="color: var(--accent-primary); text-decoration: none;">info@kassen-keskin.de</a></p>
+                <p style="margin: 0 0 20px 0;">🌐 <strong data-i18n="impressum_website">Web:</strong> <a
+                        href="https://www.kassen-keskin.de"
+                        style="color: var(--accent-primary); text-decoration: none;">www.kassen-keskin.de</a></p>
+
+                <p style="margin: 20px 0 0 0;"><strong data-i18n="impressum_tax_id">Umsatzsteuer-ID:</strong></p>
+                <p style="margin: 0;"><strong data-i18n="impressum_vat_label">Umsatzsteuer-Identifikationsnummer gemäß
+                        §27 a Umsatzsteuergesetz:</strong> DE123456789</p>
+
+                <p style="margin: 20px 0 0 0;"><strong data-i18n="impressum_responsible">Verantwortlich für den Inhalt
+                        nach § 55 Abs. 2 RStV:</strong></p>
+                <p style="margin: 0;">Erol Keskin</p>
+                <p style="margin: 0 0 20px 0;">Stülpnagelstraße 3, 14059 Berlin</p>
+
+                <p style="margin-top: 40px; font-size: 0.95rem; color: var(--text-secondary);"
+                    data-i18n="impressum_disclaimer">
+                    Haftungsausschluss: Trotz sorgfältiger inhaltlicher Kontrolle übernehmen wir keine Haftung für die
+                    Inhalte externer Links. Für den Inhalt der verlinkten Seiten sind ausschließlich deren Betreiber
+                    verantwortlich.
+                </p>
             </div>
+
+            <button class="primary-btn" onclick="hideLegal()" style="margin-top: 40px;"
+                data-i18n="impressum_back">Zurück</button>
         </div>
     </section>
 
-    <!-- Gallery Section -->
-    <section class="gallery-section glass-section" id="gallery">
-        <h2 class="section-title" data-i18n="galleryTitle">Tüm Açılardan İnceleyin</h2>
-        <div class="gallery-grid fade-in-delayed">
-            <div class="gallery-item glass-card"><img src="assets/capraz.png" data-i18n-alt="altCross" alt="Çapraz Görünüm" loading="lazy"></div>
-            <div class="gallery-item glass-card"><img src="assets/karsidan.png" data-i18n-alt="altFront" alt="Karşıdan Görünüm" loading="lazy"></div>
-            <div class="gallery-item glass-card"><img src="assets/zoom.png" data-i18n-alt="altClose" alt="Yakından Bakış" loading="lazy"></div>
-            <div class="gallery-item glass-card"><img src="assets/bon.png" data-i18n-alt="altPrint" alt="Baskı Detayı" loading="lazy"></div>
-            <div class="gallery-item glass-card"><img src="assets/olcu.png" data-i18n-alt="altDimensions" alt="Ölçüleri" loading="lazy"></div>
-            <div class="gallery-item glass-card"><img src="assets/olcu2.png" data-i18n-alt="altDimensions2" alt="Ölçüleri 2" loading="lazy"></div>
-            <div class="gallery-item glass-card"><img src="assets/yazici.png" data-i18n-alt="altPrinter" alt="Yazıcı" loading="lazy"></div>
-            <div class="gallery-item glass-card"><img src="assets/official-product.png" data-i18n-alt="altProduct" alt="Sunmi D3 Mini" loading="lazy"></div>
-        </div>
-    </section>
-
-    <!-- Image Modal (Lightbox) -->
-    <div id="imageModal" class="modal">
-        <span class="close-modal">&times;</span>
-        <span class="prev-modal">&#10094;</span>
-        <span class="next-modal">&#10095;</span>
-        <img class="modal-content" id="modalImg">
-    </div>
-
-    <!-- Big Centered Contact Box -->
-    <section class="contact-section glass-section" id="contact" style="padding-bottom:6rem; position:relative; z-index:10; scroll-margin-top: 15vh;">
-        <div class="contact-box glass-card centered-contact-box" style="margin-top:0;">
-            <p style="margin-bottom: 0.5rem;" data-i18n="contactIntro">Sipariş ve detaylı bilgi için hemen iletişime geçin:</p>
-            <div class="contact-links-grid">
-                <a href="https://wa.me/4917622204117" target="_blank" class="contact-link whatsapp"><i class="fa-brands fa-whatsapp"></i> <span data-i18n="whatsapp">WhatsApp Destek Hattı</span></a>
-                <a href="https://maps.app.goo.gl/CxSuDaSSADDdxb86A" target="_blank" class="contact-link maps"><i class="fa-solid fa-map-location-dot"></i> <span>Stülpnagelstraße 3</span></a>
-                <a href="tel:+4917622204117" class="contact-link"><i class="fa-solid fa-phone"></i> +49 176 22204117</a>
-            </div>
-        </div>
-    </section>
-
-    <!-- Footer -->
     <footer>
-        <div class="footer-social-links" aria-label="Social Media">
-            <a href="https://www.instagram.com/kassenkeskin/" target="_blank" rel="noopener noreferrer"
-                aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-            <a href="https://www.facebook.com/kassenkeskin/" target="_blank" rel="noopener noreferrer"
-                aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
-            <a href="https://www.youtube.com/@KassenKeskin" target="_blank" rel="noopener noreferrer"
-                aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a>
-            <a href="https://www.tiktok.com/@kassenkeskin" target="_blank" rel="noopener noreferrer"
-                aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>
-            <a href="https://x.com/KassenKeskin" target="_blank" rel="noopener noreferrer"
-                aria-label="Twitter / X"><i class="fa-brands fa-twitter"></i></a>
-            <a href="https://www.linkedin.com/in/kassenkeskin/" target="_blank" rel="noopener noreferrer"
-                aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+        
+        <div class="footer-legal" style="display: flex; justify-content: center; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; font-size: 0.85rem;">
+            <a href="#" onclick="showLegal('impressum', event)" style="color: var(--muted); text-decoration: none;" data-i18n="foot_imprint">Impressum</a>
+            <a href="#" onclick="showLegal('datenschutz', event)" style="color: var(--muted); text-decoration: none;" data-i18n="foot_privacy">Datenschutz</a>
+            <a href="#" onclick="showLegal('agb', event)" style="color: var(--muted); text-decoration: none;" data-i18n="foot_terms">AGB</a>
         </div>
-        <p data-i18n="footer">&copy; 2026 Kassen Keskin | Yeni nesil kasa sistemleri çözüm ortağınız.</p>
+        <div class="footer-social-links" aria-label="Social Media">
+            <a href="https://www.instagram.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="https://www.facebook.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="https://www.youtube.com/@KassenKeskin" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a><a href="https://www.tiktok.com/@kassenkeskin" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>            <a href="https://www.linkedin.com/in/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>            <a href="https://x.com/KassenKeskin" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X"><i class="fa-brands fa-x-twitter"></i></a><a href="https://wa.me/4917622204117" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a><a href="https://maps.app.goo.gl/CxSuDaSSADDdxb86A" target="_blank" rel="noopener noreferrer" aria-label="Google Maps"><i class="fa-solid fa-map-location-dot"></i></a><a href="tel:+4917622204117" aria-label="Telefon"><i class="fa-solid fa-phone"></i></a>
+        </div>
+        <p data-i18n="footerText">&copy; 2026 Kassen Keskin | Ihr Partner für moderne Geschäftslösungen.</p>
     </footer>
-
-    <script>
-        const translations = {
-            tr: {
-                pageTitle: 'Kassen Keskin | Sunmi D3 & SamPOS One',
-                pageDescription: 'Sunmi D3 Android Cihazı ve SamPOS One programı sadece 599€ Netto. Üstelik 5 Yıl TSE dahil!',
-                buyNow: 'Hemen Satın Al',
-                campaign: 'Sınırlı Süreli Kampanya',
-                heroTitle: 'İhtiyacınız Olan <span class="highlight">Tek Kasa Sistemi.</span>',
-                heroSubtitle: 'Sunmi D3 Android Cihazı + SamPOS One programı. Hızlı, şık ve işletmeniz için mükemmel çözüm.',
-                oneTime: '(Tek Seferlik)', perMonth: '/ Ay', license: '(Lisans)',
-                featureTse: '5 Yıl TSE Dahil', featurePrinter: '80mm Yazıcı', featureTouch: '10.1" Dokunmatik',
-                orderNow: 'Sipariş Ver', videoFallback: 'Tarayıcınız video etiketini desteklemiyor.',
-                detailsTitle: 'Tek Pakette <br><span class="highlight-orange">Kusursuz Performans</span>',
-                detailsText: 'SamPOS One programı ve yüksek performanslı Sunmi D3 donanımının birleşmesiyle satış süreçlerinizi anında optimize edin. Qualcomm hexa-core işlemcisi ve 32GB hafızasıyla asla yavaşlamaz.',
-                spec1: '<strong>Sunmi D3 Mini:</strong> 10.1" Ekran & Müşteri Ekranı',
-                spec2: '<strong>SamPOS One:</strong> Profesyonel yazılım, kolay kullanım',
-                spec3: '<strong>Swissbit USB-TSE:</strong> 5 yıl güvenli veri koruması',
-                spec4: '<strong>Hediye:</strong> 5 rulo termal kağıt dahildir!',
-                galleryTitle: 'Tüm Açılardan İnceleyin', contactIntro: 'Sipariş ve detaylı bilgi için hemen iletişime geçin:',
-                whatsapp: 'WhatsApp Destek Hattı', maps: 'Google Maps ile Ulaşım',
-                footer: '&copy; 2026 Kassen Keskin | Yeni nesil kasa sistemleri çözüm ortağınız.',
-                altCross: 'Çapraz Görünüm', altFront: 'Karşıdan Görünüm', altClose: 'Yakından Bakış',
-                altPrint: 'Baskı Detayı', altDimensions: 'Ölçüleri', altDimensions2: 'Ölçüleri 2',
-                altPrinter: 'Yazıcı', altProduct: 'Sunmi D3 Mini'
-            },
-            de: {
-                pageTitle: 'Kassen Keskin | Sunmi D3 & SamPOS One',
-                pageDescription: 'Sunmi D3 Android-Gerät und SamPOS One Kassensoftware für nur 599 € netto. Inklusive 5 Jahre TSE!',
-                buyNow: 'Jetzt kaufen', campaign: 'Zeitlich begrenztes Angebot',
-                heroTitle: 'Das einzige <span class="highlight">Kassensystem, das Sie brauchen.</span>',
-                heroSubtitle: 'Sunmi D3 Android-Gerät + SamPOS One Kassensoftware. Schnell, elegant und die perfekte Lösung für Ihr Geschäft.',
-                oneTime: '(Einmalig)', perMonth: '/ Monat', license: '(Lizenz)',
-                featureTse: '5 Jahre TSE inklusive', featurePrinter: '80-mm-Drucker', featureTouch: '10,1" Touchscreen',
-                orderNow: 'Jetzt bestellen', videoFallback: 'Ihr Browser unterstützt das Video-Tag nicht.',
-                detailsTitle: 'Perfekte Leistung <br><span class="highlight-orange">in einem Paket</span>',
-                detailsText: 'Optimieren Sie Ihre Verkaufsprozesse sofort mit der Kombination aus SamPOS One Software und leistungsstarker Sunmi D3-Hardware. Mit Qualcomm Hexa-Core-Prozessor und 32 GB Speicher wird sie nie langsam.',
-                spec1: '<strong>Sunmi D3 Mini:</strong> 10,1" Bildschirm & Kundendisplay',
-                spec2: '<strong>SamPOS One:</strong> Professionelle Software, einfache Bedienung',
-                spec3: '<strong>Swissbit USB-TSE:</strong> 5 Jahre sichere Datenspeicherung',
-                spec4: '<strong>Geschenk:</strong> 5 Rollen Thermopapier inklusive!',
-                galleryTitle: 'Aus allen Perspektiven entdecken', contactIntro: 'Kontaktieren Sie uns jetzt für Bestellung und weitere Informationen:',
-                whatsapp: 'WhatsApp-Support', maps: 'Anfahrt mit Google Maps',
-                footer: '&copy; 2026 Kassen Keskin | Ihr Partner für Kassensysteme der nächsten Generation.',
-                altCross: 'Schrägansicht', altFront: 'Vorderansicht', altClose: 'Detailansicht',
-                altPrint: 'Druckdetail', altDimensions: 'Abmessungen', altDimensions2: 'Abmessungen 2',
-                altPrinter: 'Drucker', altProduct: 'Sunmi D3 Mini'
-            },
-            en: {
-                pageTitle: 'Kassen Keskin | Sunmi D3 & SamPOS One',
-                pageDescription: 'Sunmi D3 Android device and SamPOS One software for only €599 net. Includes 5 years of TSE!',
-                buyNow: 'Buy now', campaign: 'Limited-time offer',
-                heroTitle: 'The <span class="highlight">only POS system you need.</span>',
-                heroSubtitle: 'Sunmi D3 Android device + SamPOS One software. Fast, stylish and the perfect solution for your business.',
-                oneTime: '(One-time)', perMonth: '/ Month', license: '(License)',
-                featureTse: '5 years TSE included', featurePrinter: '80mm printer', featureTouch: '10.1" touchscreen',
-                orderNow: 'Order now', videoFallback: 'Your browser does not support the video tag.',
-                detailsTitle: 'Perfect performance <br><span class="highlight-orange">in one package</span>',
-                detailsText: 'Optimize your sales process instantly with the combination of SamPOS One software and high-performance Sunmi D3 hardware. Its Qualcomm hexa-core processor and 32GB storage never slow you down.',
-                spec1: '<strong>Sunmi D3 Mini:</strong> 10.1" screen & customer display',
-                spec2: '<strong>SamPOS One:</strong> Professional software, easy to use',
-                spec3: '<strong>Swissbit USB-TSE:</strong> 5 years of secure data protection',
-                spec4: '<strong>Gift:</strong> 5 rolls of thermal paper included!',
-                galleryTitle: 'Explore it from every angle', contactIntro: 'Contact us now for orders and more information:',
-                whatsapp: 'WhatsApp support', maps: 'Get directions with Google Maps',
-                footer: '&copy; 2026 Kassen Keskin | Your partner for next-generation POS systems.',
-                altCross: 'Angled view', altFront: 'Front view', altClose: 'Close-up view',
-                altPrint: 'Printing detail', altDimensions: 'Dimensions', altDimensions2: 'Dimensions 2',
-                altPrinter: 'Printer', altProduct: 'Sunmi D3 Mini'
-            }
-        };
-
-        function setLanguage(language) {
-            const dictionary = translations[language] || translations.tr;
-            document.documentElement.lang = language;
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const value = dictionary[element.dataset.i18n];
-                if (value !== undefined) element.innerHTML = value;
-            });
-            document.querySelectorAll('[data-i18n-content]').forEach(element => {
-                const value = dictionary[element.dataset.i18nContent];
-                if (value !== undefined) element.setAttribute('content', value);
-            });
-            document.querySelectorAll('[data-i18n-alt]').forEach(element => {
-                const value = dictionary[element.dataset.i18nAlt];
-                if (value !== undefined) element.setAttribute('alt', value);
-            });
-            document.querySelectorAll('.language-button').forEach(button => {
-                button.classList.toggle('active', button.dataset.language === language);
-            });
-            try {
-                localStorage.setItem('d3sunmi-language-v2', language);
-            } catch (error) {
-                // Language selection still applies when browser storage is unavailable.
-            }
-        }
-
-        // Simple elegant fade-in animations on load
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('.language-button').forEach(button => {
-                button.addEventListener('click', () => setLanguage(button.dataset.language));
-            });
-            let savedLanguage = 'de';
-            try {
-                savedLanguage = localStorage.getItem('d3sunmi-language-v2') || 'de';
-            } catch (error) {
-                // Use the default language when browser storage is unavailable.
-            }
-            setLanguage(savedLanguage);
-
-            document.querySelectorAll('.fade-in, .fade-in-delayed').forEach(el => {
-                el.style.opacity = '1';
-                el.style.transform = 'translateY(0)';
-            });
-            
-            // Lightbox / Zoom Logic
-            const modal = document.getElementById("imageModal");
-            const modalImg = document.getElementById("modalImg");
-            const images = Array.from(document.querySelectorAll('.gallery-item img'));
-            let currentIndex = 0;
-            
-            images.forEach((img, index) => {
-                img.style.cursor = 'zoom-in';
-                img.onclick = function(){
-                    modal.style.display = "flex";
-                    modal.style.alignItems = "center";
-                    modal.style.justifyContent = "center";
-                    modalImg.src = this.src;
-                    modalImg.classList.remove("zoomed"); // Reset zoom state when opened
-                    currentIndex = index;
-                }
-            });
-
-            // Navigation Arrows
-            document.querySelector(".prev-modal").onclick = function(e) {
-                e.stopPropagation();
-                currentIndex = (currentIndex > 0) ? currentIndex - 1 : images.length - 1;
-                modalImg.src = images[currentIndex].src;
-                modalImg.classList.remove("zoomed");
-            };
-
-            document.querySelector(".next-modal").onclick = function(e) {
-                e.stopPropagation();
-                currentIndex = (currentIndex < images.length - 1) ? currentIndex + 1 : 0;
-                modalImg.src = images[currentIndex].src;
-                modalImg.classList.remove("zoomed");
-            };
-
-            // Toggle Zoom inside Lightbox
-            modalImg.onclick = function(e) {
-                e.stopPropagation(); // don't trigger the modal close background click
-                this.classList.toggle("zoomed");
-            }
-
-            // Close logic
-            document.querySelector(".close-modal").onclick = function() {
-                modal.style.display = "none";
-            }
-            modal.onclick = function() {
-                modal.style.display = "none";
-            }
-        });
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
