@@ -445,7 +445,7 @@ const reviewData = {
 const videos = [{
     url: 'https://youtube.com/shorts/VrG25GPLOPk?si=aLWnhClvOTfCkXcc'
 }, {
-    url: 'https://www.instagram.com/reel/C58kCJQt1Kk/?stkn=MzRlODBiNWFlZA=='
+    url: 'https://youtube.com/shorts/Mnr4vKugkMw?feature=share'
 }, {
     url: 'https://youtube.com/shorts/neR36UuDhaU?si=Hy1Fd89MtbrbchAN'
 }, {
