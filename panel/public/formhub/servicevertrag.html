@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <title>Servicevertrag</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+    <style>
+        :root { 
+            --sidebar-w: 600px; 
+            --accent: #2563eb;
+            
+            /* Light Theme Defaults */
+            --bg-body: #f3f4f6;
+            --bg-sidebar: #ffffff;
+            --border-color: #e5e7eb;
+            --preview-bg: #64748b;
+            --text-color: #212529;
+            --acc-btn-bg: #f8fafc;
+            --acc-btn-color: #4b5563;
+            --acc-active-bg: #eff6ff;
+            --item-border: #f3f4f6;
+            --handle-color: #d1d5db;
+            --box-bg: #f8f9fa;
+        }
+        
+        [data-bs-theme="dark"] {
+            --bg-body: #121212;
+            --bg-sidebar: #212529;
+            --border-color: #373b3e;
+            --preview-bg: #1a1a1a;
+            --text-color: #e0e0e0;
+            --acc-btn-bg: #2c3034;
+            --acc-btn-color: #adb5bd;
+            --acc-active-bg: #0d6efd26;
+            --item-border: #373b3e;
+            --handle-color: #6c757d;
+            --box-bg: #2b3035;
+        }
+
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: var(--bg-body); color: var(--text-color); height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
+        
+        .top-header { height: 60px; background: var(--bg-sidebar); border-bottom: 1px solid var(--border-color); display: flex; align-items: center; padding: 0 1rem; z-index: 20; }
+        .app-container { display: flex; flex: 1; overflow: hidden; }
+        .sidebar { width: var(--sidebar-w); background: var(--bg-sidebar); border-right: 1px solid var(--border-color); display: flex; flex-direction: column; z-index: 10; transition: width 0.3s ease, min-width 0.3s ease, opacity 0.2s ease; overflow: hidden; }
+        .sidebar.collapsed { width: 0; min-width: 0; border-right: none; opacity: 0; }
+        .preview { flex-grow: 1; background: var(--preview-bg); padding: 40px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 20px; }
+
+        .sidebar-header { padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; background: var(--bg-sidebar); }
+        .sidebar-scroll { flex: 1; overflow-y: auto; padding: 1rem; }
+        
+        .accordion-item { border: 1px solid var(--border-color); border-radius: 8px !important; margin-bottom: 1rem; overflow: hidden; background-color: var(--bg-sidebar); }
+        .accordion-button { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--acc-btn-color); background: var(--acc-btn-bg); }
+        .accordion-button:not(.collapsed) { background: var(--acc-active-bg); color: var(--accent); }
+
+        .item-row { display: flex; gap: 4px; padding: 6px; border-bottom: 1px solid var(--item-border); align-items: center; }
+        .drag-handle { cursor: grab; color: var(--handle-color); }
+
+        .document-page { width: 210mm; min-height: 297mm; background: white; padding: 15mm 20mm; color: black; position: relative; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5); margin-bottom: 20px; }
+        .mieter-table { width: 100%; margin-top: 5px; }
+        .mieter-table td { font-size: 13px; padding: 1px 0; }
+        .mieter-label { font-weight: 800; width: 130px; }
+        
+        .doc-table { width: 100%; margin-top: 15px; border: 1.5px solid #000; border-collapse: collapse; }
+        .doc-table th { background: #f8fafc; border: 1px solid #000; padding: 8px; font-size: 12px; }
+        .doc-table td { border: 1px solid #000; padding: 5px; font-size: 12px; }
+
+        .section-text { font-size: 12px; white-space: pre-wrap; margin-top: 5px; min-height: 20px; }
+
+        /* Neue Artikel-Ausrichtung (Tab nach innen) */
+        .indent-section { margin-left: 30px; margin-top: 5px; font-size: 12px; line-height: 1.4; text-align: justify; }
+
+        #v_approval_list { display: block; margin-top: 5px; line-height: 1.4; }
+
+        .custom-box { background-color: var(--box-bg); border: 1px solid var(--border-color) !important; }
+
+        /* Print Layout Helpers */
+        .print-table { width: 100%; border-collapse: collapse; border: none; }
+        .print-table > tbody > tr > td, 
+        .print-table > thead > tr > td, 
+        .print-table > tfoot > tr > td { padding: 0; border: none; }
+        .print-header, .print-footer { display: none; }
+        .print-header-space { height: 15mm; }
+        .print-footer-space { height: 15mm; }
+
+        @media print {
+            @page { size: auto; margin: 0mm; }
+            body { overflow: visible !important; height: auto !important; }
+            .sidebar, .no-print { display: none !important; }
+            .preview { padding: 0 !important; background: white !important; overflow: visible !important; display: block !important; }
+            .document-page { box-shadow: none !important; margin: 0 !important; width: 100% !important; border: none !important; page-break-after: always; padding: 0 20mm !important; }
+            h6 { page-break-after: avoid; break-after: avoid; }
+            .indent-section, .section-text { page-break-inside: avoid; break-inside: avoid; }
+            table { page-break-inside: auto; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            .print-table tr { page-break-inside: auto; }
+            thead { display: table-header-group; }
+            .print-header { display: table-header-group; }
+            .print-footer { display: table-footer-group; }
+            ::-webkit-scrollbar { display: none !important; }
+        }
+    </style>
+</head>
+<body data-bs-theme="dark">
+
+<header class="top-header no-print">
+    <button class="btn btn-outline-secondary btn-sm me-3" onclick="document.querySelector('.sidebar').classList.toggle('collapsed')">
+        <i class="bi bi-list fs-5"></i>
+    </button>
+    <div class="kunden-search-target flex-grow-1"></div>
+</header>
+
+<div class="app-container">
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h6 class="mb-0 fw-bold text-primary">Miet-Generator PRO v8.6</h6>
+            <div class="d-flex gap-2">
+                <button class="btn btn-light btn-sm border" onclick="toggleTheme()"><i class="bi bi-moon-stars"></i></button>
+                <button class="btn btn-outline-primary btn-sm" onclick="exportData()"><i class="bi bi-download"></i></button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('importFile').click()"><i class="bi bi-upload"></i></button>
+                <input type="file" id="importFile" hidden onchange="importData(event)">
+            </div>
+        </div>
+
+        <div class="sidebar-scroll">
+            <div class="accordion" id="formAccordion">
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#colMieter">Mieterinformationen</button></h2>
+                    <div id="colMieter" class="accordion-collapse collapse show" data-bs-parent="#formAccordion">
+                        <div class="accordion-body">
+                            <div class="mb-2"><label class="small fw-bold">Kundennummer</label><input type="text" id="f_knd" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="mb-2"><label class="small fw-bold">Firmenname</label><input type="text" id="f_firma" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="mb-2"><label class="small fw-bold">Inhaber/in</label><input type="text" id="f_inhaber" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="mb-2"><label class="small fw-bold">Gewerbeadresse</label><input type="text" id="f_adr_gew" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="mb-2"><label class="small fw-bold">Privatadresse</label><input type="text" id="f_adr_priv" class="form-control form-control-sm" oninput="sync()"></div>
+                            <div class="row g-2">
+                                <div class="col-6"><label class="small fw-bold">E-Mail</label><input type="text" id="f_ust" class="form-control form-control-sm" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">Telefon</label><input type="text" id="f_tel" class="form-control form-control-sm" oninput="sync()"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#colItems">Artikelliste</button></h2>
+                    <div id="colItems" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                        <div class="accordion-body px-1">
+                            <div id="item-container"></div>
+                            <button class="btn btn-primary btn-sm w-100 mt-2" onclick="addItem()">+ Artikel hinzufügen</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="accordion-item">
+                    <h2 class="accordion-header"><button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#colFinance">Konditionen & Regelungen</button></h2>
+                    <div id="colFinance" class="accordion-collapse collapse" data-bs-parent="#formAccordion">
+                        <div class="accordion-body">
+                            <div class="row g-2 mb-3">
+                                <div class="col-6"><label class="small fw-bold">Einmalig (€)</label><input type="number" id="f_aus" class="form-control form-control-sm" value="0" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">Servicegebühr Netto (€)</label><input type="number" id="f_netto" class="form-control form-control-sm" value="50" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">Beginn</label><input type="date" id="f_start" class="form-control form-control-sm" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">Dauer (Monate)</label><input type="number" id="f_sure" class="form-control form-control-sm" value="60" oninput="sync()"></div>
+                                <div class="col-6"><label class="small fw-bold">TSE Laufzeit (Jahre)</label><input type="number" id="f_tse" class="form-control form-control-sm" value="5" oninput="sync()"></div>
+                            </div>
+                            <div class="mb-3" style="display:none;"><label class="small fw-bold">Schadenersatz (€)</label><input type="number" id="f_schaden" class="form-control form-control-sm" value="5455.00" oninput="sync()"></div>
+                            <div class="mb-3">
+                                <label class="small fw-bold">§ 3 Sonderregelung</label>
+                                <textarea id="f_sonder" class="form-control form-control-sm" rows="3" oninput="sync()" placeholder="Sondervereinbarungen hier eingeben..."></textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="small fw-bold">§ 4 Info</label>
+                                <textarea id="f_info" class="form-control form-control-sm" rows="3" oninput="sync()" placeholder="Kaufoption und zusätzliche Informationen..."></textarea>
+                            </div>
+                            <div class="custom-box p-2 rounded">
+                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_gew" onchange="sync()"> <label>Gewerbebescheinigung</label></div>
+                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_anm" onchange="sync()"> <label>Anmeldebescheinigung</label></div>
+                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_id" onchange="sync()"> <label>Personalausweis</label></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-3 border-top"><button class="btn btn-success w-100 py-3 fw-bold" onclick="handlePrint()">DRUCKEN / PDF</button></div>
+    </aside>
+
+    <main class="preview">
+        <div class="document-page" id="print-area">
+            <table class="print-table">
+                <thead class="print-header"><tr><td><div class="print-header-space"></div></td></tr></thead>
+                <tfoot class="print-footer"><tr><td><div class="print-footer-space"></div></td></tr></tfoot>
+                <tbody><tr><td>
+            <div class="d-flex align-items-end border-bottom border-dark border-3 pb-2 mb-4">
+                <div style="flex: 1;"></div>
+                <div class="text-center" style="flex: 2;">
+                    <h1 class="fw-bold mb-0" style="font-size: 1.5rem;">SERVICE- UND NUTZUNGSVEREINBARUNG</h1>
+                    <div class="fw-bold" style="font-size: 1rem;">für Kassensoftware und technische Softwarepflege</div>
+                </div>
+                <div class="text-end" style="flex: 1;"><span class="small">Datum: <strong id="v_tarih">--.--.----</strong></span></div>
+            </div>
+
+            <div class="row mb-4">
+                <div class="col-5">
+                    <h6 class="fw-bold border-bottom border-dark pb-1">Anbieter</h6>
+                    <p class="small">
+                        Erol Keskin<br>
+                        Kassen Keskin<br>
+                        Stülpnagelstraße 3 14059 Berlin<br>
+                        Bearbeiter: Erol Keskin<br>
+                        Telefon: 030/23571527<br>
+                        Mobil: 0176/22204117<br>
+                        E-Mail: info@kassen-keskin.de
+                    </p>
+                </div>
+                <div class="col-7">
+                    <h6 class="fw-bold border-bottom border-dark pb-1">Kunde</h6>
+                    <table class="mieter-table">
+                        <tr><td class="mieter-label">Kundennummer:</td><td id="v_knd">__________</td></tr>
+                        <tr><td class="mieter-label">Firma:</td><td id="v_firma">__________</td></tr>
+                        <tr><td class="mieter-label">Inhaber/in:</td><td id="v_inhaber">__________</td></tr>
+                        <tr><td class="mieter-label">Gewerbeadr.:</td><td id="v_adr_gew">__________</td></tr>
+                        <tr><td class="mieter-label">Privatadr.:</td><td id="v_adr_priv">__________</td></tr>
+                        <tr><td class="mieter-label">E-Mail:</td><td id="v_ust">__________</td></tr>
+                        <tr><td class="mieter-label">Telefon:</td><td id="v_tel">__________</td></tr>
+                    </table>
+                    <div id="v_approval" class="mt-2 p-1 border border-success rounded text-success fw-bold" style="display:none; width:100%; font-size: 10px;">
+                        <i class="bi bi-check2-circle"></i> GEPRÜFTE UNTERLAGEN:
+                        <div id="v_approval_list"></div>
+                    </div>
+                </div>
+            </div>
+
+            ﻿            <h6 class="fw-bold mt-3">§ 1 Vertragsgegenstand</h6>
+            <div class="indent-section">
+                Der Anbieter stellt dem Kunden im Zusammenhang mit dem erworbenen Kassensystem die Nutzung der hierfür erforderlichen Kassensoftware sowie die vereinbarten Service- und Pflegeleistungen zur Verfügung.
+                Die Vereinbarung umfasst insbesondere das Nutzungsrecht an der Kassensoftware, Softwarepflege, Updates sowie technische Unterstützung im vereinbarten Umfang.
+                Das Nutzungsrecht wird für die Dauer dieser Vereinbarung eingeräumt und ist grundsätzlich nicht auf Dritte übertragbar.
+            </div>
+            <table class="doc-table">
+                <thead><tr><th width="40">Anz.</th><th>Typ</th><th>Marke</th><th>Modell</th><th>Seriennummer (SN)</th></tr></thead>
+                <tbody id="v_items_body"></tbody>
+            </table>
+
+            <h6 class="fw-bold mt-3">§ 2 Leistungsumfang des Servicepakets</h6>
+            <div class="indent-section">
+                Das monatliche Servicepaket umfasst, soweit für das eingesetzte Kassensystem technisch verfügbar:<br>
+                - die Nutzung der vereinbarten Kassensoftware;<br>
+                - Softwarepflege und Aktualisierungen;<br>
+                - Fehlerkorrekturen und technische Anpassungen;<br>
+                - Unterstützung bei softwarebezogenen Fragen und Störungen;<br>
+                - Bereitstellung bzw. Installation von Software-Updates;<br>
+                - Anpassungen der Software, soweit diese im Rahmen der üblichen Softwarepflege erforderlich und vom Anbieter vorgesehen sind.<br><br>
+                Nicht Bestandteil des monatlichen Servicepakets sind insbesondere Hardware-Reparaturen, Hardwareaustausch, Vor-Ort-Service, individuelle Programmierungen, Schulungen sowie Leistungen aufgrund unsachgemäßer Bedienung oder nicht autorisierter Eingriffe. Solche Leistungen können nach vorheriger Vereinbarung gesondert berechnet werden.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 3 Servicegebühr</h6>
+            <div class="indent-section">
+                Für das Servicepaket zahlt der Kunde:<br>
+                <div style="width: 280px; margin-left: auto; margin-right: auto; padding: 10px;">
+                    <div class="d-flex justify-content-between py-1 small"><span>Servicegebühr (Netto):</span><span id="v_netto">50,00 €</span></div>
+                    <div class="d-flex justify-content-between py-1 small border-bottom"><span>MwSt. (19%):</span><span id="v_mwst">9,50 €</span></div>
+                    <div class="d-flex justify-content-between fw-bold pt-1"><span>Gesamt (Brutto):</span><span id="v_brutto">59,50 €</span></div>
+                </div>
+                Die monatliche Servicegebühr ist unabhängig davon zu entrichten, ob und in welchem Umfang der Kunde die angebotenen Serviceleistungen tatsächlich in Anspruch nimmt.
+                Die Zahlung erfolgt gemäß der vereinbarten Zahlungsweise bzw. nach Rechnungsstellung innerhalb der auf der Rechnung angegebenen Zahlungsfrist.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 4 Mindestvertragslaufzeit</h6>
+            <div class="indent-section">
+                Die Mindestvertragslaufzeit beträgt <strong id="v_sure">60</strong> Monate.<br>
+                Die Laufzeit beginnt mit dem auf der Vertragsbestätigung angegebenen Vertragsbeginn (<strong id="v_start">--.--.----</strong>).<br>
+                <span id="v_einmalig_line">Einmalige Einrichtungskosten: <strong id="v_aus_val">0,00 €</strong> Netto (inkl TSE für <strong id="v_tse_val">5</strong> Jahre).</span><br>
+                Während der Mindestvertragslaufzeit ist eine ordentliche Kündigung durch den Kunden grundsätzlich ausgeschlossen. Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt für beide Vertragsparteien unberührt.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 5 Fortführung und Kündigung</h6>
+            <div class="indent-section">
+                Nach Ablauf der Mindestvertragslaufzeit kann der Kunde das Servicepaket unter Einhaltung der jeweils vereinbarten bzw. gesetzlich geltenden Kündigungsfrist kündigen.<br>
+                Die Kündigung hat mindestens in Textform zu erfolgen.<br>
+                Erfolgt keine Kündigung, wird der Vertrag nach Ablauf der Mindestlaufzeit fortgeführt, soweit keine abweichende Vereinbarung getroffen wird.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 6 Beendigung bei endgültiger Gewerbeaufgabe</h6>
+            <div class="indent-section">
+                Wird der vom Kunden betriebene Gewerbebetrieb endgültig aufgegeben und gegenüber der zuständigen Behörde abgemeldet, kann der Kunde die vorzeitige Beendigung dieser Vereinbarung verlangen.<br>
+                Hierfür ist dem Anbieter ein geeigneter Nachweis über die endgültige Gewerbeabmeldung vorzulegen.<br>
+                Die Vertragsbeendigung erfolgt nach Eingang und Prüfung des entsprechenden Nachweises zum Zeitpunkt der nachgewiesenen endgültigen Gewerbeaufgabe.<br>
+                Eine bloße vorübergehende Betriebsunterbrechung, Ruhendmeldung, Änderung der Geschäftsanschrift oder Änderung der betrieblichen Tätigkeit gilt nicht als endgültige Gewerbeaufgabe.<br>
+                Die Vereinbarung endet nicht automatisch durch eine Gewerbeabmeldung, sondern erst nach Mitteilung des Kunden und Vorlage des entsprechenden Nachweises beim Anbieter.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 7 Pflichten des Kunden</h6>
+            <div class="indent-section">
+                Der Kunde verpflichtet sich,<br>
+                - die Kassensoftware ausschließlich bestimmungsgemäß zu verwenden;<br>
+                - erforderliche Software-Updates zeitnah zu installieren bzw. deren Installation zu ermöglichen;<br>
+                - Zugangsdaten und sonstige sicherheitsrelevante Informationen vor dem Zugriff Dritter zu schützen;<br>
+                - Störungen dem Anbieter möglichst zeitnah mitzuteilen;<br>
+                - keine eigenständigen Veränderungen oder Manipulationen an der Kassensoftware vorzunehmen;<br>
+                - ausschließlich vom Anbieter freigegebene Hard- und Software einzusetzen, soweit dies für den ordnungsgemäßen Betrieb erforderlich ist.<br>
+                Der Kunde ist für die ordnungsgemäße Bedienung des Kassensystems und die Einhaltung der für seinen Betrieb geltenden gesetzlichen Vorschriften verantwortlich.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 8 Support und Störungsmeldungen</h6>
+            <div class="indent-section">
+                Der technische Support erfolgt während der üblichen Geschäftszeiten des Anbieters über die vom Anbieter bereitgestellten Kommunikationswege.<br>
+                Der Kunde hat Störungen möglichst genau zu beschreiben und dem Anbieter die zur Fehleranalyse erforderlichen Informationen zur Verfügung zu stellen.<br>
+                Eine bestimmte Reaktions- oder Wiederherstellungszeit wird nur geschuldet, wenn diese ausdrücklich schriftlich vereinbart wurde.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 9 Updates und gesetzliche Anforderungen</h6>
+            <div class="indent-section">
+                Der Anbieter stellt im Rahmen des Servicepakets verfügbare Softwareupdates und Pflegeleistungen bereit.<br>
+                Der Anbieter ist bemüht, die Kassensoftware an technische Entwicklungen und gesetzliche Anforderungen anzupassen, soweit dies technisch möglich und im Rahmen des vereinbarten Leistungsumfangs vorgesehen ist.<br>
+                Die Verantwortung für die konkrete betriebliche Nutzung des Kassensystems und die Einhaltung der für den Kunden geltenden gesetzlichen Vorschriften verbleibt beim Kunden.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 10 Nutzungsrechte</h6>
+            <div class="indent-section">
+                Die Kassensoftware und ihre Bestandteile bleiben Eigentum des Anbieters bzw. der jeweiligen Rechteinhaber.<br>
+                Der Kunde erhält für die Dauer dieser Vereinbarung ein einfaches, nicht übertragbares Nutzungsrecht für den vereinbarten betrieblichen Einsatz.<br>
+                Eine Weitergabe, Vermietung, Veräußerung, Vervielfältigung oder sonstige Überlassung der Software an Dritte ist nur zulässig, soweit dies gesetzlich erlaubt oder vom Anbieter ausdrücklich genehmigt wurde.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 11 Beendigung des Nutzungsrechts</h6>
+            <div class="indent-section">
+                Mit Beendigung dieser Vereinbarung endet grundsätzlich auch das im Rahmen des Servicepakets eingeräumte Nutzungsrecht an der Kassensoftware.<br>
+                Nach Vertragsende darf die Software nur weiter genutzt werden, wenn hierfür eine gesonderte Vereinbarung oder ein entsprechendes dauerhaftes Nutzungsrecht besteht.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 12 Haftung</h6>
+            <div class="indent-section">
+                Der Anbieter haftet nach den gesetzlichen Bestimmungen.<br>
+                Für Störungen oder Schäden, die durch unsachgemäße Bedienung, nicht autorisierte Eingriffe, Veränderungen der Software, Verwendung nicht freigegebener Hard- oder Software oder sonstige vom Kunden zu vertretende Umstände entstehen, haftet der Anbieter nicht, soweit dies gesetzlich zulässig ist.<br>
+                Die Haftung für Vorsatz, grobe Fahrlässigkeit sowie für Schäden aus der Verletzung von Leben, Körper oder Gesundheit bleibt unberührt.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 13 Datenschutz</h6>
+            <div class="indent-section">
+                Der Anbieter verarbeitet personenbezogene Daten ausschließlich im Rahmen der geltenden datenschutzrechtlichen Bestimmungen.<br>
+                Soweit für einzelne Leistungen eine Auftragsverarbeitung erforderlich ist, werden die hierfür erforderlichen Vereinbarungen gesondert getroffen.
+            </div>
+
+            <h6 class="fw-bold mt-3">§ 14 Schlussbestimmungen</h6>
+            <div class="indent-section">
+                Änderungen und Ergänzungen dieser Vereinbarung sollen in Textform erfolgen.<br>
+                Sollten einzelne Bestimmungen dieser Vereinbarung unwirksam sein oder werden, bleibt die Wirksamkeit der übrigen Bestimmungen unberührt. An die Stelle der unwirksamen Bestimmung treten die gesetzlichen Regelungen.<br>
+                Es gilt das Recht der Bundesrepublik Deutschland.
+            </div>
+
+            <h6 class="fw-bold mt-3">Sonderregelung</h6>
+            <div class="section-text" id="v_sonder">Keine Sonderregelungen vereinbart.</div>
+
+            <h6 class="fw-bold mt-3">Info</h6>
+            <div class="section-text" id="v_info">Keine weiteren Informationen hinterlegt.</div>
+
+            <div class="mt-4 small">
+                Allgemeinen Geschäftsbedingungen (AGB) der Kassen Keskin: http://kassensysteme-keskin.de/AGB<br>
+                Datenschutzerklärung der Kassen Keskin: http://kassensysteme-keskin.de/Datenschutzerklärung
+            </div>
+
+            <div class="mt-5 pt-3">
+                <table style="width: 100%; text-align: center; font-size: 12px;">
+                    <tr>
+                        <td style="width: 50%;">Für den Anbieter<br>Berlin, den ....................<br><br><br>...........................................<br>(Unterschrift)</td>
+                        <td style="width: 50%;">Für den Kunden<br>Berlin, den ....................<br><br><br>...........................................<br>(Unterschrift / Stempel)</td>
+                    </tr>
+                </table>
+            </div>
+            </td></tr></tbody></table>
+        </div>
+    </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function sync() {
+        // Mieter-Felder
+        ['knd', 'firma', 'inhaber', 'adr_gew', 'adr_priv', 'ust', 'tel', 'sure', 'sonder', 'info'].forEach(f => {
+            const val = document.getElementById('f_'+f).value;
+            const target = document.getElementById('v_'+f);
+            if(f === 'sonder' || f === 'info') {
+                target.innerText = val || (f === 'sonder' ? 'Keine Sonderregelungen.' : 'Keine Infos.');
+            } else {
+                target.innerText = val || '__________';
+            }
+        });
+
+        // Datum und Finanzen
+        const start = document.getElementById('f_start').value;
+        document.getElementById('v_start').innerText = start ? start.split('-').reverse().join('.') : '--.--.----';
+        document.getElementById('v_tarih').innerText = new Date().toLocaleDateString('de-DE');
+
+        const net = parseFloat(document.getElementById('f_netto').value) || 0;
+        const aus = parseFloat(document.getElementById('f_aus').value) || 0;
+        const tse = document.getElementById('f_tse').value || 5;
+        const mwst = net * 0.19;
+
+        document.getElementById('v_netto').innerText = net.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+        document.getElementById('v_aus_val').innerText = aus.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+        document.getElementById('v_tse_val').innerText = tse;
+        document.getElementById('v_mwst').innerText = mwst.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+        document.getElementById('v_brutto').innerText = (net + mwst).toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+
+        const schaden = parseFloat(document.getElementById('f_schaden').value) || 0;
+        const v_schaden = document.getElementById('v_schaden');
+        if (v_schaden) v_schaden.innerText = schaden.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
+
+        // Dokumentenliste aktualisiert
+        const gewOk = document.getElementById('check_gew').checked;
+        const anmOk = document.getElementById('check_anm').checked;
+        const idOk = document.getElementById('check_id').checked;
+        
+        document.getElementById('v_approval').style.display = (gewOk || anmOk || idOk) ? 'block' : 'none';
+        
+        let listHtml = "";
+        if(gewOk) listHtml += "• Gewerbebescheinigung (Geprüft)<br>";
+        if(anmOk) listHtml += "• Anmeldebescheinigung (Geprüft)<br>";
+        if(idOk) listHtml += "• Personalausweis (Kopie erhalten)";
+        document.getElementById('v_approval_list').innerHTML = listHtml;
+
+        renderItems();
+    }
+
+    function addItem(data = {}) {
+        const row = document.createElement('div');
+        row.className = 'item-row';
+        row.innerHTML = `
+            <span class="drag-handle"><i class="bi bi-grip-vertical"></i></span>
+            <input type="text" class="form-control form-control-sm in-anz" style="width:40px" value="${data.anz || 1}" oninput="sync()">
+            <input type="text" class="form-control form-control-sm in-typ flex-grow-1" placeholder="Typ" value="${data.typ || ''}" oninput="sync()">
+            <input type="text" class="form-control form-control-sm in-mar" placeholder="Marke" value="${data.mar || ''}" oninput="sync()">
+            <input type="text" class="form-control form-control-sm in-mod" placeholder="Modell" value="${data.mod || ''}" oninput="sync()">
+            <input type="text" class="form-control form-control-sm in-sn" placeholder="SN" value="${data.sn || ''}" oninput="sync()">
+            <button class="btn btn-link text-danger p-1" onclick="this.parentElement.remove(); sync();"><i class="bi bi-trash"></i></button>
+        `;
+        document.getElementById('item-container').appendChild(row);
+        sync();
+    }
+
+    function renderItems() {
+        const tbody = document.getElementById('v_items_body');
+        tbody.innerHTML = '';
+        document.querySelectorAll('.item-row').forEach(row => {
+            const typ = row.querySelector('.in-typ').value;
+            if(typ) {
+                tbody.innerHTML += `<tr><td>${row.querySelector('.in-anz').value}x</td><td>${typ}</td><td>${row.querySelector('.in-mar').value}</td><td>${row.querySelector('.in-mod').value}</td><td><b>${row.querySelector('.in-sn').value}</b></td></tr>`;
+            }
+        });
+    }
+
+    function toggleTheme() {
+        const b = document.body;
+        b.setAttribute('data-bs-theme', b.getAttribute('data-bs-theme') === 'light' ? 'dark' : 'light');
+    }
+
+    function exportData() {
+        const data = {
+            mieter: { knd: f_knd.value, firma: f_firma.value, inhaber: f_inhaber.value, adr_gew: f_adr_gew.value, adr_priv: f_adr_priv.value, ust: f_ust.value, tel: f_tel.value },
+            finanz: { netto: f_netto.value, aus: f_aus.value, start: f_start.value, sure: f_sure.value, sonder: f_sonder.value, info: f_info.value, schaden: f_schaden.value, tse: f_tse.value },
+            items: Array.from(document.querySelectorAll('.item-row')).map(r => ({
+                anz: r.querySelector('.in-anz').value, typ: r.querySelector('.in-typ').value, mar: r.querySelector('.in-mar').value, mod: r.querySelector('.in-mod').value, sn: r.querySelector('.in-sn').value
+            }))
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+        const a = document.createElement('a'); a.href = URL.createObjectURL(blob); 
+        const firmaVal = f_firma.value ? f_firma.value.trim() : "";
+        const searchInput = document.getElementById("kundenSearchInput");
+        const kndNr = (searchInput && searchInput.value.trim() !== "") ? searchInput.value.trim() : (f_knd.value ? f_knd.value.trim() : "");
+        const prefix = kndNr ? `${kndNr} - ` : "";
+        a.download = firmaVal ? `${prefix}${firmaVal} - Servicevertrag.json` : "Servicevertrag.json"; a.click();
+    }
+
+    function importData(e) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            const data = JSON.parse(event.target.result);
+            const m = data.mieter || {}; 
+            f_knd.value = m.knd||''; f_firma.value = m.firma||''; f_inhaber.value = m.inhaber||''; f_adr_gew.value = m.adr_gew||''; f_adr_priv.value = m.adr_priv||''; f_ust.value = m.ust||''; f_tel.value = m.tel||'';
+            const f = data.finanz || {}; 
+            f_netto.value = f.netto||0; f_aus.value = f.aus||0; f_start.value = f.start||''; f_sure.value = f.sure||24; f_sonder.value = f.sonder||''; f_info.value = f.info||''; f_schaden.value = f.schaden||'5455.00'; f_tse.value = f.tse||5;
+            document.getElementById('item-container').innerHTML = ''; (data.items || []).forEach(i => addItem(i)); sync();
+        };
+        reader.readAsText(e.target.files[0]);
+    }
+
+    function handlePrint() { 
+        if(!check_id.checked || !check_gew.checked || !check_anm.checked) alert("Bitte bestätigen Sie die Unterlagen.");
+        else {
+            const firmaName = f_firma.value ? f_firma.value.trim() : "";
+            const searchInput = document.getElementById("kundenSearchInput");
+            const kndNr = (searchInput && searchInput.value.trim() !== "") ? searchInput.value.trim() : (f_knd.value ? f_knd.value.trim() : "");
+            const prefix = kndNr ? `${kndNr} - ` : "";
+            const newTitle = firmaName ? `${prefix}${firmaName} - Servicevertrag` : "Servicevertrag";
+            
+            const origTitle = document.title;
+            let origTopTitle = null;
+            try { if (window.top) origTopTitle = window.top.document.title; } catch(e) {}
+            
+            document.title = newTitle;
+            try { if (window.top) window.top.document.title = newTitle; } catch(e) {}
+            
+            setTimeout(() => {
+                window.print();
+                
+                setTimeout(() => {
+                    document.title = origTitle;
+                    try { if (window.top && origTopTitle !== null) window.top.document.title = origTopTitle; } catch(e) {}
+                }, 3000);
+            }, 50);
+        }
+    }
+
+    new Sortable(document.getElementById('item-container'), { animation: 150, handle: '.drag-handle', onEnd: sync });
+    window.onload = () => { addItem(); sync(); };
+</script>
+<script src="kunden_integration.js"></script>
+</body>
+</html>

@@ -32,6 +32,14 @@
         "f_adr_priv": "PrivatAdress",
         "f_tel": "Tel"
     },
+    "servicevertrag": {
+        "f_knd": "KundenNr",
+        "f_firma": "Firma",
+        "f_inhaber": "InhabeName",
+        "f_adr_gew": "FirmaAdress",
+        "f_adr_priv": "PrivatAdress",
+        "f_tel": "Tel"
+    },
     "beyond-form": {
         "Firmenname": "Firma",
         "Telefon_Firma": "Tel",
