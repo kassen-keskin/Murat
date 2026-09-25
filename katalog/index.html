@@ -65,9 +65,11 @@
       <div class="flex items-center gap-4">
         <!-- Language Switcher -->
         <div class="flex bg-blue-900 rounded-lg overflow-hidden border-2 border-blue-800 shadow-inner">
-          <button @click="changeLang('tr')" :class="lang === 'tr' ? 'bg-white text-blue-900 font-bold' : 'text-gray-300 hover:bg-blue-600'" class="px-4 py-1.5 transition-colors text-sm">TR</button>
-          <button @click="changeLang('de')" :class="lang === 'de' ? 'bg-white text-blue-900 font-bold' : 'text-gray-300 hover:bg-blue-600'" class="px-4 py-1.5 transition-colors text-sm">DE</button>
-          <button @click="changeLang('en')" :class="lang === 'en' ? 'bg-white text-blue-900 font-bold' : 'text-gray-300 hover:bg-blue-600'" class="px-4 py-1.5 transition-colors text-sm">EN</button>
+          <select v-model="lang" @change="changeLang(lang)" class="bg-blue-900 text-white font-bold px-3 py-1.5 outline-none cursor-pointer hover:bg-blue-800 transition-colors text-sm appearance-none text-center">
+            <option value="tr">TR</option>
+            <option value="de">DE</option>
+            <option value="en">EN</option>
+          </select>
         </div>
 
         <button @click="mode = 'view'" :class="mode === 'view' ? 'bg-blue-900 border-2 border-white' : 'bg-blue-600 border-2 border-transparent hover:bg-blue-500'" class="px-5 py-2 rounded-lg font-bold transition-all shadow-md">
@@ -95,6 +97,14 @@
             <option v-for="i in industries" :key="i" :value="i">{{i}}</option>
           </select>
         </div>
+        <div>
+          <label class="block text-sm font-bold text-gray-700 mb-1">{{ t('priceTypeTitle') }}</label>
+          <select v-model="filterPriceType" class="block w-56 rounded-md shadow-sm p-3 border-2 border-gray-300 focus:border-blue-500 font-semibold text-lg outline-none cursor-pointer">
+            <option value="aylik">{{ t('ptMonthly') }}</option>
+            <option value="satis">{{ t('ptPurchase') }}</option>
+            <option value="hibrit">{{ t('ptHybrid') }}</option>
+          </select>
+        </div>
         <button onclick="window.print()" class="px-8 py-3 bg-green-500 text-white font-black text-lg rounded-md shadow-lg hover:bg-green-600 hover:shadow-xl transition-all flex items-center gap-3">
           <i class="fas fa-print text-2xl"></i> {{ t('printCatalog') }}
         </button>
@@ -110,7 +120,7 @@
           
           <div class="absolute top-0 right-0 w-80 h-80 bg-blue-600 rounded-bl-full opacity-5 z-0 pointer-events-none"></div>
           
-          <div class="flex justify-between items-start p-6 z-10 w-full shrink-0">
+          <div class="flex justify-between items-start px-6 pt-6 pb-0 z-10 w-full shrink-0">
             <img src="logo.jpg" alt="Logo" class="h-20 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'80\'><text x=\'10\' y=\'45\' font-size=\'30\' font-family=\'sans-serif\' font-weight=\'bold\'>KASSEN KESKİN</text></svg>'">
             <div class="text-right">
               <h2 class="text-5xl font-black text-gray-900 tracking-tight uppercase">{{ p.brand }}</h2>
@@ -118,8 +128,8 @@
             </div>
           </div>
 
-          <div class="px-10 w-full z-10 shrink-0">
-            <div class="h-[380px] w-full relative flex flex-col items-center justify-center p-4 group cursor-pointer bg-white bg-opacity-50" @click="nextImage(p.id)">
+          <div class="px-10 w-full z-10 shrink-0 mt-0">
+            <div class="h-[550px] w-full relative flex flex-col items-center justify-center p-4 group cursor-pointer bg-white bg-opacity-50" @click="nextImage(p.id)">
               <!-- Sketch Border Background -->
               <div class="absolute inset-0 pointer-events-none sketch-border z-0"></div>
 
@@ -148,27 +158,32 @@
             </div>
           </div>
 
-          <div class="px-10 py-4 z-10 flex flex-col items-center w-full flex-grow">
-            <div class="bg-blue-600 text-white px-8 py-4 rounded-2xl shadow-xl mb-8 w-full text-center transform -rotate-1 border-b-4 border-blue-800">
-              <h1 class="text-3xl font-black italic tracking-wide leading-tight">
+          <div class="px-10 py-2 z-10 flex flex-col items-start justify-start w-full flex-grow">
+            <div class="bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-xl mb-4 w-full text-center transform -rotate-1 border-b-4 border-blue-800">
+              <h1 class="text-2xl font-black italic tracking-wide leading-tight">
                 "{{ p.translations[lang].slogan }}"
               </h1>
             </div>
             
-            <div class="grid grid-cols-2 gap-x-10 gap-y-8 w-full max-w-4xl px-4 mt-2">
-              <div v-for="(feat, idx) in p.translations[lang].features" :key="idx" class="flex items-center gap-5">
-                <div class="bg-green-500 text-white rounded-2xl flex items-center justify-center h-14 w-14 shrink-0 shadow-md border-b-4 border-green-700">
-                  <i class="fas fa-check text-2xl"></i>
+            <div class="grid grid-cols-2 gap-x-8 gap-y-3 w-[80%] mt-2 mr-auto relative z-30">
+              <div v-for="(feat, idx) in p.translations[lang].features" :key="idx" class="flex items-center gap-2">
+                <div class="bg-green-500 text-white rounded-lg flex items-center justify-center h-8 w-8 shrink-0 shadow-sm border-b-[3px] border-green-700">
+                  <i class="fas fa-check text-base"></i>
                 </div>
-                <span class="text-2xl font-bold text-gray-800 leading-snug">{{ feat }}</span>
+                <span class="text-lg font-bold text-gray-800 leading-snug">{{ feat }}</span>
               </div>
             </div>
           </div>
 
           <!-- Price Tag -->
-          <div v-if="p.price" class="absolute bottom-[225px] right-[35px] transform -rotate-[15deg] z-40 drop-shadow-2xl opacity-90 scale-110 origin-bottom-right">
-            <div class="bg-yellow-400 text-red-700 px-6 py-2 rounded-lg border-4 border-red-600 shadow-xl inline-block" style="font-family: 'Impact', 'Arial Black', sans-serif;">
-              <span class="text-6xl uppercase tracking-tighter">{{ p.price }}</span>
+          <div v-if="(filterPriceType === 'aylik' && p.price) || (filterPriceType === 'satis' && p.priceSatis) || (filterPriceType === 'hibrit' && p.priceHibrit)" class="absolute bottom-[198px] right-[7px] transform -rotate-[15deg] z-40 drop-shadow-2xl opacity-90 scale-110 origin-bottom-right">
+            <div class="relative bg-yellow-400 text-red-700 px-6 py-2 rounded-lg border-4 border-red-600 shadow-xl inline-block text-center flex flex-col justify-center min-w-[140px] min-h-[70px]" style="font-family: 'Impact', 'Arial Black', sans-serif;">
+              <span class="uppercase tracking-tighter" :class="(filterPriceType === 'satis' && p.priceSatis && p.priceSatis.length >= 4) || (filterPriceType === 'hibrit' && p.priceHibrit && p.priceHibrit.length >= 4) ? 'text-4xl' : 'text-6xl'">
+                {{ filterPriceType === 'aylik' ? p.price : filterPriceType === 'satis' ? p.priceSatis : p.priceHibrit }}
+              </span>
+              <div class="absolute top-[100%] left-1/2 -translate-x-1/2 -translate-y-[45%] bg-yellow-400 text-red-700 px-2 py-0.5 text-[10px] rounded-full border border-red-600 shadow-sm" style="font-family: 'Poppins', sans-serif; font-weight: 900; white-space: nowrap; line-height: 1;">
+                {{ filterPriceType === 'aylik' ? (lang === 'tr' ? 'AYLIK' : lang === 'de' ? 'MONATLICH' : 'MONTHLY') : filterPriceType === 'satis' ? (lang === 'tr' ? 'NET FİYAT' : lang === 'de' ? 'NETTOPREIS' : 'NET PRICE') : (lang === 'tr' ? 'HİBRİT' : 'HYBRID') }}
+              </div>
             </div>
           </div>
 
@@ -189,13 +204,16 @@
 
             <div class="w-10"></div> <!-- Small flexible spacer -->
 
-            <div class="text-right z-10 max-w-[10cm]">
-              <div class="text-3xl font-black text-white mb-2">
-                <i class="fab fa-whatsapp text-green-400 drop-shadow-md"></i> +49 176 222 0 4117
+            <div class="flex items-center gap-4 z-10">
+              <div class="text-right max-w-[10cm]">
+                <div class="text-[22px] font-black text-white mb-1">
+                  <i class="fab fa-whatsapp text-green-400 drop-shadow-md"></i> +49 176 222 0 4117
+                </div>
+                <div class="text-lg font-bold text-blue-100 leading-tight">
+                  <i class="fas fa-map-marker-alt text-red-400 drop-shadow-md"></i> Stülpnagelstraße 3<br>14059 Berlin
+                </div>
               </div>
-              <div class="text-xl font-bold text-blue-100 leading-tight">
-                <i class="fas fa-map-marker-alt text-red-400 drop-shadow-md"></i> Stülpnagelstraße 3<br>14059 Berlin
-              </div>
+              <img src="whatsapp.bmp" alt="WhatsApp" class="w-[85px] h-[85px] object-contain bg-white p-1 rounded-lg shadow-md shrink-0">
             </div>
           </div>
 
@@ -218,10 +236,22 @@
         <div class="lg:col-span-1 bg-white p-4 rounded-xl shadow border border-gray-200 flex flex-col h-[75vh]">
           <h3 class="font-bold text-lg border-b pb-2 mb-4 text-gray-700">{{ t('existingPages') }} ({{ products.length }})</h3>
           <div class="overflow-y-auto flex-grow pr-2 space-y-2">
-            <div v-for="p in products" :key="p.id" 
-                 class="p-4 border rounded-lg cursor-pointer transition-all flex justify-between items-center group"
-                 :class="editingProduct && editingProduct.id === p.id ? 'bg-blue-50 border-blue-500 shadow-md ring-2 ring-blue-200' : 'hover:bg-gray-50 border-gray-200'"
+            <div v-for="(p, index) in products" :key="p.id" 
+                 draggable="true"
+                 @dragstart="onDragStart($event, index)"
+                 @dragover.prevent="onDragOver($event, index)"
+                 @dragenter.prevent="onDragEnter($event, index)"
+                 @drop="onDrop($event, index)"
+                 @dragend="onDragEnd"
+                 class="p-4 pl-6 border rounded-lg cursor-pointer transition-all flex justify-between items-center group relative"
+                 :class="[
+                   editingProduct && editingProduct.id === p.id ? 'bg-blue-50 border-blue-500 shadow-md ring-2 ring-blue-200' : 'hover:bg-gray-50 border-gray-200',
+                   dragOverIndex === index ? 'border-t-4 border-t-blue-500 -translate-y-1' : ''
+                 ]"
                  @click="editProduct(p)">
+                 <div class="absolute left-1.5 top-1/2 -translate-y-1/2 text-gray-300 opacity-0 group-hover:opacity-100 transition-opacity cursor-grab hover:text-gray-500">
+                   <i class="fas fa-grip-vertical"></i>
+                 </div>
               <div class="flex items-center gap-4">
                 <div class="w-12 h-12 bg-gray-100 rounded flex items-center justify-center overflow-hidden shrink-0 border">
                   <img v-if="p.images && p.images.length > 0" :src="p.images[0]" class="w-full h-full object-cover">
@@ -262,9 +292,19 @@
                 <label class="block text-sm font-bold text-gray-700 mb-2">{{ t('modelReq') }} <span class="text-red-500">*</span></label>
                 <input type="text" v-model="editingProduct.model" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none">
               </div>
-              <div class="col-span-2">
-                <label class="block text-sm font-bold text-gray-700 mb-2">{{ t('priceLabel') || 'Aylık Kiralama Fiyatı' }} (Opsiyonel)</label>
-                <input type="text" v-model="editingProduct.price" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="Örn: SADECE 49€ / AY">
+              <div class="col-span-2 grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2">Aylık Fiyat</label>
+                  <input type="text" v-model="editingProduct.price" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="49€">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2">Satış Fiyatı</label>
+                  <input type="text" v-model="editingProduct.priceSatis" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="990€">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2">Hibrit Fiyat</label>
+                  <input type="text" v-model="editingProduct.priceHibrit" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="499€ + 29€">
+                </div>
               </div>
             </div>
 
@@ -291,33 +331,26 @@
               </div>
             </div>
 
-            <!-- Translation Tabs for Slogan and Features -->
-            <div class="mb-2 flex gap-2">
-              <button @click.prevent="editLang = 'tr'" :class="editLang === 'tr' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'" class="px-5 py-2 rounded-t-lg font-bold transition-colors">TR</button>
-              <button @click.prevent="editLang = 'de'" :class="editLang === 'de' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'" class="px-5 py-2 rounded-t-lg font-bold transition-colors">DE</button>
-              <button @click.prevent="editLang = 'en'" :class="editLang === 'en' ? 'bg-blue-600 text-white shadow-md' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'" class="px-5 py-2 rounded-t-lg font-bold transition-colors">EN</button>
-            </div>
-            
-            <div class="bg-blue-50 p-6 rounded-b-xl rounded-tr-xl border border-blue-200 mb-8">
+            <div class="bg-blue-50 p-6 rounded-xl border border-blue-200 mb-8 mt-4">
               <div class="mb-6">
-                <label class="block text-sm font-bold text-blue-900 mb-2">{{ t('sloganReq') }} [{{ editLang.toUpperCase() }}] <span class="text-red-500">*</span></label>
-                <input type="text" v-model="editingProduct.translations[editLang].slogan" class="w-full border-2 border-gray-300 focus:border-blue-500 p-4 rounded-lg text-xl font-bold italic outline-none text-blue-900">
+                <label class="block text-sm font-bold text-blue-900 mb-2">{{ t('sloganReq') }} <span class="text-red-500">*</span></label>
+                <input type="text" v-model="editingProduct.translations.tr.slogan" class="w-full border-2 border-gray-300 focus:border-blue-500 p-4 rounded-lg text-xl font-bold italic outline-none text-blue-900">
               </div>
 
               <div>
-                <label class="block text-sm font-bold text-blue-900 mb-3">{{ t('featuresReq') }} [{{ editLang.toUpperCase() }}] <span class="text-red-500">*</span></label>
+                <label class="block text-sm font-bold text-blue-900 mb-3">{{ t('featuresReq') }} <span class="text-red-500">*</span></label>
                 <div class="grid grid-cols-2 gap-4">
                   <div class="relative" v-for="i in 4" :key="i">
                     <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                       <i class="fas fa-check-circle text-green-500"></i>
                     </div>
-                    <input type="text" v-model="editingProduct.translations[editLang].features[i-1]" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 pl-10 rounded-lg font-semibold outline-none" :placeholder="t('feature' + i)">
+                    <input type="text" v-model="editingProduct.translations.tr.features[i-1]" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 pl-10 rounded-lg font-semibold outline-none" :placeholder="t('feature' + i)">
                   </div>
                 </div>
               </div>
               <div class="mt-6">
-                <label class="block text-sm font-bold text-blue-900 mb-2">{{ t('notesDesc') }} [{{ editLang.toUpperCase() }}]</label>
-                <textarea v-model="editingProduct.translations[editLang].note" rows="2" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg text-sm outline-none" placeholder="Ürünle ilgili küçük notlar..."></textarea>
+                <label class="block text-sm font-bold text-blue-900 mb-2">{{ t('notesDesc') }}</label>
+                <textarea v-model="editingProduct.translations.tr.note" rows="2" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg text-sm outline-none" placeholder="Ürünle ilgili küçük notlar..."></textarea>
               </div>
             </div>
 
@@ -337,8 +370,8 @@
               <button @click="editingProduct = null" class="px-6 py-3 rounded-lg font-bold text-gray-600 hover:bg-gray-100 transition-colors">
                 {{ t('cancel') }}
               </button>
-              <button @click="saveProduct" class="bg-blue-600 text-white px-10 py-3 rounded-lg shadow-lg font-black text-lg hover:bg-blue-700 transition-transform hover:scale-105 flex items-center gap-2">
-                <i class="fas fa-save"></i> {{ t('save') }}
+              <button @click="saveProduct" :disabled="isSaving" :class="isSaving ? 'opacity-50 cursor-not-allowed' : 'hover:bg-blue-700 hover:scale-105'" class="bg-blue-600 text-white px-10 py-3 rounded-lg shadow-lg font-black text-lg transition-transform flex items-center gap-2">
+                <i :class="isSaving ? 'fas fa-spinner fa-spin' : 'fas fa-save'"></i> {{ isSaving ? 'Çevriliyor...' : t('save') }}
               </button>
             </div>
 
@@ -368,7 +401,8 @@
         autoOptimize: 'PNG veya JPG (Otomatik optimize edilir)', delete: 'Sil', sloganReq: 'Çarpıcı Slogan (1 Cümle)', featuresReq: '4 Çarpıcı Özellik',
         feature1: '1. Özellik', feature2: '2. Özellik', feature3: '3. Özellik', feature4: '4. Özellik', industriesFilter: 'Uygun Müşteri Branşları (Filtreleme İçin)',
         cancel: 'İptal Et', save: 'Ürünü Kaydet', selectFromLeft: 'Düzenlemek için sol listeden bir ürün seçin', orUseNew: 'veya "Yeni Ürün Ekle" butonunu kullanın.',
-        confirmDelete: 'Bu sayfayı katalogdan silmek istediğinize emin misiniz?', fieldsRequired: 'Marka ve Model alanları zorunludur!', priceLabel: 'Aylık Kiralama Fiyatı', notesDesc: 'Notlar (İsteğe Bağlı İçerik)'
+        confirmDelete: 'Bu sayfayı katalogdan silmek istediğinize emin misiniz?', fieldsRequired: 'Marka ve Model alanları zorunludur!', priceLabel: 'Aylık Kiralama Fiyatı', notesDesc: 'Notlar (İsteğe Bağlı İçerik)',
+        priceTypeTitle: 'Fiyat Türü', ptMonthly: 'Aylık Kiralama', ptPurchase: 'Satın Alma (Net Fiyat)', ptHybrid: 'Hibrit'
       },
       de: {
         title: 'KASSEN KESKİN KATALOG', catalogView: 'Katalog Ansicht', adminPanel: 'Admin Panel',
@@ -380,7 +414,8 @@
         autoOptimize: 'PNG oder JPG (wird automatisch optimiert)', delete: 'Löschen', sloganReq: 'Auffälliger Slogan (1 Satz)', featuresReq: '4 Auffällige Merkmale',
         feature1: 'Merkmal 1', feature2: 'Merkmal 2', feature3: 'Merkmal 3', feature4: 'Merkmal 4', industriesFilter: 'Passende Kundenbranchen (Zum Filtern)',
         cancel: 'Abbrechen', save: 'Produkt speichern', selectFromLeft: 'Wählen Sie ein Produkt aus der linken Liste zum Bearbeiten', orUseNew: 'oder verwenden Sie die Schaltfläche "Neues Produkt".',
-        confirmDelete: 'Sind Sie sicher, dass Sie diese Seite aus dem Katalog löschen möchten?', fieldsRequired: 'Marke und Modell sind Pflichtfelder!', priceLabel: 'Monatlicher Mietpreis', notesDesc: 'Notizen (Optionaler Inhalt)'
+        confirmDelete: 'Sind Sie sicher, dass Sie diese Seite aus dem Katalog löschen möchten?', fieldsRequired: 'Marke und Modell sind Pflichtfelder!', priceLabel: 'Monatlicher Mietpreis', notesDesc: 'Notizen (Optionaler Inhalt)',
+        priceTypeTitle: 'Preistyp', ptMonthly: 'Monatliche Miete', ptPurchase: 'Kauf (Nettopreis)', ptHybrid: 'Hybrid'
       },
       en: {
         title: 'KASSEN KESKİN CATALOG', catalogView: 'Catalog View', adminPanel: 'Admin Panel',
@@ -392,7 +427,8 @@
         autoOptimize: 'PNG or JPG (Auto optimized)', delete: 'Delete', sloganReq: 'Striking Slogan (1 Sentence)', featuresReq: '4 Striking Features',
         feature1: 'Feature 1', feature2: 'Feature 2', feature3: 'Feature 3', feature4: 'Feature 4', industriesFilter: 'Suitable Customer Industries (For Filtering)',
         cancel: 'Cancel', save: 'Save Product', selectFromLeft: 'Select a product from the left list to edit', orUseNew: 'or use the "Add New Product" button.',
-        confirmDelete: 'Are you sure you want to delete this page from the catalog?', fieldsRequired: 'Brand and Model fields are required!', priceLabel: 'Monthly Rental Price', notesDesc: 'Notes (Optional Content)'
+        confirmDelete: 'Are you sure you want to delete this page from the catalog?', fieldsRequired: 'Brand and Model fields are required!', priceLabel: 'Monthly Rental Price', notesDesc: 'Notes (Optional Content)',
+        priceTypeTitle: 'Price Type', ptMonthly: 'Monthly Rental', ptPurchase: 'Purchase (Net Price)', ptHybrid: 'Hybrid'
       }
     };
 
@@ -450,8 +486,9 @@
 
         const brands = ref(['Noris', 'Quorion', 'Olympia', 'RCH', 'Lotus Pecas', 'Lacash']);
         const industries = ref(['Imbiss', 'Restaurant', 'Kiosk', 'Spätikauf', 'Berber', 'Market', 'Cafe']);
-        const filterBrand = ref('Noris');
+        const filterBrand = ref('');
         const filterIndustry = ref('');
+        const filterPriceType = ref('aylik');
 
         const filteredProducts = computed(() => {
           return products.value.filter(p => {
@@ -516,6 +553,7 @@
             brand: 'Noris',
             model: '',
             price: '',
+            priceType: 'aylik',
             industries: [],
             images: [],
             translations: {
@@ -532,21 +570,75 @@
           editingProduct.value = JSON.parse(JSON.stringify(p));
         };
 
-        const saveProduct = () => {
+        const isSaving = ref(false);
+        const autoTranslate = async (text, targetLang) => {
+            if (!text || text.trim() === '') return text || '';
+            try {
+                const res = await fetch(`https://translate.googleapis.com/translate_a/single?client=gtx&sl=tr&tl=${targetLang}&dt=t&q=${encodeURIComponent(text)}`);
+                const data = await res.json();
+                let translated = data[0].map(x => x[0]).join('');
+                
+                // Custom dictionary overrides
+                if (/çekmece|cekmece/i.test(text)) {
+                    if (targetLang === 'en') {
+                        translated = translated.replace(/\bdrawer\b/gi, 'Cash Drawer')
+                                               .replace(/Cash Cash Drawer/gi, 'Cash Drawer')
+                                               .replace(/cekmece|çekmece/gi, 'Cash Drawer');
+                    } else if (targetLang === 'de') {
+                        translated = translated.replace(/\bschublade\b/gi, 'Schublade')
+                                               .replace(/cekmece|çekmece/gi, 'Schublade');
+                    }
+                }
+                
+                return translated;
+            } catch (e) {
+                console.error(e);
+                return text;
+            }
+        };
+
+        const saveProduct = async () => {
           if (!editingProduct.value.brand || !editingProduct.value.model) {
             alert(t('fieldsRequired'));
             return;
           }
-          const index = products.value.findIndex(p => p.id === editingProduct.value.id);
-          if (index > -1) {
-            products.value[index] = editingProduct.value;
-          } else {
-            products.value.push(editingProduct.value);
+          
+          isSaving.value = true;
+          
+          try {
+            const trSlogan = editingProduct.value.translations.tr.slogan;
+            editingProduct.value.translations.de.slogan = await autoTranslate(trSlogan, 'de');
+            editingProduct.value.translations.en.slogan = await autoTranslate(trSlogan, 'en');
+
+            const trNote = editingProduct.value.translations.tr.note;
+            editingProduct.value.translations.de.note = await autoTranslate(trNote, 'de');
+            editingProduct.value.translations.en.note = await autoTranslate(trNote, 'en');
+
+            for (let i = 0; i < 4; i++) {
+                const trFeat = editingProduct.value.translations.tr.features[i];
+                editingProduct.value.translations.de.features[i] = await autoTranslate(trFeat, 'de');
+                editingProduct.value.translations.en.features[i] = await autoTranslate(trFeat, 'en');
+            }
+          } catch(e) {
+             console.error("Translation failed", e);
           }
-          if (editingProduct.value.brand && !brands.value.includes(editingProduct.value.brand)) {
-            brands.value.push(editingProduct.value.brand);
+
+          const currentProducts = [...products.value];
+          const index = currentProducts.findIndex(p => p.id === editingProduct.value.id);
+          const productToSave = JSON.parse(JSON.stringify(editingProduct.value));
+          
+          if (index > -1) {
+            currentProducts[index] = productToSave;
+          } else {
+            currentProducts.push(productToSave);
+          }
+          products.value = currentProducts;
+
+          if (productToSave.brand && !brands.value.includes(productToSave.brand)) {
+            brands.value.push(productToSave.brand);
           }
           editingProduct.value = null;
+          isSaving.value = false;
         };
 
         const deleteProduct = (id) => {
@@ -556,6 +648,45 @@
               editingProduct.value = null;
             }
           }
+        };
+
+        // Drag and Drop Logic
+        const draggedIndex = ref(null);
+        const dragOverIndex = ref(null);
+
+        const onDragStart = (e, index) => {
+          draggedIndex.value = index;
+          e.dataTransfer.effectAllowed = 'move';
+          setTimeout(() => e.target.classList.add('opacity-50'), 0);
+        };
+
+        const onDragOver = (e, index) => {
+          e.preventDefault();
+        };
+
+        const onDragEnter = (e, index) => {
+          e.preventDefault();
+          if (draggedIndex.value !== null && draggedIndex.value !== index) {
+            dragOverIndex.value = index;
+          }
+        };
+
+        const onDrop = (e, index) => {
+          e.preventDefault();
+          if (draggedIndex.value !== null && draggedIndex.value !== index) {
+            const arr = JSON.parse(JSON.stringify(products.value));
+            const movedItem = arr.splice(draggedIndex.value, 1)[0];
+            arr.splice(index, 0, movedItem);
+            products.value = arr;
+          }
+          dragOverIndex.value = null;
+          draggedIndex.value = null;
+        };
+
+        const onDragEnd = (e) => {
+          e.target.classList.remove('opacity-50');
+          dragOverIndex.value = null;
+          draggedIndex.value = null;
         };
 
         const handleImageUpload = (e) => {
@@ -582,7 +713,7 @@
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 ctx.drawImage(img, 0, 0, width, height);
-                editingProduct.value.images.push(canvas.toDataURL('image/jpeg', 0.8));
+                editingProduct.value.images.push(canvas.toDataURL('image/webp', 0.8));
               };
               img.src = event.target.result;
             };
@@ -593,12 +724,13 @@
         return {
           mode, lang, changeLang, t,
           products, brands, industries,
-          filterBrand, filterIndustry, filteredProducts,
+          filterBrand, filterIndustry, filterPriceType, filteredProducts,
           activeIndices, nextImage, setImage,
           ecActiveIndex,
-          editingProduct, isNew, editLang,
+          editingProduct, isNew, editLang, isSaving,
           addNewProduct, editProduct, saveProduct, deleteProduct,
-          handleImageUpload
+          handleImageUpload,
+          draggedIndex, dragOverIndex, onDragStart, onDragOver, onDragEnter, onDrop, onDragEnd
         };
       }
     }).mount('#app')
