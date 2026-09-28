@@ -35,6 +35,7 @@ CACHE_TTL = 300  # seconds
 cache_store = {}
 
 ELSTER_STATUS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'elster_statuses.json')
+CATALOG_DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "catalog_data.json")
 ELSTER_RECORDS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'elster_records.json')
 ELSTER_DEFAULT_STATUSES = [
     {"id": 1, "name": "Durum 1", "color": "#4caf50", "order": 1},
@@ -1368,6 +1369,15 @@ def login():
     finally:
         conn.close()
 
+@app.route('/api/catalog', methods=['GET', 'POST'])
+def manage_catalog_data():
+    if request.method == 'GET':
+        data = load_json_file(CATALOG_DATA_FILE, [])
+        return jsonify(data)
+    elif request.method == 'POST':
+        payload = request.get_json()
+        save_json_file(CATALOG_DATA_FILE, payload)
+        return jsonify({"status": "success", "message": "Catalog data saved successfully"})
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=False, port=3000)
-

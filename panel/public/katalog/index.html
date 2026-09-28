@@ -480,32 +480,69 @@
         };
         const t = (key) => i18nDictionary[lang.value][key] || key;
 
-        const stored = localStorage.getItem('catalog_products');
-        const products = ref(stored ? JSON.parse(stored) : defaultProducts);
-        
-        // Migrate old data to multi-language and multi-image
-        products.value.forEach(p => {
-          if (!p.images) { p.images = p.image ? [p.image] : []; delete p.image; }
-          if (p.price === undefined) p.price = '';
-          if (!p.translations) {
-            p.translations = {
-              tr: { slogan: p.slogan || '', note: '', features: p.features || ['', '', '', ''] },
-              de: { slogan: '', note: '', features: ['', '', '', ''] },
-              en: { slogan: '', note: '', features: ['', '', '', ''] }
-            };
-            delete p.slogan;
-            delete p.features;
-          } else {
-            if (p.translations.tr.note === undefined) {
-              p.translations.tr.note = '';
-              p.translations.de.note = '';
-              p.translations.en.note = '';
+        let initialLoad = true;
+        const products = ref([]);
+
+        fetch('/api/catalog')
+          .then(res => res.json())
+          .then(data => {
+            if (!data || data.length === 0) {
+              data = defaultProducts;
             }
-          }
-        });
+            // Migrate
+            data.forEach(p => {
+              if (!p.images) { p.images = p.image ? [p.image] : []; delete p.image; }
+              if (p.price === undefined) p.price = '';
+              if (!p.translations) {
+                p.translations = {
+                  tr: { slogan: p.slogan || '', note: '', features: p.features || ['', '', '', ''] },
+                  de: { slogan: '', note: '', features: ['', '', '', ''] },
+                  en: { slogan: '', note: '', features: ['', '', '', ''] }
+                };
+                delete p.slogan;
+                delete p.features;
+              } else {
+                if (p.translations.tr.note === undefined) {
+                  p.translations.tr.note = '';
+                  p.translations.de.note = '';
+                  p.translations.en.note = '';
+                }
+              }
+            });
+            products.value = data;
+            setTimeout(() => { initialLoad = false; }, 100);
+          })
+          .catch(err => {
+            console.error(err);
+            let fallbackData = JSON.parse(JSON.stringify(defaultProducts));
+            fallbackData.forEach(p => {
+              if (!p.images) { p.images = p.image ? [p.image] : []; delete p.image; }
+              if (p.price === undefined) p.price = '';
+              if (!p.translations) {
+                p.translations = {
+                  tr: { slogan: p.slogan || '', note: '', features: p.features || ['', '', '', ''] },
+                  de: { slogan: '', note: '', features: ['', '', '', ''] },
+                  en: { slogan: '', note: '', features: ['', '', '', ''] }
+                };
+              }
+            });
+            products.value = fallbackData;
+            setTimeout(() => { initialLoad = false; }, 100);
+          });
 
         watch(products, (newVal) => {
-          localStorage.setItem('catalog_products', JSON.stringify(newVal));
+          if (initialLoad) return;
+          fetch('/api/catalog', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(newVal)
+          }).then(res => {
+            if (!res.ok) {
+                alert('HATA: Katalog kaydedilemedi! Sunucu hatası veya API bulunamadı (Lütfen arka plan uygulamasını yeniden başlattığınızdan emin olun). Kod: ' + res.status);
+            }
+          }).catch(e => {
+              alert('HATA: Katalog sunucuya iletilemedi! ' + e.message);
+          });
         }, { deep: true });
 
         const brands = ref(['Noris', 'Quorion', 'Olympia', 'RCH', 'Lotus Pecas', 'Lacash']);
