@@ -733,6 +733,37 @@
             opacity: 0.4;
             background-color: var(--hover-color);
         }
+
+        /* Resizable Columns & Column Manager */
+        .list-header th {
+            position: relative;
+        }
+        .col-resizer {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 5px;
+            cursor: col-resize;
+            user-select: none;
+            height: 100%;
+            z-index: 10;
+        }
+        .col-resizer:hover, .col-resizer.resizing {
+            background-color: var(--primary-color);
+        }
+        .cm-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            border-bottom: 1px solid #333;
+            background: #000;
+            color: orange;
+            cursor: grab;
+        }
+        .cm-item:active {
+            cursor: grabbing;
+        }
     </style>
     <link rel="stylesheet" href="/satis.css">
     <link rel="stylesheet" href="/teslimat.css">
@@ -825,13 +856,14 @@
                 style="margin-left: 20px; font-size: 0.9rem; color: var(--primary-color); font-weight: 600; white-space: nowrap;">
                 Result: 0
             </div>
+            <div id="listExtraControls" style="display:none; gap:10px; margin-left:20px; align-items:center;">
+                <button class="btn-s teal" onclick="exportListToExcel()">📥 Excel Olarak Çıkar</button>
+                <button class="btn-s teal" onclick="exportListToPDF()">📄 PDF Olarak Çıkar</button>
+                <button class="btn-s primary" onclick="openColumnManager()">⚙️ Sütunları Yönet</button>
+            </div>
         </div>
 
-        <div id="aylikControls" class="aylik-controls" style="display:none; gap:10px; margin-top:12px;">
-            <button class="btn-s teal" onclick="exportAylikToExcel()">📥 Excel Olarak Çıkar</button>
-            <button class="btn-s teal" onclick="exportAylikToPDF()">📄 PDF Olarak Çıkar</button>
-            <button class="btn-s secondary" onclick="resetAylikList()">🔄 Listeyi Sıfırla</button>
-        </div>
+        
 
         <!-- Customer List Container -->
         <div class="panel list-panel">
@@ -1411,6 +1443,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
 
         // Aylik Fatura state
         let aylikLastFiltered = [];
+        let filteredData = [];
         let aylikExpandedGroups = {};
         let aylikLoaded = false;
 
@@ -1582,7 +1615,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             const katalogPaneli = document.getElementById('katalogPaneli');
             const aylikControls = document.getElementById('aylikControls');
 
-            aylikControls.style.display = tab === 'aylik' ? 'flex' : 'none';
+            
 
             if (tab === 'satis') {
                 filterPanel.style.display = 'none';
@@ -1876,8 +1909,10 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
 
             if (currentTab === 'aylik') {
                 aylikLastFiltered = filtered.slice();
+            filteredData = filtered.slice();
             } else {
                 aylikLastFiltered = [];
+                filteredData = filtered.slice();
             }
 
             // Update record count and BorcToplami sum
@@ -2100,6 +2135,121 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             });
         }
 
+        
+        let listColumnConfig = {}; // { tab: [ {key, visible, width} ] }
+
+        function initListColumnConfig(tab, keys) {
+            if (!listColumnConfig[tab]) {
+                listColumnConfig[tab] = keys.map(k => ({ key: k, visible: true, width: '' }));
+            } else {
+                const existingKeys = listColumnConfig[tab].map(c => c.key);
+                const newKeys = keys.filter(k => !existingKeys.includes(k));
+                newKeys.forEach(k => listColumnConfig[tab].push({ key: k, visible: true, width: '' }));
+            }
+        }
+
+        let columnSortableInstance = null;
+
+        function openColumnManager() {
+            if (currentTab !== 'custom' && currentTab !== 'rental') return;
+            const config = listColumnConfig[currentTab];
+            if (!config) return;
+
+            const listDiv = document.getElementById('columnManagerList');
+            listDiv.innerHTML = '';
+
+            config.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'cm-item';
+                div.dataset.key = item.key;
+                
+                const cb = document.createElement('input');
+                cb.type = 'checkbox';
+                cb.checked = item.visible;
+                cb.className = 'cm-checkbox';
+                
+                const label = document.createElement('span');
+                label.textContent = item.key;
+                label.style.flex = '1';
+                
+                div.appendChild(cb);
+                div.appendChild(label);
+                listDiv.appendChild(div);
+            });
+
+            document.getElementById('columnManagerModal').style.display = 'flex';
+
+            if (columnSortableInstance) {
+                columnSortableInstance.destroy();
+            }
+            columnSortableInstance = new Sortable(listDiv, {
+                animation: 150,
+                ghostClass: 'sortable-ghost'
+            });
+        }
+
+        function saveColumnConfig() {
+            const listDiv = document.getElementById('columnManagerList');
+            const newConfig = [];
+            
+            Array.from(listDiv.children).forEach(div => {
+                const key = div.dataset.key;
+                const visible = div.querySelector('.cm-checkbox').checked;
+                const existingItem = listColumnConfig[currentTab].find(c => c.key === key);
+                newConfig.push({
+                    key: key,
+                    visible: visible,
+                    width: existingItem ? existingItem.width : ''
+                });
+            });
+
+            listColumnConfig[currentTab] = newConfig;
+            document.getElementById('columnManagerModal').style.display = 'none';
+            applyFilters(); // Re-render the list
+        }
+
+        function setupColumnResize(th, key) {
+            const resizer = document.createElement('div');
+            resizer.className = 'col-resizer';
+            th.appendChild(resizer);
+
+            let x = 0;
+            let w = 0;
+
+            const mouseDownHandler = function (e) {
+                x = e.clientX;
+                const styles = window.getComputedStyle(th);
+                w = parseInt(styles.width, 10);
+                
+                document.addEventListener('mousemove', mouseMoveHandler);
+                document.addEventListener('mouseup', mouseUpHandler);
+                resizer.classList.add('resizing');
+                e.stopPropagation();
+            };
+
+            const mouseMoveHandler = function (e) {
+                const dx = e.clientX - x;
+                const newWidth = w + dx;
+                th.style.width = `${newWidth}px`;
+                th.style.minWidth = `${newWidth}px`;
+                th.style.maxWidth = `${newWidth}px`;
+            };
+
+            const mouseUpHandler = function () {
+                document.removeEventListener('mousemove', mouseMoveHandler);
+                document.removeEventListener('mouseup', mouseUpHandler);
+                resizer.classList.remove('resizing');
+                
+                // Save the width in config
+                const configItem = listColumnConfig[currentTab].find(c => c.key === key);
+                if (configItem) {
+                    configItem.width = th.style.width;
+                }
+            };
+
+            resizer.addEventListener('mousedown', mouseDownHandler);
+        }
+
         function renderList(data) {
             const container = document.getElementById('cardContainer');
             container.innerHTML = '';
@@ -2121,14 +2271,41 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             thead.className = 'list-header';
             const headerRow = document.createElement('tr');
 
-            // Column Order
-            const finalKeys = keys;
+
+            initListColumnConfig(currentTab, keys);
+            
+            
+            // Toggle visibility of extra controls based on currentViewMode and tab
+            const extraControls = document.getElementById('listExtraControls');
+            if (extraControls) {
+                if ((currentTab === 'custom' || currentTab === 'rental') && currentViewMode === 'listgrid') {
+                    extraControls.style.display = 'flex';
+                    const colBtn = extraControls.querySelector('button.primary');
+                    if (colBtn) colBtn.style.display = 'inline-block';
+                } else {
+                    extraControls.style.display = 'none';
+                }
+            }
+
+
+            const finalKeysObj = listColumnConfig[currentTab].filter(c => c.visible);
+            const finalKeys = finalKeysObj.map(c => c.key);
+
 
             finalKeys.forEach(key => {
                 const th = document.createElement('th');
                 th.textContent = key;
 
+                const configItem = listColumnConfig[currentTab].find(c => c.key === key);
+
+                if (configItem && configItem.width) {
+                    th.style.width = configItem.width;
+                    th.style.minWidth = configItem.width;
+                    th.style.maxWidth = configItem.width;
+                }
+
                 // Add header controls container
+
                 const controls = document.createElement('div');
                 controls.className = 'header-controls';
 
@@ -2157,10 +2334,14 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
 
                 th.appendChild(controls);
 
+
                 // Sorting Handler on Header Click
                 th.onclick = () => handleSort(key);
 
+                setupColumnResize(th, key);
+
                 headerRow.appendChild(th);
+
             });
             thead.appendChild(headerRow);
             table.appendChild(thead);
@@ -2282,6 +2463,14 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
         }
 
         function renderAylikList(data) {
+            const extraControls = document.getElementById('listExtraControls');
+            if (extraControls) {
+                extraControls.style.display = 'flex';
+                // Hide column manager for aylik tab
+                const colBtn = extraControls.querySelector('button.primary');
+                if (colBtn) colBtn.style.display = 'none';
+            }
+
             const container = document.getElementById('cardContainer');
             container.innerHTML = '';
 
@@ -2480,6 +2669,121 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             await fetchAylikData();
         }
 
+        
+                        function exportListToExcel() {
+            if (currentTab === 'aylik') {
+                exportAylikToExcel();
+                return;
+            }
+            const rows = filteredData.length > 0 ? filteredData : datasets[currentTab] || [];
+            if (!rows.length) {
+                alert('Export için veri bulunamadı.');
+                return;
+            }
+            
+            const config = listColumnConfig[currentTab].filter(c => c.visible);
+            const keys = config.map(c => c.key);
+            
+            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            html += '<head><meta charset="UTF-8"></head><body>';
+            html += '<table border="1" style="border-collapse: collapse;">';
+            html += '<tr>';
+            keys.forEach(k => {
+                html += `<th style="background-color: #d3d3d3; font-weight: bold; border: 1px solid #ccc; padding: 4px;">${k}</th>`;
+            });
+            html += '</tr>';
+            
+            rows.forEach((row, rowIndex) => {
+                const bg = rowIndex % 2 === 1 ? 'background-color: #f2f2f2;' : 'background-color: #ffffff;';
+                html += `<tr style="${bg}">`;
+                keys.forEach(key => {
+                    const v = row[key] !== null && row[key] !== undefined ? String(row[key]) : '';
+                    html += `<td style="border: 1px solid #ccc; padding: 4px;">${v}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</table></body></html>';
+            
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `MusteriListesi_${new Date().toISOString().slice(0,10)}.xls`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+                        async function exportListToPDF() {
+            if (currentTab === 'aylik') {
+                exportAylikToPDF();
+                return;
+            }
+            const rows = filteredData.length > 0 ? filteredData : datasets[currentTab] || [];
+            if (!rows.length) {
+                alert('PDF için veri bulunamadı.');
+                return;
+            }
+
+            const config = listColumnConfig[currentTab].filter(c => c.visible);
+            const keys = config.map(c => c.key);
+
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+            
+            // simple table generation
+            pdf.setFontSize(10);
+            let y = 10;
+            pdf.text('Müşteri Listesi', 10, y);
+            y += 10;
+
+            const colWidth = 280 / keys.length;
+            
+            // Header
+            pdf.setFont("helvetica", "bold");
+            keys.forEach((key, i) => {
+                const text = pdf.splitTextToSize(key, colWidth - 2);
+                pdf.text(text, 10 + (i * colWidth), y);
+            });
+            y += 10;
+            pdf.setFont("helvetica", "normal");
+            pdf.setFontSize(8);
+
+            rows.forEach((row, rowIndex) => {
+                // Calculate max height for this row
+                let maxHeight = 5;
+                const cellTexts = keys.map((key) => {
+                    const v = row[key] !== null && row[key] !== undefined ? String(row[key]) : '';
+                    const text = pdf.splitTextToSize(v, colWidth - 2);
+                    if (text.length * 4 > maxHeight) maxHeight = text.length * 4;
+                    return text;
+                });
+
+                if (y + maxHeight > 190) {
+                    pdf.addPage();
+                    y = 10;
+                }
+                
+                // Draw background for alternating rows (1 white, 1 gray)
+                if (rowIndex % 2 === 1) {
+                    pdf.setFillColor(242, 242, 242); // Hafif gri
+                    pdf.rect(9, y - 3, keys.length * colWidth + 2, maxHeight + 2, 'F');
+                }
+                
+                // Draw text
+                cellTexts.forEach((text, i) => {
+                    // Set black color for text
+                    pdf.setTextColor(0, 0, 0);
+                    pdf.text(text, 10 + (i * colWidth), y);
+                });
+                
+                y += maxHeight + 2;
+            });
+            
+            pdf.save(`MusteriListesi_${new Date().toISOString().slice(0,10)}.pdf`);
+        }
+
         function exportAylikToExcel() {
             const rows = aylikLastFiltered.length > 0 ? aylikLastFiltered : (datasets.aylik || []);
             if (!rows.length) {
@@ -2510,20 +2814,31 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 'Brutto-VK'
             ];
             const keys = fixedOrder;
-            const csvRows = [];
-            csvRows.push(keys.map(k => `"${k.replace(/"/g,'""')}"`).join(';'));
-            sortedRows.forEach(row => {
-                const line = keys.map(key => {
-                    const v = row[key] !== null && row[key] !== undefined ? String(row[key]) : '';
-                    return `"${v.replace(/"/g,'""')}"`;
-                }).join(';');
-                csvRows.push(line);
+            let html = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">';
+            html += '<head><meta charset="UTF-8"></head><body>';
+            html += '<table border="1" style="border-collapse: collapse;">';
+            html += '<tr>';
+            keys.forEach(k => {
+                html += `<th style="background-color: #d3d3d3; font-weight: bold; border: 1px solid #ccc; padding: 4px;">${k}</th>`;
             });
-            const blob = new Blob(["\uFEFF" + csvRows.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+            html += '</tr>';
+            
+            sortedRows.forEach((row, rowIndex) => {
+                const bg = rowIndex % 2 === 1 ? 'background-color: #f2f2f2;' : 'background-color: #ffffff;';
+                html += `<tr style="${bg}">`;
+                keys.forEach(key => {
+                    const v = row[key] !== null && row[key] !== undefined ? String(row[key]) : '';
+                    html += `<td style="border: 1px solid #ccc; padding: 4px;">${v}</td>`;
+                });
+                html += '</tr>';
+            });
+            html += '</table></body></html>';
+            
+            const blob = new Blob([html], { type: 'application/vnd.ms-excel;charset=utf-8' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `AylikFatura_${new Date().toISOString().slice(0,10)}.csv`;
+            a.download = `AylikFatura_${new Date().toISOString().slice(0,10)}.xls`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -2648,6 +2963,9 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                     chunk.forEach((row, rowIndex) => {
                         const globalIndex = baseIndex + rowIndex + 1;
                         const tr = document.createElement('tr');
+                        if (rowIndex % 2 === 1) {
+                            tr.style.backgroundColor = '#f2f2f2';
+                        }
                         keys.forEach(key => {
                             const td = document.createElement('td');
                             td.textContent = getPdfValue(row, key, globalIndex);
@@ -2871,6 +3189,22 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
         });
     </script>
     <script src="/satis.js"></script>
+
+    <!-- Column Manager Modal -->
+    <div id="columnManagerModal" class="modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+        <div class="modal-content" style="background:#000; color:orange; padding:20px; border-radius:8px; width:400px; max-height:80vh; display:flex; flex-direction:column;">
+            <h3 style="margin-top:0; color:orange;">Sütunları Yönet</h3>
+            <p style="font-size:0.85rem; color:orange;">Sütunları sürükleyerek sırasını değiştirebilirsiniz.</p>
+            <div id="columnManagerList" style="flex:1; overflow-y:auto; border:1px solid #333; padding:10px; border-radius:4px; max-height:50vh; background:#000;">
+                <!-- sortable items here -->
+            </div>
+            <div style="margin-top:15px; display:flex; justify-content:flex-end; gap:10px;">
+                <button class="btn-s secondary" onclick="document.getElementById('columnManagerModal').style.display='none'">İptal</button>
+                <button class="btn-s success" onclick="saveColumnConfig()">Kaydet</button>
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
