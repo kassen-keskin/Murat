@@ -151,6 +151,9 @@ function filterTicketsList() {
     if (typeof renderTicketCalendar === 'function' && typeof isCalendarView !== 'undefined' && isCalendarView) {
         renderTicketCalendar(filtered);
     }
+    if (typeof renderTicketReport === 'function' && typeof isReportView !== 'undefined' && isReportView) {
+        renderTicketReport(filtered);
+    }
 }
 
 function parseRawDatetimeLocal(value) {
@@ -748,6 +751,9 @@ async function showNewTicketForm(defaultDateStr = null) {
     if (typeof isCalendarView !== 'undefined' && isCalendarView) {
         toggleTicketCalendarView();
     }
+    if (typeof isReportView !== 'undefined' && isReportView) {
+        toggleTicketReportView();
+    }
     currentTicketId = null;
     filterTicketsList(); // clear active selection
 
@@ -952,23 +958,48 @@ async function saveTicketDueDate(ticketId) {
 
 // --- Ticket Calendar Implementation ---
 let isCalendarView = false;
+let isReportView = false;
+
+function updateTicketViewPanes() {
+    const detailPane = document.getElementById("ticketDetailPane");
+    const calendarPane = document.getElementById("ticketCalendarPane");
+    const reportPane = document.getElementById("ticketReportPane");
+    
+    const calBtn = document.querySelector('.tickets-list-header button[onclick="toggleTicketCalendarView()"]');
+    const repBtn = document.querySelector('.tickets-list-header button[onclick="toggleTicketReportView()"]');
+    
+    if (calBtn) calBtn.innerHTML = isCalendarView ? '&#128221; Biletler' : '&#128197; Takvim';
+    if (repBtn) repBtn.innerHTML = isReportView ? '&#128221; Biletler' : '&#128202; Rapor';
+    
+    if (isCalendarView) {
+        if(detailPane) detailPane.style.display = "none";
+        if(reportPane) reportPane.style.display = "none";
+        if(calendarPane) calendarPane.style.display = "flex";
+        filterTicketsList();
+    } else if (isReportView) {
+        if(detailPane) detailPane.style.display = "none";
+        if(calendarPane) calendarPane.style.display = "none";
+        if(reportPane) reportPane.style.display = "flex";
+        filterTicketsList();
+    } else {
+        if(calendarPane) calendarPane.style.display = "none";
+        if(reportPane) reportPane.style.display = "none";
+        if(detailPane) detailPane.style.display = "flex";
+    }
+}
 
 function toggleTicketCalendarView() {
     isCalendarView = !isCalendarView;
-    const btn = document.querySelector('.tickets-list-header button[onclick="toggleTicketCalendarView()"]');
-    if (btn) { btn.innerHTML = isCalendarView ? '📝 Biletler' : '📅 Takvim'; }
-    const detailPane = document.getElementById("ticketDetailPane");
-    const calendarPane = document.getElementById("ticketCalendarPane");
-    
-    if (isCalendarView) {
-        detailPane.style.display = "none";
-        calendarPane.style.display = "flex";
-        filterTicketsList(); // Re-render calendar with current filters
-    } else {
-        calendarPane.style.display = "none";
-        detailPane.style.display = "flex";
-    }
+    isReportView = false;
+    updateTicketViewPanes();
 }
+
+function toggleTicketReportView() {
+    isReportView = !isReportView;
+    isCalendarView = false;
+    updateTicketViewPanes();
+}
+
 
 const userColors = {};
 const defaultColors = ["#ef5350", "#ab47bc", "#5c6bc0", "#29b6f6", "#26a69a", "#66bb6a", "#d4e157", "#ffa726", "#ff7043", "#8d6e63"];
@@ -1181,3 +1212,75 @@ function handleDayCellClick(e, dateStr) {
     if (e.target.closest('.cal-ticket-box')) return;
     showNewTicketForm(dateStr);
 }
+
+function renderTicketReport(filteredTickets) {
+    const pane = document.getElementById("ticketReportPane");
+    if (!pane) return;
+    
+    const userGroups = {};
+    filteredTickets.forEach(t => {
+        const uId = t.kBenutzer_Ersteller || 0;
+        if (!userGroups[uId]) {
+            userGroups[uId] = { open: 0, pending: 0, resolved: 0, total: 0 };
+        }
+        userGroups[uId].total++;
+        if (t.kStatus == 1) userGroups[uId].open++;
+        else if (t.kStatus == 2) userGroups[uId].pending++;
+        else if (t.kStatus == 3 || t.kStatus == 4) userGroups[uId].resolved++;
+    });
+    
+    let html = `<div style="display:flex; flex-wrap:wrap; gap:30px; justify-content:center; align-items:flex-start; padding: 20px;">`;
+    
+    if (Object.keys(userGroups).length === 0) {
+        html += `<div style="color:var(--text-muted);">G&ouml;sterilecek veri bulunamad&#305;.</div>`;
+    } else {
+        Object.keys(userGroups).forEach(uId => {
+            const data = userGroups[uId];
+            if (data.total === 0) return;
+            
+            const pOpen = (data.open / data.total) * 100;
+            const pPending = (data.pending / data.total) * 100;
+            const pResolved = (data.resolved / data.total) * 100;
+            
+            const colorOpen = '#ef5350';
+            const colorPending = '#42a5f5';
+            const colorResolved = '#66bb6a';
+            
+            const grad = `conic-gradient(
+                ${colorOpen} 0% ${pOpen}%, 
+                ${colorPending} ${pOpen}% ${pOpen + pPending}%, 
+                ${colorResolved} ${pOpen + pPending}% 100%
+            )`;
+            
+            const userObj = ticketUsers.find(u => u.kBenutzer == uId);
+            const userName = userObj ? getShortDisplayName(userObj) : (uId == 0 ? "Bilinmeyen" : "Kullan&#305;c&#305; " + uId);
+            
+            html += `
+                <div style="display:flex; flex-direction:column; align-items:center; gap:15px; background:var(--surface-color); padding:20px; border-radius:12px; border:1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.1); width:240px;">
+                    <div style="width: 180px; height: 180px; border-radius: 50%; background: ${grad}; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);">
+                        <div style="width: 130px; height: 130px; border-radius: 50%; background: var(--surface-color); display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,0.2);">
+                            <div style="font-weight: bold; font-size: 1.1rem; color: var(--text-color); margin-bottom: 4px; word-break: break-word;">${userName}</div>
+                            <div style="font-size: 1rem; color: var(--text-muted);">${data.total} Bilet</div>
+                        </div>
+                    </div>
+                    
+                    <div style="display:flex; flex-direction:column; gap:8px; width: 100%; margin-top: 10px;">
+                        <div style="display:flex; justify-content:space-between; font-size:0.95rem;">
+                            <span style="color:${colorOpen}; font-weight:bold;">A&ccedil;&#305;k (K&#305;rm&#305;z&#305;):</span> <span style="color:var(--text-color); font-weight:bold;">${data.open}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.95rem;">
+                            <span style="color:${colorPending}; font-weight:bold;">Bekleyen (Mavi):</span> <span style="color:var(--text-color); font-weight:bold;">${data.pending}</span>
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:0.95rem;">
+                            <span style="color:${colorResolved}; font-weight:bold;">&Ccedil;&ouml;z&uuml;len (Ye&scedil;il):</span> <span style="color:var(--text-color); font-weight:bold;">${data.resolved}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+    }
+    
+    html += `</div>`;
+    pane.innerHTML = html;
+}
+
