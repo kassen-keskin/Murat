@@ -969,7 +969,7 @@ function updateTicketViewPanes() {
     const repBtn = document.querySelector('.tickets-list-header button[onclick="toggleTicketReportView()"]');
     
     if (calBtn) calBtn.innerHTML = isCalendarView ? '&#128221; Biletler' : '&#128197; Takvim';
-    if (repBtn) repBtn.innerHTML = isReportView ? '&#128221; Biletler' : '&#128202; Rapor';
+    if (repBtn) repBtn.innerHTML = isReportView ? '&#128221; Biletler' : '&#128202; Analiz';
     
     if (isCalendarView) {
         if(detailPane) detailPane.style.display = "none";
