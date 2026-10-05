@@ -1,0 +1,208 @@
+.pos-panel {
+    background: transparent;
+    color: var(--text-color);
+    padding: 10px;
+}
+
+.pos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.pos-header h2 {
+    margin: 0;
+    color: var(--primary-color);
+}
+
+.pos-admin-btn {
+    background: var(--surface-color);
+    color: var(--text-color);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 600;
+}
+.pos-admin-btn:hover {
+    background: var(--hover-color);
+}
+
+/* Kanban Board */
+.pos-board {
+    display: flex;
+    gap: 15px;
+    overflow-x: hidden;
+    flex: 1;
+    min-height: 500px;
+}
+
+.pos-column {
+    background: var(--surface-color);
+    border-radius: 8px;
+    flex: 1;
+    min-width: 150px;
+    display: flex;
+    flex-direction: column;
+    border-top: 4px solid var(--border-color);
+}
+
+.pos-column-header {
+    padding: 15px;
+    font-weight: bold;
+    font-size: 1.1em;
+    border-bottom: 1px solid var(--border-color);
+    text-align: center;
+    color: #fff;
+    background: rgba(0,0,0,0.2);
+}
+
+.pos-column-body {
+    flex: 1;
+    padding: 10px;
+    overflow-y: auto;
+    min-height: 100px;
+}
+
+.pos-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 12px;
+    margin-bottom: 10px;
+    cursor: grab;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+.pos-card:active {
+    cursor: grabbing;
+}
+.pos-card:hover {
+    border-color: var(--primary-color);
+}
+
+.pos-card-title {
+    font-weight: bold;
+    color: var(--secondary-color);
+    margin-bottom: 8px;
+}
+
+.pos-card-supplier {
+    font-size: 0.85em;
+    color: var(--text-muted);
+    margin-bottom: 4px;
+}
+
+.pos-card-footer {
+    font-size: 0.8em;
+    color: #888;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 8px;
+    border-top: 1px solid #444;
+    padding-top: 4px;
+}
+
+/* Admin Panel */
+.pos-admin-container {
+    background: var(--surface-color);
+    padding: 20px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.pos-admin-section {
+    margin-bottom: 20px;
+}
+.pos-admin-section h3 {
+    margin-top: 0;
+    color: var(--secondary-color);
+    border-bottom: 1px solid #444;
+    padding-bottom: 5px;
+}
+
+.pos-config-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+    align-items: center;
+}
+.pos-config-row input, .pos-config-row select {
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 6px;
+    border-radius: 4px;
+}
+
+.btn-add {
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.btn-save {
+    background: var(--primary-color);
+    color: #000;
+    font-weight: bold;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.btn-danger {
+    background: #f44336;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+/* Modal for New Ticket */
+.pos-modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+.pos-modal {
+    background: var(--surface-color);
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    border: 1px solid var(--primary-color);
+}
+.pos-modal h3 {
+    margin-top: 0;
+    color: var(--primary-color);
+}
+.pos-modal label {
+    display: block;
+    margin: 10px 0 5px;
+    color: var(--text-muted);
+}
+.pos-modal select, .pos-modal textarea {
+    width: 100%;
+    background: var(--bg-color);
+    border: 1px solid var(--border-color);
+    color: var(--text-color);
+    padding: 8px;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+.pos-modal textarea {
+    min-height: 80px;
+}
+.pos-modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 20px;
+}

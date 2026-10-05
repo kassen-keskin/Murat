@@ -337,6 +337,37 @@ def get_customers_custom():
     finally:
         conn.close()
 
+@app.route('/api/pos-customers')
+def get_pos_customers():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    cursor = conn.cursor()
+    try:
+        cached = get_cached_data('pos_customers')
+        if cached is not None:
+            return make_cached_response(cached, 'HIT')
+
+        query = """
+        SELECT [kKunde]
+              ,[KundenNr]
+              ,[Firma]
+              ,[InhabeName]
+          FROM [Custom].[Kunde] WITH (NOLOCK)
+        """
+        cursor.execute(query)
+        columns = [column[0] for column in cursor.description]
+        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+
+        set_cached_data('pos_customers', results)
+        return make_cached_response(results, 'MISS')
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/aylik-fatura')
 def get_aylik_fatura():
     conn = get_db_connection()
@@ -667,8 +698,9 @@ def create_ticket():
     kKunde = data.get('kKunde', None)
     cTitel = data.get('cTitel', '')
     cInhalt = data.get('cInhalt', '')
-    kBenutzer = int(data.get('kBenutzer', 1))
-    nPrioritaet = int(data.get('nPrioritaet', 2))
+    kBenutzer = int(data.get('kBenutzer') or 1)
+    kBenutzer_Bearbeiter = int(data.get('kBenutzer_Bearbeiter') or 0)
+    nPrioritaet = int(data.get('nPrioritaet') or 2)
     dFaelligAm = data.get('dFaelligAm', None)
 
     # Simple validation
@@ -713,10 +745,10 @@ def create_ticket():
         cursor.execute("""
             SET NOCOUNT ON;
             INSERT INTO [Ticketsystem].[tTicket] 
-            ([cEindeutigeId], [kStatus], [nPrioritaet], [dAenderung], [dFaelligAm], [kBenutzer_Ersteller], [kKunde], [nIstInPapierkorb], [nBenutzererstellt], [nVollstaendigAngelegt])
-            VALUES (?, ?, ?, ?, ?, ?, ?, 0, 1, 1);
+            ([cEindeutigeId], [kStatus], [nPrioritaet], [dAenderung], [dFaelligAm], [kBenutzer_Ersteller], [kBenutzer_Bearbeiter], [kKunde], [nIstInPapierkorb], [nBenutzererstellt], [nVollstaendigAngelegt])
+            VALUES (?, 1, ?, ?, ?, ?, ?, ?, 0, 1, 1);
             SELECT SCOPE_IDENTITY();
-        """, (new_eindeutige_id, 1, nPrioritaet, now, dFaelligAm, kBenutzer, kKunde))
+        """, (new_eindeutige_id, nPrioritaet, now, dFaelligAm, kBenutzer, kBenutzer_Bearbeiter, kKunde))
         
         new_ticket_id = int(cursor.fetchone()[0])
 
@@ -770,7 +802,10 @@ def create_ticket():
         
     except Exception as e:
         conn.rollback()
-        print(f"Insert failed: {e}")
+        import traceback
+        err_msg = traceback.format_exc()
+        print(f"Insert failed: {err_msg}")
+        save_json_file(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'last_error.txt'), {"error": err_msg})
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
@@ -1378,6 +1413,43 @@ def manage_catalog_data():
         payload = request.get_json()
         save_json_file(CATALOG_DATA_FILE, payload)
         return jsonify({"status": "success", "message": "Catalog data saved successfully"})
+
+POS_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pos_config.json')
+POS_DEFAULT_CONFIG = {
+    "pos_user_id": None,
+    "statuses": [
+        {"id": 100, "name": "Talep Edildi", "color": "#4caf50", "order": 1},
+        {"id": 101, "name": "Beklemede", "color": "#ffb300", "order": 2}
+    ],
+    "suppliers": [
+        {"id": 1, "name": "Tedarikçi A"}
+    ],
+    "models": [
+        {"id": 1, "name": "Verifone V400m"}
+    ]
+}
+
+@app.route('/api/pos-config', methods=['GET', 'POST'])
+def manage_pos_config():
+    if request.method == 'GET':
+        return jsonify(load_json_file(POS_CONFIG_FILE, POS_DEFAULT_CONFIG))
+    if request.method == 'POST':
+        data = request.get_json()
+        save_json_file(POS_CONFIG_FILE, data)
+        return jsonify({"success": True})
+
+POS_RECORDS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pos_records.json')
+
+@app.route('/api/pos-tickets', methods=['GET', 'POST'])
+def manage_pos_tickets():
+    if request.method == 'GET':
+        return jsonify(load_json_file(POS_RECORDS_FILE, {}))
+    if request.method == 'POST':
+        data = request.get_json() # expects { ticket_id: status_id }
+        records = load_json_file(POS_RECORDS_FILE, {})
+        records.update(data)
+        save_json_file(POS_RECORDS_FILE, records)
+        return jsonify({"success": True})
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=False, port=3000)

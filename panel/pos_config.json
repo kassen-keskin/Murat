@@ -1,0 +1,63 @@
+{
+    "pos_user_id": null,
+    "statuses": [
+        {
+            "id": 100,
+            "name": "Bilgiler Istendi",
+            "color": "#4caf50",
+            "order": 1
+        },
+        {
+            "id": 101,
+            "name": "Bilgiler Toplandi",
+            "color": "#ffb300",
+            "order": 2
+        },
+        {
+            "id": 102,
+            "name": "Firmaya Gönderildi",
+            "color": "#8fadbc",
+            "order": 3
+        },
+        {
+            "id": 103,
+            "name": "Cihaz Bekleniyor",
+            "color": "#ff5c5c",
+            "order": 4
+        },
+        {
+            "id": 104,
+            "name": "Cihaz Kasaya Baglandi",
+            "color": "#00aaff",
+            "order": 5
+        }
+    ],
+    "suppliers": [
+        {
+            "id": 1,
+            "name": "Beyond"
+        },
+        {
+            "id": 2,
+            "name": "Elavon"
+        }
+    ],
+    "models": [
+        {
+            "id": 1,
+            "name": "Base Next"
+        },
+        {
+            "id": 2,
+            "name": "Desk/3500"
+        },
+        {
+            "id": 3,
+            "name": "Move/3500"
+        },
+        {
+            "id": 4,
+            "name": "Move/5000"
+        }
+    ]
+}

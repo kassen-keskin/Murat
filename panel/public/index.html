@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -779,6 +779,8 @@
     <script src="/ticket.js" defer></script>
     <script src="/elster.js" defer></script>
     <script src="/rma.js" defer></script>
+    <script src="/pos.js" defer></script>
+    <link rel="stylesheet" href="/pos.css">
 </head>
 
 <body>
@@ -798,6 +800,7 @@
             <div id="tabElster" class="tab-item" onclick="switchTab('elster')">📋 ELSTER</div>
             <div id="tabRMA" class="tab-item" onclick="switchTab('rma')">🔧 RMA</div>
             <div id="tabKatalog" class="tab-item" onclick="switchTab('katalog')">📖 Katalog</div>
+            <div id="tabPos" class="tab-item" onclick="switchTab('pos')">&#128179; POS Takip</div>
         </div>
 
         <!-- Filter Panel -->
@@ -1361,7 +1364,10 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
         </div>
 
     
-    <div id="katalogPaneli" class="panel" style="display:none; padding:0; flex:1; overflow:hidden;">
+    <div id="posPaneli" class="panel pos-panel" style="display:none; flex:1; flex-direction:column; overflow-y:auto; padding: 20px;">
+        <div id="posContainer"></div>
+    </div>
+    <div id="katalogPaneli"
         <iframe src="/katalog/index.html" style="width:100%; height:100%; border:none;"></iframe>
     </div>
     
@@ -1605,6 +1611,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             document.getElementById('tabElster').classList.toggle('active', tab === 'elster');
             document.getElementById('tabRMA').classList.toggle('active', tab === 'rma');
             document.getElementById('tabKatalog').classList.toggle('active', tab === 'katalog');
+            document.getElementById('tabPos').classList.toggle('active', tab === 'pos');
 
             const filterPanel = document.querySelector('.filter-panel');
             const listPanel   = document.querySelector('.panel.list-panel');
@@ -1616,6 +1623,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             const elsterPaneli = document.getElementById('elsterPaneli');
             const rmaPaneli = document.getElementById('rmaPaneli');
             const katalogPaneli = document.getElementById('katalogPaneli');
+            const posPaneli = document.getElementById('posPaneli');
             const aylikControls = document.getElementById('aylikControls');
 
             
@@ -1630,6 +1638,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 elsterPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
                 satisPaneli.style.display = 'flex';
                 initSatisTab();
             } else if (tab === 'teslimat') {
@@ -1642,6 +1651,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 elsterPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
                 teslimatPaneli.style.display = 'flex';
                 if (typeof initTeslimatTab === 'function') initTeslimatTab();
             } else if (tab === 'formhub') {
@@ -1654,6 +1664,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 elsterPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
                 formHubPaneli.style.display = 'flex';
             } else if (tab === 'lisans') {
                 filterPanel.style.display = 'none';
@@ -1665,6 +1676,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 elsterPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
                 lisansPaneli.style.display = 'flex';
                 if (typeof initLisansTab === 'function') initLisansTab();
             } else if (tab === 'tickets') {
@@ -1677,6 +1689,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 elsterPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'flex';
                 if (typeof initTicketsTab === 'function') initTicketsTab();
             } else if (tab === 'elster') {
@@ -1689,6 +1702,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 ticketsPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'flex';
                 if (typeof initElsterTab === 'function') initElsterTab();
             } else if (tab === 'rma') {
@@ -1701,8 +1715,22 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 ticketsPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'flex';
                 if (typeof initRmaTab === 'function') initRmaTab();
+            } else if (tab === 'pos') {
+                filterPanel.style.display = 'none';
+                listPanel.style.display   = 'none';
+                satisPaneli.style.display = 'none';
+                teslimatPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'none';
+                ticketsPaneli.style.display = 'none';
+                elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
+                katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'flex';
+                if (typeof initPosTab === 'function') initPosTab();
             } else if (tab === 'katalog') {
                 filterPanel.style.display = 'none';
                 listPanel.style.display   = 'none';
@@ -1725,6 +1753,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 elsterPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
                 if (tab === 'aylik') {
                     if (!aylikLoaded) {
                         await fetchAylikData();
@@ -3211,3 +3240,6 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
 </body>
 
 </html>
+
+
+
