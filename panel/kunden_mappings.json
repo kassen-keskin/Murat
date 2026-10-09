@@ -30,7 +30,8 @@
         "f_inhaber": "InhabeName",
         "f_adr_gew": "FirmaAdress",
         "f_adr_priv": "PrivatAdress",
-        "f_tel": "Tel"
+        "f_tel": "Tel",
+        "f_ust": "Mail"
     },
     "servicevertrag": {
         "f_knd": "KundenNr",
@@ -38,7 +39,8 @@
         "f_inhaber": "InhabeName",
         "f_adr_gew": "FirmaAdress",
         "f_adr_priv": "PrivatAdress",
-        "f_tel": "Tel"
+        "f_tel": "Tel",
+        "f_ust": "Mail"
     },
     "beyond-form": {
         "Firmenname": "Firma",
