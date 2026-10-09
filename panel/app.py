@@ -3,6 +3,8 @@ import io
 import json
 import pyodbc
 import os
+import subprocess
+import re
 import time
 import datetime
 from functools import wraps
@@ -354,6 +356,7 @@ def get_pos_customers():
               ,[KundenNr]
               ,[Firma]
               ,[InhabeName]
+              ,[Ort]
           FROM [Custom].[Kunde] WITH (NOLOCK)
         """
         cursor.execute(query)
@@ -1450,6 +1453,136 @@ def manage_pos_tickets():
         records.update(data)
         save_json_file(POS_RECORDS_FILE, records)
         return jsonify({"success": True})
+
+@app.route('/api/tse/scan', methods=['GET'])
+def scan_tse():
+    exe_path = os.path.join(app.static_folder, 'TseInfoReader', 'TseInfoReader.exe')
+    if not os.path.exists(exe_path):
+        return jsonify({"error": f"TseInfoReader.exe bulunamadı: {exe_path}"}), 404
+         
+    try:
+        result = subprocess.run([exe_path, '-a'], capture_output=True, text=True, check=False)
+        output = result.stdout
+        
+        if "Hata:" in output:
+             err_match = re.search(r'Hata: (.*)', output)
+             err_msg = err_match.group(1) if err_match else "Bilinmeyen bir hata oluştu."
+             return jsonify({"error": err_msg}), 400
+             
+        parsed = {}
+        if "Software Versiyon:" in output:
+             match = re.search(r'Software Versiyon:\s*(.*)', output)
+             if match: parsed["TseSoftwareVersion"] = match.group(1).strip()
+        if "TSE Serial" in output:
+             match = re.search(r'TSE Serial\s*:\s*(.*)', output)
+             if match: parsed["TseSerial"] = match.group(1).strip()
+        if "BIS Kodu" in output:
+             match = re.search(r'BIS Kodu\s*:\s*(.*)', output)
+             if match: parsed["TseDescription"] = match.group(1).strip()
+        if "Bitis Tarihi" in output:
+             match = re.search(r'Bitis Tarihi\s*:\s*(.*)', output)
+             if match: parsed["CertificateExpirationDateStr"] = match.group(1).strip()
+             
+        if not parsed:
+             return jsonify({"error": "Veri okunamadı. USB'de TSE_INFO.DAT dosyası yok veya boş. Çıktı: " + output}), 400
+             
+        return jsonify(parsed)
+        
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/tse/customer/<int:kKunde>', methods=['GET'])
+def get_customer_tse(kKunde):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Veritabanı bağlantısı başarısız."}), 500
+    
+    cursor = conn.cursor()
+    try:
+        cursor.execute("""
+            SELECT kAttribut, cWertVarchar, dWertDateTime 
+            FROM [Kunde].[tKundeEigenesFeld] 
+            WHERE kKunde = ? AND kAttribut IN (244, 246, 247)
+        """, (kKunde,))
+        
+        tse_data = {
+            "TseSerial": "-",
+            "TseDescription": "-",
+            "CertificateExpirationDateStr": "-",
+            "TseSoftwareVersion": "-"
+        }
+        
+        for row in cursor.fetchall():
+            kAttr = row[0]
+            val_str = row[1]
+            val_dt = row[2]
+            
+            if kAttr == 244:
+                tse_data["TseSerial"] = val_str if val_str else "-"
+            elif kAttr == 247:
+                tse_data["TseDescription"] = val_str if val_str else "-"
+            elif kAttr == 246:
+                tse_data["CertificateExpirationDateStr"] = val_dt.strftime('%d.%m.%Y') if val_dt else "-"
+                
+        return jsonify(tse_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/tse/save', methods=['POST'])
+def save_tse():
+    data = request.get_json()
+    kKunde = data.get('kKunde')
+    tse_serial = data.get('TseSerial')
+    tse_desc = data.get('TseDescription')
+    tse_date_str = data.get('CertificateExpirationDateStr')
+    
+    if not kKunde or not tse_serial:
+         return jsonify({"error": "Müşteri ve TSE Seri No gereklidir."}), 400
+         
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Veritabanı bağlantısı başarısız."}), 500
+        
+    cursor = conn.cursor()
+    try:
+        def upsert_varchar(kAttribut, value):
+            cursor.execute("SELECT 1 FROM [Kunde].[tKundeEigenesFeld] WHERE kKunde = ? AND kAttribut = ?", (kKunde, kAttribut))
+            if cursor.fetchone():
+                cursor.execute("UPDATE [Kunde].[tKundeEigenesFeld] SET cWertVarchar = ? WHERE kKunde = ? AND kAttribut = ?", (value, kKunde, kAttribut))
+            else:
+                cursor.execute("INSERT INTO [Kunde].[tKundeEigenesFeld] (kKunde, kAttribut, cWertVarchar) VALUES (?, ?, ?)", (kKunde, kAttribut, value))
+                
+        def upsert_datetime(kAttribut, value_dt):
+            cursor.execute("SELECT 1 FROM [Kunde].[tKundeEigenesFeld] WHERE kKunde = ? AND kAttribut = ?", (kKunde, kAttribut))
+            if cursor.fetchone():
+                cursor.execute("UPDATE [Kunde].[tKundeEigenesFeld] SET dWertDateTime = ? WHERE kKunde = ? AND kAttribut = ?", (value_dt, kKunde, kAttribut))
+            else:
+                cursor.execute("INSERT INTO [Kunde].[tKundeEigenesFeld] (kKunde, kAttribut, dWertDateTime) VALUES (?, ?, ?)", (kKunde, kAttribut, value_dt))
+
+        upsert_varchar(244, tse_serial)
+        if tse_desc:
+            upsert_varchar(247, tse_desc)
+            
+        if tse_date_str and tse_date_str not in ["Invalid/Uninitialized", "Geçersiz/Tanımsız"]:
+            try:
+                dt_obj = datetime.datetime.strptime(tse_date_str, "%dd.%m.%Y")
+            except ValueError:
+                try:
+                    dt_obj = datetime.datetime.strptime(tse_date_str, "%d.%m.%Y")
+                except ValueError:
+                    dt_obj = None
+            if dt_obj:
+                upsert_datetime(246, dt_obj)
+                
+        conn.commit()
+        return jsonify({"success": True})
+    except Exception as e:
+        conn.rollback()
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=False, port=3000)
