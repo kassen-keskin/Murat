@@ -168,6 +168,10 @@ async function saveTse() {
             return;
         }
 
+        // Set Modal Title
+        const selectedOptionText = select.options[select.selectedIndex].text;
+        document.getElementById('tseConfirmModalTitle').textContent = `TSE Güncelleme Onayı - ${selectedOptionText}`;
+
         // Fill Old Data
         document.getElementById('tseOldSerial').textContent = oldData.TseSerial || "-";
         document.getElementById('tseOldBsi').textContent = oldData.TseDescription || "-";
@@ -191,6 +195,23 @@ async function saveTse() {
 
 function closeTseConfirmModal() {
     document.getElementById('tseConfirmModalOverlay').style.display = 'none';
+    
+    // Reset search and selection
+    const searchInput = document.getElementById('tseCustomerSearch');
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    // Call the update function to re-render the select with no filter
+    if (typeof updateTseCustomerOptions === 'function') {
+        updateTseCustomerOptions();
+    }
+    
+    // Explicitly set select back to default empty option
+    const select = document.getElementById('tseCustomerSelect');
+    if (select) {
+        select.value = '';
+    }
 }
 
 async function saveTseConfirm() {
