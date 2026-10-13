@@ -1,9 +1,19 @@
-﻿let ticketsData = [];
+let ticketsData = [];
 let ticketUsers = [];
 let currentTicketId = null;
 let loggedInTicketUser = null;
 let currentTicketAttachment = null;
 let currentTicketAttachmentPreviewUrl = null;
+
+function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
 
 function getShortDisplayName(user) {
     const source = user?.cName || user?.cLogin || '';
@@ -86,11 +96,19 @@ async function doTicketLogin() {
 function doTicketLogout() {
     localStorage.removeItem('ticketUser');
     loggedInTicketUser = null;
+    isCalendarView = false;
+    isReportView = false;
+    currentTicketId = null;
+    const ticketsCont = document.querySelector('.tickets-container');
+    if (ticketsCont) {
+        ticketsCont.classList.remove('has-active-ticket', 'viewing-calendar', 'viewing-report');
+    }
     document.getElementById('ticketLoginOverlay').style.display = 'flex';
     document.getElementById('ticketLoginPass').value = '';
     // Clear lists
     document.getElementById('ticketsListContainer').innerHTML = '';
     document.getElementById('ticketDetailPane').innerHTML = '<div class="empty-state">Bilet seçin veya oluşturun.</div>';
+    if (typeof updateTicketViewPanes === 'function') updateTicketViewPanes();
 }
 
 async function fetchTicketUsers() {
@@ -158,12 +176,13 @@ function filterTicketsList() {
 
 function parseRawDatetimeLocal(value) {
     if (!value) return '';
-    const match = value.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+    const str = String(value);
+    const match = str.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
     if (match) {
         return `${match[1]}T${match[2]}`;
     }
 
-    const date = new Date(value);
+    const date = new Date(str);
     if (Number.isNaN(date.getTime())) return '';
     const pad = n => String(n).padStart(2, '0');
     return `${date.getFullYear()}-${pad(date.getMonth()+1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
@@ -171,12 +190,13 @@ function parseRawDatetimeLocal(value) {
 
 function formatRawDateTimeLabel(value) {
     if (!value) return 'Belirtilmedi';
-    const match = value.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
+    const str = String(value);
+    const match = str.match(/^(\d{4}-\d{2}-\d{2})[T ](\d{2}:\d{2})/);
     if (match) {
         const parts = match[1].split('-');
         return `${parts[2]}.${parts[1]}.${parts[0]} ${match[2]}`;
     }
-    const date = new Date(value);
+    const date = new Date(str);
     if (Number.isNaN(date.getTime())) return 'Belirtilmedi';
     return date.toLocaleString('tr-TR', {day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'});
 }
@@ -256,6 +276,8 @@ function renderTicketsList(data) {
 
 async function selectTicket(id) {
     currentTicketId = id;
+    const ticketsCont = document.querySelector('.tickets-container');
+    if (ticketsCont) ticketsCont.classList.add('has-active-ticket');
     filterTicketsList(); // Update active state
 
     const pane = document.getElementById('ticketDetailPane');
@@ -297,10 +319,13 @@ function renderTicketChat(data) {
     const dueDateJson = data.dFaelligAm ? JSON.stringify(data.dFaelligAm) : 'null';
     const headerHtml = `
         <div class="ticket-detail-header">
-            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px;">
-                <div>
-                    <h2 class="ticket-detail-title" style="margin:0;">${displayId}</h2>
-                    <div style="margin-top: 4px; font-size: 1.05rem; color: var(--text-color); font-weight: 500;">${titleStr}</div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:8px;">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <button type="button" class="btn-s secondary mobile-ticket-back-btn" onclick="mobileBackToTicketList()" title="Bilet Listesine Dön">← Biletler</button>
+                    <div>
+                        <h2 class="ticket-detail-title" style="margin:0;">${displayId}</h2>
+                        <div style="margin-top: 4px; font-size: 1.05rem; color: var(--text-color); font-weight: 500;">${titleStr}</div>
+                    </div>
                 </div>
                 <div class="ticket-detail-actions">
                     <select class="form-ctrl" style="padding: 2px 8px; font-size: 0.85rem; width: auto;" onchange="changeTicketPriority(${data.kTicket}, this.value)">
@@ -748,13 +773,17 @@ function updateNewTicketCustomerOptions() {
 }
 
 async function showNewTicketForm(defaultDateStr = null) {
-    if (typeof isCalendarView !== 'undefined' && isCalendarView) {
-        toggleTicketCalendarView();
-    }
-    if (typeof isReportView !== 'undefined' && isReportView) {
-        toggleTicketReportView();
-    }
+    isCalendarView = false;
+    isReportView = false;
     currentTicketId = null;
+    updateTicketViewPanes();
+
+    const ticketsCont = document.querySelector('.tickets-container');
+    if (ticketsCont) {
+        ticketsCont.classList.add('has-active-ticket');
+        ticketsCont.classList.remove('viewing-calendar', 'viewing-report');
+    }
+
     filterTicketsList(); // clear active selection
 
     await ensureTicketCustomersLoaded();
@@ -763,7 +792,10 @@ async function showNewTicketForm(defaultDateStr = null) {
     pane.innerHTML = `
         <div class="new-ticket-form-shell">
             <div class="new-ticket-form">
-                <h2>🎫 Yeni Bilet Oluştur</h2>
+                <div style="display:flex; align-items:center; gap:10px; margin-bottom:20px; border-bottom:1px solid var(--border-color); padding-bottom:10px;">
+                    <button type="button" class="btn-s secondary mobile-ticket-back-btn" onclick="mobileBackToTicketList()" title="Bilet Listesine Dön">← Biletler</button>
+                    <h2 style="margin:0; border:none; padding:0; color:var(--primary-color);">🎫 Yeni Bilet Oluştur</h2>
+                </div>
                 
                 <div class="form-grp" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                 <div style="flex:1; min-width:220px;">
@@ -964,6 +996,7 @@ function updateTicketViewPanes() {
     const detailPane = document.getElementById("ticketDetailPane");
     const calendarPane = document.getElementById("ticketCalendarPane");
     const reportPane = document.getElementById("ticketReportPane");
+    const ticketsCont = document.querySelector('.tickets-container');
     
     const calBtn = document.querySelector('.tickets-list-header button[onclick="toggleTicketCalendarView()"]');
     const repBtn = document.querySelector('.tickets-list-header button[onclick="toggleTicketReportView()"]');
@@ -971,20 +1004,35 @@ function updateTicketViewPanes() {
     if (calBtn) calBtn.innerHTML = isCalendarView ? '&#128221; Biletler' : '&#128197; Takvim';
     if (repBtn) repBtn.innerHTML = isReportView ? '&#128221; Biletler' : '&#128202; Analiz';
     
+    if (ticketsCont) {
+        if (isCalendarView) {
+            ticketsCont.classList.add("has-active-ticket", "viewing-calendar");
+            ticketsCont.classList.remove("viewing-report");
+        } else if (isReportView) {
+            ticketsCont.classList.add("has-active-ticket", "viewing-report");
+            ticketsCont.classList.remove("viewing-calendar");
+        } else {
+            ticketsCont.classList.remove("viewing-calendar", "viewing-report");
+            if (!currentTicketId) {
+                ticketsCont.classList.remove("has-active-ticket");
+            }
+        }
+    }
+
     if (isCalendarView) {
-        if(detailPane) detailPane.style.display = "none";
-        if(reportPane) reportPane.style.display = "none";
-        if(calendarPane) calendarPane.style.display = "flex";
+        if (detailPane) detailPane.style.display = "none";
+        if (reportPane) reportPane.style.display = "none";
+        if (calendarPane) calendarPane.style.display = "flex";
         filterTicketsList();
     } else if (isReportView) {
-        if(detailPane) detailPane.style.display = "none";
-        if(calendarPane) calendarPane.style.display = "none";
-        if(reportPane) reportPane.style.display = "flex";
+        if (detailPane) detailPane.style.display = "none";
+        if (calendarPane) calendarPane.style.display = "none";
+        if (reportPane) reportPane.style.display = "flex";
         filterTicketsList();
     } else {
-        if(calendarPane) calendarPane.style.display = "none";
-        if(reportPane) reportPane.style.display = "none";
-        if(detailPane) detailPane.style.display = "flex";
+        if (calendarPane) calendarPane.style.display = "none";
+        if (reportPane) reportPane.style.display = "none";
+        if (detailPane) detailPane.style.display = "flex";
     }
 }
 
@@ -1053,16 +1101,26 @@ function renderTicketCalendar(filteredTickets) {
     filteredTickets.forEach(t => {
         let dateVal = t.dFaelligAm || t.dAenderung || t.dErstellung;
         if (!dateVal) return;
-        const d = new Date(parseRawDatetimeLocal(dateVal));
-        if (isNaN(d.getTime())) return;
-        const dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+        const str = String(dateVal);
+        let dateStr = '';
+        const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (match) {
+            dateStr = `${match[1]}-${match[2]}-${match[3]}`;
+        } else {
+            const d = new Date(str);
+            if (!isNaN(d.getTime())) {
+                dateStr = d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+            }
+        }
+        if (!dateStr) return;
         if (!ticketsByDate[dateStr]) ticketsByDate[dateStr] = [];
         ticketsByDate[dateStr].push(t);
     });
     
     let html = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
-            <div>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
+                <button type="button" class="btn-s secondary mobile-ticket-back-btn" onclick="mobileBackToTicketList()" title="Bilet Listesine Dön">← Biletler</button>
                 <button class="btn-s secondary" onclick="changeCalendarOffset(-4)">⬅️ Önceki 4 Hafta</button>
                 <button class="btn-s secondary" onclick="changeCalendarOffset(4)">Sonraki 4 Hafta ➡️</button>
                 <button class="btn-s secondary" onclick="calendarWeekOffset=0; filterTicketsList();">Bugün</button>
@@ -1107,11 +1165,12 @@ function renderTicketCalendar(filteredTickets) {
             const dayTickets = ticketsByDate[dateStr] || [];
             dayTickets.forEach(t => {
                 const color = getUserColor(t.kBenutzer_Ersteller);
-                const title = t.cTitelErsteNachricht || t.Firma || "Bilet";
-                const displayId = t.KundenNr || "";
+                const rawTitle = t.cTitelErsteNachricht || t.Firma || "Bilet";
+                const title = escapeHtml(rawTitle);
+                const displayId = escapeHtml(t.KundenNr || "");
                 
                 const userObj = ticketUsers.find(u => u.kBenutzer == t.kBenutzer_Ersteller);
-                const userName = userObj ? getShortDisplayName(userObj) : "Bilinmeyen";
+                const userName = escapeHtml(userObj ? getShortDisplayName(userObj) : "Bilinmeyen");
                 const tooltipText = `${userName} - ${displayId ? displayId + ' - ' : ''}${title}`;
                 
                 html += `<div class="cal-ticket-box" style="background-color: ${color};" onclick="openTicketFromCalendar(${t.kTicket})" title="${tooltipText}" draggable="true" ondragstart="handleTicketDragStart(event, ${t.kTicket}, ${t.kBenutzer_Ersteller})">
@@ -1132,10 +1191,8 @@ function renderTicketCalendar(filteredTickets) {
 
 function openTicketFromCalendar(ticketId) {
     isCalendarView = false;
-    const btn = document.querySelector('.tickets-list-header button[onclick="toggleTicketCalendarView()"]');
-    if (btn) { btn.innerHTML = '📅 Takvim'; }
-    document.getElementById("ticketCalendarPane").style.display = "none";
-    document.getElementById("ticketDetailPane").style.display = "flex";
+    isReportView = false;
+    updateTicketViewPanes();
     selectTicket(ticketId);
 }
 
@@ -1229,7 +1286,15 @@ function renderTicketReport(filteredTickets) {
         else if (t.kStatus == 3 || t.kStatus == 4) userGroups[uId].resolved++;
     });
     
-    let html = `<div style="display:flex; flex-wrap:wrap; gap:30px; justify-content:center; align-items:flex-start; padding: 20px;">`;
+    let html = `
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; padding: 0 10px; width: 100%; box-sizing: border-box;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <button type="button" class="btn-s secondary mobile-ticket-back-btn" onclick="mobileBackToTicketList()" title="Bilet Listesine Dön">← Biletler</button>
+                <h3 style="margin:0; color:var(--primary-color);">📊 Bilet Analiz Raporu</h3>
+            </div>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:30px; justify-content:center; align-items:flex-start; padding: 10px;">
+    `;
     
     if (Object.keys(userGroups).length === 0) {
         html += `<div style="color:var(--text-muted);">G&ouml;sterilecek veri bulunamad&#305;.</div>`;
@@ -1253,7 +1318,8 @@ function renderTicketReport(filteredTickets) {
             )`;
             
             const userObj = ticketUsers.find(u => u.kBenutzer == uId);
-            const userName = userObj ? getShortDisplayName(userObj) : (uId == 0 ? "Bilinmeyen" : "Kullan&#305;c&#305; " + uId);
+            const rawUserName = userObj ? getShortDisplayName(userObj) : (uId == 0 ? "Bilinmeyen" : "Kullanıcı " + uId);
+            const userName = escapeHtml(rawUserName);
             
             html += `
                 <div style="display:flex; flex-direction:column; align-items:center; gap:15px; background:var(--surface-color); padding:20px; border-radius:12px; border:1px solid var(--border-color); box-shadow: 0 4px 12px rgba(0,0,0,0.1); width:240px;">

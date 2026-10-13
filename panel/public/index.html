@@ -28,18 +28,21 @@
             background-color: var(--bg-color);
             color: var(--text-color);
             margin: 0;
-            padding: 20px;
+            padding: 12px 16px;
             display: flex;
             flex-direction: column;
             height: 100vh;
+            height: 100dvh;
             box-sizing: border-box;
+            overflow: hidden;
         }
 
         .dashboard-container {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 12px;
             flex: 1;
+            min-height: 0;
             overflow: hidden;
             position: relative;
         }
@@ -694,44 +697,636 @@
             background: rgba(255, 255, 255, 0.05);
         }
 
-        /* Tabs Styling */
-        .tabs-container {
-            display: flex;
-            gap: 10px;
-            margin-bottom: -1px;
-            padding: 0 10px 6px 10px;
-            flex-shrink: 0;
-            flex-wrap: wrap;
-        }
-
-        .tab-item {
-            padding: 10px 25px;
-            flex-shrink: 0;
-            white-space: nowrap;
+        /* =========================================================
+           Modern Navigation Header & Combobox Styles
+           ========================================================= */
+        .dashboard-header {
             background-color: var(--surface-color);
             border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+            flex-shrink: 0;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            position: relative;
+            z-index: 2500;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: #000;
+            font-weight: 800;
+            font-size: 0.95rem;
+            padding: 5px 10px;
+            border-radius: 7px;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 10px rgba(187, 134, 252, 0.35);
+        }
+
+        .brand-text {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: var(--text-color);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
+
+        /* Module Combobox Container */
+        .module-combobox-wrapper {
+            position: relative;
+            flex: 0 1 360px;
+            min-width: 220px;
+        }
+
+        .combobox-trigger {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 8px 14px;
             border-radius: 8px;
             cursor: pointer;
-            color: var(--text-muted);
+            font-size: 0.96rem;
+            font-family: inherit;
             font-weight: 600;
-            transition: all 0.2s;
-            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            box-sizing: border-box;
+            outline: none;
         }
 
-        .tab-item:hover {
-            color: var(--text-color);
-            background-color: var(--hover-color);
-        }
-
-        .tab-item.active {
-            background-color: var(--primary-color);
-            color: #000;
+        .combobox-trigger:hover,
+        .combobox-trigger:focus-visible {
             border-color: var(--primary-color);
+            background-color: var(--hover-color);
+            box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.25);
         }
 
-        .sortable-ghost {
-            opacity: 0.4;
+        .combobox-trigger.open {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(187, 134, 252, 0.35);
+        }
+
+        .trigger-icon {
+            font-size: 1.25rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .trigger-label {
+            flex: 1;
+            text-align: left;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #fff;
+            font-weight: 600;
+        }
+
+        .trigger-chevron {
+            color: var(--text-muted);
+            transition: transform 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .combobox-trigger.open .trigger-chevron {
+            transform: rotate(180deg);
+            color: var(--primary-color);
+        }
+
+        /* Native touch select overlay */
+        .module-native-select {
+            display: none;
+        }
+
+        /* Dropdown Popover */
+        .combobox-dropdown {
+            position: absolute;
+            top: calc(100% + 6px);
+            left: 0;
+            width: 360px;
+            max-width: 92vw;
+            background-color: var(--surface-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            box-shadow: 0 14px 40px rgba(0, 0, 0, 0.75);
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 3000;
+            animation: dropdownFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes dropdownFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .combobox-dropdown.show {
+            display: flex;
+        }
+
+        .combobox-search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(0, 0, 0, 0.35);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .search-icon {
+            font-size: 0.95rem;
+            opacity: 0.65;
+        }
+
+        .combobox-search-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            color: var(--text-color);
+            font-family: inherit;
+            font-size: 0.92rem;
+        }
+
+        .combobox-search-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .search-clear-btn {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 4px;
+            line-height: 1;
+            display: none;
+        }
+
+        .search-clear-btn:hover {
+            color: #fff;
+        }
+
+        .combobox-menu-list {
+            max-height: 380px;
+            overflow-y: auto;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .menu-group-header {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            padding: 8px 12px 4px 12px;
+            user-select: none;
+        }
+
+        .module-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 9px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+            user-select: none;
+            color: var(--text-color);
+            background: transparent;
+            border: none;
+            font-size: 0.94rem;
+        }
+
+        .module-menu-item:hover,
+        .module-menu-item.highlighted {
             background-color: var(--hover-color);
+            color: #fff;
+        }
+
+        .module-menu-item.active {
+            background-color: rgba(187, 134, 252, 0.16);
+            color: var(--primary-color);
+            font-weight: 700;
+        }
+
+        .module-menu-item .item-icon {
+            font-size: 1.2rem;
+            line-height: 1;
+            width: 24px;
+            text-align: center;
+            flex-shrink: 0;
+        }
+
+        .module-menu-item .item-name {
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .module-menu-item .item-check {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--secondary-color);
+            opacity: 0;
+            flex-shrink: 0;
+        }
+
+        .module-menu-item.active .item-check {
+            opacity: 1;
+        }
+
+        /* Backward compatibility with .tab-item */
+        .tab-item {
+            transition: all 0.2s;
+        }
+
+        /* Header Right Controls */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .quick-nav-arrows {
+            display: flex;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .nav-arrow-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-color);
+            padding: 6px 12px;
+            cursor: pointer;
+            font-size: 1.15rem;
+            font-weight: bold;
+            line-height: 1;
+            transition: background 0.15s, color 0.15s;
+        }
+
+        .nav-arrow-btn:hover {
+            background-color: var(--hover-color);
+            color: var(--primary-color);
+        }
+
+        .header-refresh-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-color);
+            padding: 7px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.88rem;
+            font-weight: 600;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .header-refresh-btn:hover {
+            background-color: var(--hover-color);
+            border-color: var(--primary-color);
+            color: #fff;
+        }
+
+        .refresh-icon {
+            font-size: 0.95rem;
+            transition: transform 0.4s ease;
+        }
+
+        .header-refresh-btn:hover .refresh-icon {
+            transform: rotate(180deg);
+        }
+
+        .mobile-ticket-back-btn {
+            display: none;
+        }
+
+        /* =========================================================
+           Responsive Layouts (Tablet & Mobile Phone)
+           ========================================================= */
+        @media (max-width: 992px) {
+            body {
+                padding: 10px;
+            }
+
+            .dashboard-container {
+                gap: 12px;
+            }
+
+            .dashboard-header {
+                padding: 6px 12px;
+            }
+
+            .brand-text {
+                font-size: 1rem;
+            }
+
+            .module-combobox-wrapper {
+                flex: 1 1 auto;
+                min-width: 180px;
+            }
+
+            .combobox-dropdown {
+                width: 320px;
+            }
+
+            .filter-panel {
+                gap: 10px;
+                padding: 10px 12px;
+            }
+
+            .filter-input,
+            .filter-select {
+                width: 140px;
+            }
+
+            .card-container-wrapper {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+
+            .pos-board {
+                overflow-x: auto !important;
+            }
+        }
+
+        @media (max-width: 900px) {
+            /* Tablet Portrait Master-Detail for Tickets */
+            .tickets-container {
+                flex-direction: column;
+            }
+
+            .tickets-list-pane {
+                width: 100% !important;
+                border-right: none !important;
+            }
+
+            #ticketPaneToggler {
+                display: none !important;
+            }
+
+            .tickets-container.has-active-ticket .tickets-list-pane,
+            .tickets-container.viewing-calendar .tickets-list-pane,
+            .tickets-container.viewing-report .tickets-list-pane {
+                display: none !important;
+            }
+
+            .tickets-container.has-active-ticket .ticket-right-pane,
+            .tickets-container.viewing-calendar .ticket-right-pane,
+            .tickets-container.viewing-report .ticket-right-pane {
+                display: flex !important;
+                width: 100% !important;
+            }
+
+            .tickets-container:not(.has-active-ticket):not(.viewing-calendar):not(.viewing-report) .ticket-right-pane {
+                display: none !important;
+            }
+
+            .mobile-ticket-back-btn {
+                display: inline-flex !important;
+                margin-right: 6px;
+                padding: 4px 10px;
+                font-size: 0.85rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 6px;
+            }
+
+            .dashboard-container {
+                gap: 8px;
+            }
+
+            .dashboard-header {
+                padding: 6px 10px;
+                border-radius: 8px;
+            }
+
+            .brand-text {
+                display: none; /* Hide brand text on mobile to maximize combobox room */
+            }
+
+            .header-left {
+                gap: 8px;
+            }
+
+            .module-combobox-wrapper {
+                flex: 1 1 100%;
+                min-width: 0;
+            }
+
+            .combobox-trigger {
+                padding: 7px 10px;
+                font-size: 0.92rem;
+            }
+
+            .combobox-dropdown {
+                position: fixed;
+                top: 56px;
+                left: 8px;
+                right: 8px;
+                width: auto;
+                max-width: none;
+                max-height: calc(100vh - 70px);
+                box-shadow: 0 15px 50px rgba(0, 0, 0, 0.85);
+            }
+
+            .combobox-menu-list {
+                max-height: calc(100vh - 150px);
+            }
+
+            .module-menu-item {
+                padding: 11px 12px; /* Touch-friendly tap target */
+                font-size: 0.96rem;
+            }
+
+            .header-refresh-btn .refresh-text {
+                display: none; /* Icon only on mobile */
+            }
+
+            .header-refresh-btn {
+                padding: 7px 10px;
+            }
+
+            /* Responsive Filter Panel */
+            .filter-panel {
+                padding: 8px 10px;
+                gap: 8px;
+            }
+
+            .filter-group {
+                flex: 1 1 calc(50% - 6px);
+                min-width: 130px;
+            }
+
+            .filter-input,
+            .filter-select {
+                width: 100%;
+                box-sizing: border-box;
+            }
+
+            #filterKundenNr {
+                width: 100%;
+            }
+
+            .view-toggle {
+                margin-left: 0;
+                width: 100%;
+                justify-content: center;
+            }
+
+            .toggle-label {
+                flex: 1;
+                text-align: center;
+            }
+
+            #recordCount {
+                margin-left: 0 !important;
+                width: 100%;
+                text-align: center;
+            }
+
+            #listExtraControls {
+                margin-left: 0 !important;
+                width: 100%;
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            /* Table responsive horizontal scroll */
+            .list-container {
+                min-width: 820px;
+            }
+
+            /* Modals responsive */
+            .modal-content {
+                width: 95% !important;
+                max-width: 95vw !important;
+                max-height: 90vh !important;
+            }
+
+            .modal-header {
+                padding: 12px 16px;
+            }
+
+            .modal-title {
+                font-size: 1.2rem;
+            }
+
+            .modal-body {
+                padding: 15px;
+                font-size: 0.95rem;
+            }
+
+            .item-modal {
+                width: 95% !important;
+                max-width: 95vw !important;
+                padding: 15px !important;
+            }
+
+            /* Mobile & Tablet Master-Detail for Tickets */
+            .tickets-container {
+                flex-direction: column;
+            }
+
+            .tickets-list-pane {
+                width: 100% !important;
+                border-right: none !important;
+            }
+
+            #ticketPaneToggler {
+                display: none !important;
+            }
+
+            .tickets-container.has-active-ticket .tickets-list-pane,
+            .tickets-container.viewing-calendar .tickets-list-pane,
+            .tickets-container.viewing-report .tickets-list-pane {
+                display: none !important;
+            }
+
+            .tickets-container.has-active-ticket .ticket-right-pane,
+            .tickets-container.viewing-calendar .ticket-right-pane,
+            .tickets-container.viewing-report .ticket-right-pane {
+                display: flex !important;
+                width: 100% !important;
+            }
+
+            .tickets-container:not(.has-active-ticket):not(.viewing-calendar):not(.viewing-report) .ticket-right-pane {
+                display: none !important;
+            }
+
+            .mobile-ticket-back-btn {
+                display: inline-flex !important;
+                margin-right: 6px;
+                padding: 4px 10px;
+                font-size: 0.85rem;
+            }
+
+            /* Satis / Teslimat / RMA top bars */
+            .satis-top-bar, .elster-top-bar {
+                flex-wrap: wrap;
+                padding: 10px 14px;
+            }
+
+            .satis-top-bar h2, .elster-top-bar h2 {
+                width: 100%;
+                margin-bottom: 6px;
+            }
+
+            .satis-inner {
+                padding: 12px;
+            }
         }
 
         /* Resizable Columns & Column Manager */
@@ -788,22 +1383,142 @@
 
     <div class="dashboard-container">
 
-        <!-- Tab Selection -->
-        <div class="tabs-container">
-            <div id="tabRental" class="tab-item" onclick="switchTab('rental')">📌 Takiptekiler</div>
-            <div id="tabCustom" class="tab-item" onclick="switchTab('custom')">👥 Müşteriler</div>
-            <div id="tabAylik"  class="tab-item" onclick="switchTab('aylik')">🧾 Aylık Fatura</div>
-            <div id="tabFormHub" class="tab-item" onclick="switchTab('formhub')">📄 Dokümanlar</div>
-            <div id="tabSatis"  class="tab-item" onclick="switchTab('satis')">🛒 Satış</div>
-            <div id="tabTeslimat" class="tab-item" onclick="switchTab('teslimat')">📦 Kasa Teslimat</div>
-            <div id="tabLisans" class="tab-item" onclick="switchTab('lisans')">🔗 Lisans</div>
-            <div id="tabTickets" class="tab-item active" onclick="switchTab('tickets')">🎫 Tickets</div>
-            <div id="tabElster" class="tab-item" onclick="switchTab('elster')">📋 ELSTER</div>
-            <div id="tabRMA" class="tab-item" onclick="switchTab('rma')">🔧 RMA</div>
-            <div id="tabKatalog" class="tab-item" onclick="switchTab('katalog')">📖 Katalog</div>
-            <div id="tabPos" class="tab-item" onclick="switchTab('pos')">&#128179; POS</div>
-            <div id="tabTse" class="tab-item" onclick="switchTab('tse')">🔐 TSE</div>
-        </div>
+        <!-- Modern Navigation Bar & Module Combobox -->
+        <header class="dashboard-header">
+            <div class="header-left">
+                <div class="brand-logo" onclick="switchTab('tickets')" title="Kassen Keskin Dashboard">
+                    <span class="brand-badge">TEAM</span>
+                    <span class="brand-text">Kassen Keskin</span>
+                </div>
+
+                <!-- Module Combobox -->
+                <div class="module-combobox-wrapper" id="moduleComboboxWrapper">
+                    <button type="button" class="combobox-trigger" id="moduleTriggerBtn" onclick="toggleModuleDropdown(event)" aria-haspopup="true" aria-expanded="false" title="Menü / Modül Seç">
+                        <span class="trigger-icon" id="headerActiveIcon">🎫</span>
+                        <span class="trigger-label" id="headerActiveLabel">Tickets</span>
+                        <svg class="trigger-chevron" viewBox="0 0 24 24" width="16" height="16">
+                            <path fill="currentColor" d="M7 10l5 5 5-5z"/>
+                        </svg>
+                    </button>
+
+                    <!-- Native touch select (mobile/tablet fast select fallback) -->
+                    <select id="moduleNativeSelect" class="module-native-select" onchange="switchTab(this.value)" aria-label="Modül Seçimi">
+                        <optgroup label="MÜŞTERİ &amp; FİNANS">
+                            <option value="rental">📌 Takiptekiler</option>
+                            <option value="custom">👥 Müşteriler</option>
+                            <option value="aylik">🧾 Aylık Fatura</option>
+                        </optgroup>
+                        <optgroup label="SATIŞ &amp; BELGELER">
+                            <option value="satis">🛒 Satış</option>
+                            <option value="teslimat">📦 Kasa Teslimat</option>
+                            <option value="formhub">📄 Dokümanlar</option>
+                            <option value="katalog">📖 Katalog</option>
+                        </optgroup>
+                        <optgroup label="SERVİS &amp; TEKNİK">
+                            <option value="tickets" selected>🎫 Tickets</option>
+                            <option value="rma">🔧 RMA Servis</option>
+                            <option value="elster">📋 ELSTER</option>
+                            <option value="pos">💳 POS</option>
+                            <option value="tse">🔐 TSE USB</option>
+                            <option value="lisans">🔗 Lisans</option>
+                        </optgroup>
+                    </select>
+
+                    <!-- Combobox Dropdown Popover -->
+                    <div class="combobox-dropdown" id="moduleDropdown">
+                        <div class="combobox-search-box">
+                            <span class="search-icon">🔍</span>
+                            <input type="text" id="moduleSearchInput" class="combobox-search-input" placeholder="Modül ara... (örn: satış, fatura, pos)" autocomplete="off">
+                            <button type="button" class="search-clear-btn" id="moduleSearchClear" onclick="clearModuleSearch()">&times;</button>
+                        </div>
+                        <div class="combobox-menu-list tabs-container" id="moduleMenuList">
+                            <div class="menu-group-header">MÜŞTERİ &amp; FİNANS</div>
+                            <div id="tabRental" class="tab-item module-menu-item" data-tab="rental" onclick="selectModule('rental')">
+                                <span class="item-icon">📌</span>
+                                <span class="item-name">Takiptekiler</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabCustom" class="tab-item module-menu-item" data-tab="custom" onclick="selectModule('custom')">
+                                <span class="item-icon">👥</span>
+                                <span class="item-name">Müşteriler</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabAylik" class="tab-item module-menu-item" data-tab="aylik" onclick="selectModule('aylik')">
+                                <span class="item-icon">🧾</span>
+                                <span class="item-name">Aylık Fatura</span>
+                                <span class="item-check">✓</span>
+                            </div>
+
+                            <div class="menu-group-header">SATIŞ &amp; BELGELER</div>
+                            <div id="tabSatis" class="tab-item module-menu-item" data-tab="satis" onclick="selectModule('satis')">
+                                <span class="item-icon">🛒</span>
+                                <span class="item-name">Satış</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabTeslimat" class="tab-item module-menu-item" data-tab="teslimat" onclick="selectModule('teslimat')">
+                                <span class="item-icon">📦</span>
+                                <span class="item-name">Kasa Teslimat</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabFormHub" class="tab-item module-menu-item" data-tab="formhub" onclick="selectModule('formhub')">
+                                <span class="item-icon">📄</span>
+                                <span class="item-name">Dokümanlar</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabKatalog" class="tab-item module-menu-item" data-tab="katalog" onclick="selectModule('katalog')">
+                                <span class="item-icon">📖</span>
+                                <span class="item-name">Katalog</span>
+                                <span class="item-check">✓</span>
+                            </div>
+
+                            <div class="menu-group-header">SERVİS &amp; TEKNİK</div>
+                            <div id="tabTickets" class="tab-item module-menu-item active" data-tab="tickets" onclick="selectModule('tickets')">
+                                <span class="item-icon">🎫</span>
+                                <span class="item-name">Tickets</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabRMA" class="tab-item module-menu-item" data-tab="rma" onclick="selectModule('rma')">
+                                <span class="item-icon">🔧</span>
+                                <span class="item-name">RMA Servis</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabElster" class="tab-item module-menu-item" data-tab="elster" onclick="selectModule('elster')">
+                                <span class="item-icon">📋</span>
+                                <span class="item-name">ELSTER</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabPos" class="tab-item module-menu-item" data-tab="pos" onclick="selectModule('pos')">
+                                <span class="item-icon">💳</span>
+                                <span class="item-name">POS</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabTse" class="tab-item module-menu-item" data-tab="tse" onclick="selectModule('tse')">
+                                <span class="item-icon">🔐</span>
+                                <span class="item-name">TSE USB</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabLisans" class="tab-item module-menu-item" data-tab="lisans" onclick="selectModule('lisans')">
+                                <span class="item-icon">🔗</span>
+                                <span class="item-name">Lisans</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Navigation Arrows & Refresh -->
+            <div class="header-right">
+                <div class="quick-nav-arrows" title="Önceki / Sonraki Modül">
+                    <button type="button" class="nav-arrow-btn" onclick="stepModule(-1)" title="Önceki Modül">‹</button>
+                    <button type="button" class="nav-arrow-btn" onclick="stepModule(1)" title="Sonraki Modül">›</button>
+                </div>
+                <button type="button" class="header-refresh-btn" onclick="refreshCurrentTabData()" title="Verileri Yenile">
+                    <span class="refresh-icon">🔄</span>
+                    <span class="refresh-text">Yenile</span>
+                </button>
+            </div>
+        </header>
 
         <!-- Filter Panel -->
         <div class="panel filter-panel">
@@ -1703,23 +2418,160 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             }
         }
 
+        const moduleMeta = {
+            'rental':   { icon: '📌', label: 'Takiptekiler' },
+            'custom':   { icon: '👥', label: 'Müşteriler' },
+            'aylik':    { icon: '🧾', label: 'Aylık Fatura' },
+            'satis':    { icon: '🛒', label: 'Satış' },
+            'teslimat': { icon: '📦', label: 'Kasa Teslimat' },
+            'formhub':  { icon: '📄', label: 'Dokümanlar' },
+            'katalog':  { icon: '📖', label: 'Katalog' },
+            'tickets':  { icon: '🎫', label: 'Tickets' },
+            'rma':      { icon: '🔧', label: 'RMA Servis' },
+            'elster':   { icon: '📋', label: 'ELSTER' },
+            'pos':      { icon: '💳', label: 'POS' },
+            'tse':      { icon: '🔐', label: 'TSE USB' },
+            'lisans':   { icon: '🔗', label: 'Lisans' }
+        };
+
+        const moduleOrder = ['rental', 'custom', 'aylik', 'satis', 'teslimat', 'formhub', 'katalog', 'tickets', 'rma', 'elster', 'pos', 'tse', 'lisans'];
+
+        function updateModuleComboboxUI(tab) {
+            const meta = moduleMeta[tab] || { icon: '📋', label: tab };
+            const iconEl = document.getElementById('headerActiveIcon');
+            const labelEl = document.getElementById('headerActiveLabel');
+            if (iconEl) iconEl.textContent = meta.icon;
+            if (labelEl) labelEl.textContent = meta.label;
+
+            const nativeSelect = document.getElementById('moduleNativeSelect');
+            if (nativeSelect && nativeSelect.value !== tab) {
+                nativeSelect.value = tab;
+            }
+
+            document.querySelectorAll('.module-menu-item').forEach(el => {
+                const itemTab = el.getAttribute('data-tab');
+                el.classList.toggle('active', itemTab === tab);
+            });
+
+            closeModuleDropdown();
+        }
+
+        function toggleModuleDropdown(e) {
+            if (e) {
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            const dropdown = document.getElementById('moduleDropdown');
+            const trigger = document.getElementById('moduleTriggerBtn');
+            if (!dropdown) return;
+
+            const isOpen = dropdown.classList.contains('show');
+            if (isOpen) {
+                closeModuleDropdown();
+            } else {
+                dropdown.classList.add('show');
+                if (trigger) {
+                    trigger.classList.add('open');
+                    trigger.setAttribute('aria-expanded', 'true');
+                }
+                const search = document.getElementById('moduleSearchInput');
+                if (search) {
+                    search.value = '';
+                    filterModules('');
+                    setTimeout(() => search.focus(), 50);
+                }
+            }
+        }
+
+        function closeModuleDropdown() {
+            const dropdown = document.getElementById('moduleDropdown');
+            const trigger = document.getElementById('moduleTriggerBtn');
+            if (dropdown) dropdown.classList.remove('show');
+            if (trigger) {
+                trigger.classList.remove('open');
+                trigger.setAttribute('aria-expanded', 'false');
+            }
+        }
+
+        function selectModule(tab) {
+            switchTab(tab);
+        }
+
+        function stepModule(direction) {
+            let idx = moduleOrder.indexOf(currentTab);
+            if (idx === -1) idx = 0;
+            idx = (idx + direction + moduleOrder.length) % moduleOrder.length;
+            switchTab(moduleOrder[idx]);
+        }
+
+        function filterModules(query) {
+            const q = (query || '').toLowerCase().trim();
+            const items = document.querySelectorAll('.module-menu-item');
+            const clearBtn = document.getElementById('moduleSearchClear');
+            if (clearBtn) clearBtn.style.display = q ? 'block' : 'none';
+
+            items.forEach(el => {
+                const text = el.textContent.toLowerCase();
+                const tab = (el.getAttribute('data-tab') || '').toLowerCase();
+                if (!q || text.includes(q) || tab.includes(q)) {
+                    el.style.display = 'flex';
+                } else {
+                    el.style.display = 'none';
+                }
+            });
+
+            // Group headers visibility
+            document.querySelectorAll('.menu-group-header').forEach(hdr => {
+                let next = hdr.nextElementSibling;
+                let hasVisible = false;
+                while (next && !next.classList.contains('menu-group-header')) {
+                    if (next.style.display !== 'none') hasVisible = true;
+                    next = next.nextElementSibling;
+                }
+                hdr.style.display = hasVisible ? 'block' : 'none';
+            });
+        }
+
+        function clearModuleSearch() {
+            const search = document.getElementById('moduleSearchInput');
+            if (search) {
+                search.value = '';
+                search.focus();
+                filterModules('');
+            }
+        }
+
+        function mobileBackToTicketList() {
+            if (typeof isCalendarView !== 'undefined') isCalendarView = false;
+            if (typeof isReportView !== 'undefined') isReportView = false;
+            if (typeof currentTicketId !== 'undefined') currentTicketId = null;
+            const container = document.querySelector('.tickets-container');
+            if (container) {
+                container.classList.remove('has-active-ticket', 'viewing-calendar', 'viewing-report');
+            }
+            if (typeof updateTicketViewPanes === 'function') updateTicketViewPanes();
+        }
+
         async function switchTab(tab) {
             currentTab = tab;
 
+            // Update Combobox UI
+            updateModuleComboboxUI(tab);
+
             // Tab buttons
-            document.getElementById('tabRental').classList.toggle('active', tab === 'rental');
-            document.getElementById('tabCustom').classList.toggle('active', tab === 'custom');
-            document.getElementById('tabSatis').classList.toggle('active',  tab === 'satis');
-            document.getElementById('tabTeslimat').classList.toggle('active', tab === 'teslimat');
-            document.getElementById('tabAylik').classList.toggle('active',  tab === 'aylik');
-            document.getElementById('tabFormHub').classList.toggle('active', tab === 'formhub');
-            document.getElementById('tabLisans').classList.toggle('active', tab === 'lisans');
-            document.getElementById('tabTickets').classList.toggle('active', tab === 'tickets');
-            document.getElementById('tabElster').classList.toggle('active', tab === 'elster');
-            document.getElementById('tabRMA').classList.toggle('active', tab === 'rma');
-            document.getElementById('tabKatalog').classList.toggle('active', tab === 'katalog');
-            document.getElementById('tabPos').classList.toggle('active', tab === 'pos');
-            document.getElementById('tabTse').classList.toggle('active', tab === 'tse');
+            document.getElementById('tabRental')?.classList.toggle('active', tab === 'rental');
+            document.getElementById('tabCustom')?.classList.toggle('active', tab === 'custom');
+            document.getElementById('tabSatis')?.classList.toggle('active',  tab === 'satis');
+            document.getElementById('tabTeslimat')?.classList.toggle('active', tab === 'teslimat');
+            document.getElementById('tabAylik')?.classList.toggle('active',  tab === 'aylik');
+            document.getElementById('tabFormHub')?.classList.toggle('active', tab === 'formhub');
+            document.getElementById('tabLisans')?.classList.toggle('active', tab === 'lisans');
+            document.getElementById('tabTickets')?.classList.toggle('active', tab === 'tickets');
+            document.getElementById('tabElster')?.classList.toggle('active', tab === 'elster');
+            document.getElementById('tabRMA')?.classList.toggle('active', tab === 'rma');
+            document.getElementById('tabKatalog')?.classList.toggle('active', tab === 'katalog');
+            document.getElementById('tabPos')?.classList.toggle('active', tab === 'pos');
+            document.getElementById('tabTse')?.classList.toggle('active', tab === 'tse');
 
             const filterPanel = document.querySelector('.filter-panel');
             const listPanel   = document.querySelector('.panel.list-panel');
@@ -3316,35 +4168,32 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             }
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            // Tabs reordering logic
-            const tabsContainer = document.querySelector('.tabs-container');
-            if (tabsContainer) {
-                const savedOrderStr = localStorage.getItem('dashboard_tabs_order');
-                if (savedOrderStr) {
-                    try {
-                        const savedOrder = JSON.parse(savedOrderStr);
-                        savedOrder.forEach(id => {
-                            const tab = document.getElementById(id);
-                            if (tab) {
-                                tabsContainer.appendChild(tab);
-                            }
-                        });
-                    } catch (e) {
-                        console.error('Error parsing tabs order from localStorage', e);
-                    }
-                }
+        // Close combobox dropdown when clicking outside
+        window.addEventListener('click', (e) => {
+            const wrapper = document.getElementById('moduleComboboxWrapper');
+            if (wrapper && !wrapper.contains(e.target)) {
+                closeModuleDropdown();
+            }
+        });
 
-                if (typeof Sortable !== 'undefined') {
-                    new Sortable(tabsContainer, {
-                        animation: 150,
-                        ghostClass: 'sortable-ghost',
-                        onEnd: function () {
-                            const currentOrder = Array.from(tabsContainer.children).map(child => child.id).filter(id => id);
-                            localStorage.setItem('dashboard_tabs_order', JSON.stringify(currentOrder));
+        document.addEventListener('DOMContentLoaded', () => {
+            // Setup combobox search and keyboard navigation
+            const searchInput = document.getElementById('moduleSearchInput');
+            if (searchInput) {
+                searchInput.addEventListener('input', (e) => {
+                    filterModules(e.target.value);
+                });
+                searchInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        closeModuleDropdown();
+                    } else if (e.key === 'Enter') {
+                        const visibleItems = Array.from(document.querySelectorAll('.module-menu-item')).filter(el => el.style.display !== 'none');
+                        if (visibleItems.length > 0) {
+                            const tab = visibleItems[0].getAttribute('data-tab');
+                            if (tab) switchTab(tab);
                         }
-                    });
-                }
+                    }
+                });
             }
 
             switchTab('tickets');

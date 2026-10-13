@@ -1,4 +1,4 @@
-﻿/* Ticket System CSS */
+/* Ticket System CSS */
 
 .tickets-panel {
     display: flex;
@@ -573,5 +573,27 @@
 }
 .cal-day-cell::-webkit-scrollbar-thumb:hover {
     background: rgba(255,255,255,0.4);
+}
+
+.ticket-calendar-pane {
+    overflow-x: auto;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.ticket-report-pane {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+@media (max-width: 900px) {
+    .ticket-calendar-grid {
+        min-width: 680px;
+    }
+
+    .ticket-calendar-pane,
+    .ticket-report-pane {
+        padding: 12px !important;
+    }
 }
 
