@@ -1,0 +1,43 @@
+{
+    "models": [
+        {
+            "id": 1,
+            "name": "Einzelhandel"
+        },
+        {
+            "id": 2,
+            "name": "Gastronomie"
+        },
+        {
+            "id": 3,
+            "name": "Beauty"
+        }
+    ],
+    "pos_user_id": 6,
+    "statuses": [
+        {
+            "id": 100,
+            "name": "Servis Teklifi Gönderildi",
+            "color": "#a3a3a3",
+            "order": 1
+        },
+        {
+            "id": 101,
+            "name": "Lastschrift Imzasi Geldi",
+            "color": "#ffb300",
+            "order": 2
+        },
+        {
+            "id": 102,
+            "name": "Yeni Lisansi Geldi",
+            "color": "#04ff00",
+            "order": 3
+        },
+        {
+            "id": 103,
+            "name": "Update Edildi",
+            "color": "#0011ff",
+            "order": 4
+        }
+    ]
+}

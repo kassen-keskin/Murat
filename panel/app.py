@@ -1454,6 +1454,56 @@ def manage_pos_tickets():
         save_json_file(POS_RECORDS_FILE, records)
         return jsonify({"success": True})
 
+LACASH_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lacash_config.json')
+LACASH_DEFAULT_CONFIG = POS_DEFAULT_CONFIG
+
+@app.route('/api/lacash-config', methods=['GET', 'POST'])
+def manage_lacash_config():
+    if request.method == 'GET':
+        return jsonify(load_json_file(LACASH_CONFIG_FILE, LACASH_DEFAULT_CONFIG))
+    if request.method == 'POST':
+        data = request.get_json()
+        save_json_file(LACASH_CONFIG_FILE, data)
+        return jsonify({"success": True})
+
+LACASH_RECORDS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lacash_records.json')
+
+@app.route('/api/lacash-tickets', methods=['GET', 'POST'])
+def manage_lacash_tickets():
+    if request.method == 'GET':
+        return jsonify(load_json_file(LACASH_RECORDS_FILE, {}))
+    if request.method == 'POST':
+        data = request.get_json() # expects { ticket_id: status_id }
+        records = load_json_file(LACASH_RECORDS_FILE, {})
+        records.update(data)
+        save_json_file(LACASH_RECORDS_FILE, records)
+        return jsonify({"success": True})
+
+LOTUS_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lotus_config.json')
+LOTUS_DEFAULT_CONFIG = LACASH_DEFAULT_CONFIG
+
+@app.route('/api/lotus-config', methods=['GET', 'POST'])
+def manage_lotus_config():
+    if request.method == 'GET':
+        return jsonify(load_json_file(LOTUS_CONFIG_FILE, LOTUS_DEFAULT_CONFIG))
+    if request.method == 'POST':
+        data = request.get_json()
+        save_json_file(LOTUS_CONFIG_FILE, data)
+        return jsonify({"success": True})
+
+LOTUS_RECORDS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'lotus_records.json')
+
+@app.route('/api/lotus-tickets', methods=['GET', 'POST'])
+def manage_lotus_tickets():
+    if request.method == 'GET':
+        return jsonify(load_json_file(LOTUS_RECORDS_FILE, {}))
+    if request.method == 'POST':
+        data = request.get_json() # expects { ticket_id: status_id }
+        records = load_json_file(LOTUS_RECORDS_FILE, {})
+        records.update(data)
+        save_json_file(LOTUS_RECORDS_FILE, records)
+        return jsonify({"success": True})
+
 @app.route('/api/tse/scan', methods=['GET'])
 def scan_tse():
     exe_path = os.path.join(app.static_folder, 'TseInfoReader', 'TseInfoReader.exe')

@@ -1,0 +1,41 @@
+{
+    "models": [
+        {
+            "id": 1,
+            "name": "Onset"
+        },
+        {
+            "id": 2,
+            "name": "Retail"
+        },
+        {
+            "id": 3,
+            "name": "Beauty"
+        },
+        {
+            "id": 4,
+            "name": "Alacarte"
+        }
+    ],
+    "pos_user_id": 7,
+    "statuses": [
+        {
+            "id": 100,
+            "name": "Servis Teklifi Gönderildi",
+            "color": "#a3a3a3",
+            "order": 1
+        },
+        {
+            "id": 101,
+            "name": "Lastschrift Imzasi Geldi",
+            "color": "#ffb300",
+            "order": 2
+        },
+        {
+            "id": 102,
+            "name": "Update Edildi",
+            "color": "#0011ff",
+            "order": 3
+        }
+    ]
+}
