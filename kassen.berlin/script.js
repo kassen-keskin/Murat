@@ -23,7 +23,7 @@ const translations = {
         infoCard3Title: 'Regelmäßige Wartungsdienste',
         infoCard3Text: 'Halten Sie Ihre Systeme mit unseren Wartungsdienstleistungen in Topform. Regelmäßige Kontrollen verhindern unerwartete Ausfälle, verlängern die Lebensdauer Ihrer Geräte und sorgen für optimale Leistung.',
         reviewScoreLabel: 'Ausgezeichnet',
-        reviewText: '4,9/5 · basierend auf <b>252 Bewertungen</b>',
+        reviewText: '5,0/5 · basierend auf <b>259 Bewertungen</b>',
         reviewLink: 'Alle ansehen',
         appointEyebrow: 'Persönlich sprechen',
         appointTitleA: 'Jetzt Ihren',
@@ -158,7 +158,7 @@ const translations = {
         infoCard3Title: 'Düzenli bakım hizmetleri',
         infoCard3Text: 'Bakım hizmetlerimizle sistemlerinizi en iyi durumda tutun. Düzenli kontroller beklenmedik arızaları önler, cihazlarınızın kullanım ömrünü uzatır ve optimum performans sağlar.',
         reviewScoreLabel: 'Mükemmel',
-        reviewText: '4,9/5 · <b>252 değerlendirme</b> üzerinden',
+        reviewText: '5,0/5 · <b>259 değerlendirme</b> üzerinden',
         reviewLink: 'Tümünü görüntüle',
         appointEyebrow: 'Kişisel görüşme',
         appointTitleA: 'Randevunuzu',
@@ -293,7 +293,7 @@ const translations = {
         infoCard3Title: 'Regular maintenance services',
         infoCard3Text: 'Keep your systems in top shape with our maintenance services. Regular checks prevent unexpected breakdowns, extend the lifespan of your equipment, and ensure optimal performance.',
         reviewScoreLabel: 'Excellent',
-        reviewText: '4,9/5 · based on <b>252 reviews</b>',
+        reviewText: '5,0/5 · based on <b>259 reviews</b>',
         reviewLink: 'View all',
         appointEyebrow: 'Talk to us',
         appointTitleA: 'Book your',
@@ -408,37 +408,34 @@ let currentLanguage = 'de';
 
 const reviewData = {
     de: [
-        ['Tayfun Calim', 'Ich habe für meinen Friseurbetrieb ein Kassensystem bei Keskin gekauft und bin absolut zufrieden. Freundlich, kompetent und zuverlässig.'],
-        ['Sadik Miran', 'Sehr hilfsbereit, super Service und eine klare Empfehlung. Vielen Dank an das gesamte Team!'],
-        ['Murat K.', 'Schnelle Hilfe, gute Beratung und immer erreichbar, wenn man Fragen hat.'],
-        ['Aylin S.', 'Professionelle Betreuung von Anfang an. Wir fühlen uns als Kunde sehr gut aufgehoben.'],
-        ['Emre D.', 'Zuverlässiger Partner und ein sehr engagiertes Team. Jederzeit wieder.'],
-        ['Seda Y.', 'Kompetente Beratung und schnelle Antworten. Wir sind mit dem Service sehr zufrieden.'],
-        ['Can B.', 'Ein professionelles Team, das sich wirklich um seine Kunden kümmert.'],
-        ['Nina R.', 'Von der ersten Beratung bis zur Betreuung ein sehr angenehmer und zuverlässiger Kontakt.'],
-        ['Okan A.', 'Klare Empfehlung für alle, die einen starken Partner für ihr Geschäft suchen.']
+        ['Samir Sulaiman', 'vor 19 Stunden', 'Wir vom Simo Barber Salon arbeiten schon seit vielen Jahren mit diesem Team zusammen und sind rundum zufrieden. Hervorragender Service, schnelle Hilfe und absolute Zuverlässigkeit. Vielen Dank an Keskin Kassensysteme!'],
+        ['Ramazan Erol', 'vor 23 Stunden', 'Sehr zufrieden, guter Service, sehr freundliches Personal und zuverlässig!'],
+        ['Tugay Koc', 'vor 3 Tagen', 'Top Service, schnelle Abwicklung und immer sehr hilfsbereit. Sehr empfehlenswert!'],
+        ['Mustafa Yorganci', 'vor 1 Woche', 'Alles war sehr gut, exzellenter Service, wir waren sehr zufrieden.'],
+        ['Renate Peter', 'vor 1 Monat', 'Ich kann diese Firma wirklich nur weiterempfehlen! Am Wochenende wurde meine Kasse von einem Gast beschädigt. Trotz des Wochenendes wurde mir schnell und professionell geholfen und die Kasse zuverlässig repariert. Vielen Dank für die unkomplizierte Unterstützung!'],
+        ['Ricardo Quaresma', 'vor 1 Monat', 'Ein Unternehmen mit einem sehr freundlichen und kompetenten Mitarbeiterteam. Selbst wenn man absolut keine Ahnung von der Kasse hat, wird einem alles bis ins kleinste Detail erklärt und beigebracht. Alle Angestellten sind äußerst hilfsbereit. Man kann hier mit gutem Gewissen den Service in Anspruch nehmen.'],
+        ['Peter Khalil', 'vor 3 Monaten', 'Super hilfreich und sehr freundliche Mitarbeiter! Bei Fragen oder Anliegen immer erreichbar und eine absolut zuverlässige Unterstützung.'],
+        ['Marwan Bln', 'vor 4 Monaten', 'Ich bin sehr zufrieden mit dem Kassensystem von Keskin. Die komplette Friseurkasse wurde professionell eingerichtet und perfekt auf meinen Salon angepasst. Bei Fragen bekommt man sofort Hilfe und merkt, dass dort Leute arbeiten, die Ahnung haben! Vielen Dank an das Keskin Team!']
     ],
     tr: [
-        ['Tayfun Calim', 'Kuaför işletmem için Keskin’den bir kasa sistemi aldım ve çok memnunum. Misafirperver, yetkin ve güvenilir.'],
-        ['Sadik Miran', 'Çok yardımcı, harika servis ve açık bir tavsiye. Tüm ekibe teşekkür ederiz!'],
-        ['Murat K.', 'Hızlı yardım, iyi danışmanlık ve sorularım olduğunda her zaman ulaşılıyor.'],
-        ['Aylin S.', 'Başlangıçtan itibaren profesyonel destek aldık. Müşteri olarak kendimizi çok iyi hissediyoruz.'],
-        ['Emre D.', 'Güvenilir bir ortak ve çok motive bir ekip. Her zaman tekrar tercih ederiz.'],
-        ['Seda Y.', 'Yetkin danışmanlık ve hızlı yanıtlar. Hizmetten çok memnunuz.'],
-        ['Can B.', 'Müşterileriyle gerçekten ilgilenen profesyonel bir ekip.'],
-        ['Nina R.', 'İlk danışmanlıktan desteğe kadar çok güvenilir ve keyifli bir iletişim.'],
-        ['Okan A.', 'İşletmesi için güçlü bir ortak arayan herkese tavsiye ederim.']
+        ['Samir Sulaiman', '19 saat önce', 'Simo Barber Salon olarak uzun yıllardır bu ekiple çalışıyoruz ve çok memnunuz. Harika servis, hızlı destek ve tam güvenilirlik. Keskin Kassensysteme ekibine çok teşekkürler!'],
+        ['Ramazan Erol', '23 saat önce', 'Çok memnunum, harika bir servis, çok güler yüzlü personel ve güvenilir!'],
+        ['Tugay Koc', '3 gün önce', 'Harika servis, hızlı işlem ve her zaman çok yardımseverler. Kesinlikle tavsiye ederim!'],
+        ['Mustafa Yorganci', '1 hafta önce', 'Her şey çok iyiydi, mükemmel servis, çok memnun kaldık.'],
+        ['Renate Peter', '1 ay önce', 'Bu firmayı kesinlikle tavsiye ederim! Hafta sonu kasamız hasar görmüştü – hafta sonu olmasına rağmen hızlı ve son derece profesyonelce tamir edildi. Hızlı yardım ve harika servis için çok teşekkürler!'],
+        ['Ricardo Quaresma', '1 ay önce', 'Çok güler yüzlü ve yetkin bir ekibe sahip bir işletme. Kasa hakkında hiçbir bilginiz olmasa bile her şeyi en ince ayrıntısına kadar anlatıp öğretiyorlar. Tüm çalışanlar son derece yardımsever. Gönül rahatlığıyla tercih edebilirsiniz.'],
+        ['Peter Khalil', '3 ay önce', 'Son derece yardımsever ve güler yüzlü çalışanlar! Her soruda her zaman ulaşılabilir ve kesinlikle güvenilir bir destek sunuyorlar.'],
+        ['Marwan Bln', '4 ay önce', 'Keskin kasa sisteminden çok memnunum. Kuaför kasamız profesyonelce kuruldu ve salonuma mükemmel şekilde uyarlandı. Sorularda hemen yardım alınıyor. Ekibe çok teşekkürler!']
     ],
     en: [
-        ['Tayfun Calim', 'I bought a POS system from Keskin for my hair salon and I am completely satisfied. Friendly, competent and reliable.'],
-        ['Sadik Miran', 'Very helpful, excellent service and a clear recommendation. Thank you to the whole team!'],
-        ['Murat K.', 'Fast help, good advice and always reachable when you have questions.'],
-        ['Aylin S.', 'Professional support from the start. We feel very well looked after as customers.'],
-        ['Emre D.', 'A reliable partner and a very dedicated team. We would choose them again anytime.'],
-        ['Seda Y.', 'Competent advice and quick answers. We are very happy with the service.'],
-        ['Can B.', 'A professional team that genuinely cares about its customers.'],
-        ['Nina R.', 'A pleasant and reliable contact from the first consultation onwards.'],
-        ['Okan A.', 'A clear recommendation for anyone looking for a strong business partner.']
+        ['Samir Sulaiman', '19 hours ago', 'We at Simo Barber Salon have been working with this team for many years and are completely satisfied. Outstanding service, fast support, and absolute reliability. Many thanks to Keskin Kassensysteme!'],
+        ['Ramazan Erol', '23 hours ago', 'Very satisfied, great service, very friendly staff, and reliable!'],
+        ['Tugay Koc', '3 days ago', 'Top service, fast handling, and always very helpful. Highly recommended!'],
+        ['Mustafa Yorganci', '1 week ago', 'Everything was very good, excellent service, we were very satisfied.'],
+        ['Renate Peter', '1 month ago', 'I can truly recommend this company! Over the weekend our cash register was damaged – despite the weekend, they helped quickly and repaired it reliably. Thank you for the great service!'],
+        ['Ricardo Quaresma', '1 month ago', 'A company with a very friendly and competent team. Even if you have no prior knowledge of POS systems, everything is explained and taught down to the smallest detail. Highly recommended!'],
+        ['Peter Khalil', '3 months ago', 'Super helpful and very friendly staff! Always accessible for any questions and providing completely reliable support.'],
+        ['Marwan Bln', '4 months ago', 'I am very satisfied with the POS system from Keskin. The salon checkout was professionally set up and tailored to my salon. Immediate help with any questions. Many thanks to the team!']
     ]
 };
 
@@ -475,7 +472,17 @@ function setLanguage(language) {
 
     const reviewTrack = document.getElementById('reviewsTrack');
     if (reviewTrack) {
-        const cards = reviewData[language].map(([name, text]) => `<article class="review-card"><header><cite>${name}</cite><span class="stars">★★★★★</span></header><p>${text}</p></article>`).join('');
+        const cards = reviewData[language].map(([name, date, text]) => `
+            <article class="review-card">
+                <header>
+                    <cite>${name}</cite>
+                    <span class="stars">★★★★★</span>
+                </header>
+                <p>${text}</p>
+                <div class="review-footer">
+                    <span class="review-date"><i class="fa-regular fa-clock"></i> ${date}</span>
+                </div>
+            </article>`).join('');
         reviewTrack.innerHTML = cards;
     }
 
