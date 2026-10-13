@@ -1101,8 +1101,45 @@
 
         @media (max-width: 900px) {
             /* Tablet Portrait Master-Detail for Tickets */
+            #ticketsPaneli {
+                min-height: 0 !important;
+                height: 100% !important;
+            }
+
             .tickets-container {
                 flex-direction: column;
+                min-height: 0 !important;
+                height: 100% !important;
+            }
+
+            .tickets-list-pane {
+                min-height: 0 !important;
+                height: 100% !important;
+            }
+
+            .tickets-list-items {
+                min-height: 0 !important;
+                flex: 1 1 0% !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                padding-bottom: 30px !important;
+            }
+
+            .ticket-right-pane {
+                min-height: 0 !important;
+                height: 100% !important;
+            }
+
+            .ticket-detail-pane {
+                min-height: 0 !important;
+                height: 100% !important;
+            }
+
+            .chat-container {
+                min-height: 0 !important;
+                flex: 1 1 0% !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
             }
 
             .tickets-list-pane {
@@ -1276,13 +1313,40 @@
             }
 
             /* Mobile & Tablet Master-Detail for Tickets */
+            #ticketsPaneli {
+                min-height: 0 !important;
+                height: 100% !important;
+            }
+
             .tickets-container {
                 flex-direction: column;
+                min-height: 0 !important;
+                height: 100% !important;
             }
 
             .tickets-list-pane {
                 width: 100% !important;
+                min-height: 0 !important;
+                height: 100% !important;
                 border-right: none !important;
+            }
+
+            .tickets-list-header {
+                flex-wrap: wrap !important;
+                padding: 10px !important;
+                gap: 8px !important;
+            }
+
+            .tickets-list-filters {
+                padding: 8px 10px !important;
+            }
+
+            .tickets-list-items {
+                min-height: 0 !important;
+                flex: 1 1 0% !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
+                padding-bottom: 40px !important;
             }
 
             #ticketPaneToggler {
@@ -1300,10 +1364,29 @@
             .tickets-container.viewing-report .ticket-right-pane {
                 display: flex !important;
                 width: 100% !important;
+                min-height: 0 !important;
+                height: 100% !important;
             }
 
             .tickets-container:not(.has-active-ticket):not(.viewing-calendar):not(.viewing-report) .ticket-right-pane {
                 display: none !important;
+            }
+
+            .ticket-right-pane {
+                min-height: 0 !important;
+                height: 100% !important;
+            }
+
+            .ticket-detail-pane {
+                min-height: 0 !important;
+                height: 100% !important;
+            }
+
+            .chat-container {
+                min-height: 0 !important;
+                flex: 1 1 0% !important;
+                overflow-y: auto !important;
+                -webkit-overflow-scrolling: touch !important;
             }
 
             .mobile-ticket-back-btn {
@@ -1375,6 +1458,8 @@
     <script src="/elster.js" defer></script>
     <script src="/rma.js" defer></script>
     <script src="/pos.js" defer></script>
+    <script src="/lacash.js" defer></script>
+    <script src="/lotus.js" defer></script>
     <script src="/tse.js" defer></script>
     <link rel="stylesheet" href="/pos.css">
 </head>
@@ -1419,6 +1504,8 @@
                             <option value="rma">🔧 RMA Servis</option>
                             <option value="elster">📋 ELSTER</option>
                             <option value="pos">💳 POS</option>
+                            <option value="lacash">💶 LaCash</option>
+                            <option value="lotus">🪷 LotusPecas</option>
                             <option value="tse">🔐 TSE USB</option>
                             <option value="lisans">🔗 Lisans</option>
                         </optgroup>
@@ -1490,6 +1577,16 @@
                             <div id="tabPos" class="tab-item module-menu-item" data-tab="pos" onclick="selectModule('pos')">
                                 <span class="item-icon">💳</span>
                                 <span class="item-name">POS</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabLacash" class="tab-item module-menu-item" data-tab="lacash" onclick="selectModule('lacash')">
+                                <span class="item-icon">💶</span>
+                                <span class="item-name">LaCash</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabLotus" class="tab-item module-menu-item" data-tab="lotus" onclick="selectModule('lotus')">
+                                <span class="item-icon">🪷</span>
+                                <span class="item-name">LotusPecas</span>
                                 <span class="item-check">✓</span>
                             </div>
                             <div id="tabTse" class="tab-item module-menu-item" data-tab="tse" onclick="selectModule('tse')">
@@ -1854,7 +1951,7 @@
         </div><!-- /teslimatPaneli -->
 
         <!-- ===== TICKET PANELİ ===== -->
-        <div id="ticketsPaneli" class="panel tickets-panel" style="display:none; flex:1; flex-direction:column; overflow:hidden; position:relative;">
+        <div id="ticketsPaneli" class="panel tickets-panel" style="display:none; flex:1; min-height:0; flex-direction:column; overflow:hidden; position:relative;">
             
             <!-- Ticket Login Overlay -->
             <div id="ticketLoginOverlay" style="position:absolute; top:0; left:0; width:100%; height:100%; background:var(--bg-color); z-index:100; display:flex; justify-content:center; align-items:center;">
@@ -1880,7 +1977,7 @@
 
             <div class="tickets-container" style="display: flex; flex: 1; overflow: hidden; background: var(--surface-color);">
                 <!-- Left: Ticket List -->
-                <div class="tickets-list-pane" style="width: 350px; border-right: 1px solid var(--border-color); display: flex; flex-direction: column;">
+                <div class="tickets-list-pane" style="width: 350px; min-height: 0; border-right: 1px solid var(--border-color); display: flex; flex-direction: column;">
                     <div class="tickets-list-header" style="padding: 15px; border-bottom: 1px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; gap: 10px;">
                         <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
                             <h3 style="margin:0; font-size: 1.2rem; color: var(--primary-color);">Tickets <span id="ticketCountBadge" style="font-size: 0.9rem; background: var(--card-bg); padding: 2px 8px; border-radius: 12px; border: 1px solid var(--border-color); color: var(--text-color); font-weight: normal; margin-left: 5px;">0</span></h3>
@@ -1911,7 +2008,7 @@
                             <option value="">Tümü (Tüm Kullanıcılar)</option>
                         </select>
                     </div>
-                    <div id="ticketsListContainer" class="tickets-list-items" style="flex: 1; overflow-y: auto; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
+                    <div id="ticketsListContainer" class="tickets-list-items" style="flex: 1 1 0%; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 10px; display: flex; flex-direction: column; gap: 8px;">
                         <!-- Tickets will be loaded here -->
                     </div>
                 </div>
@@ -2138,8 +2235,14 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
     <div id="posPaneli" class="panel pos-panel" style="display:none; flex:1; flex-direction:column; overflow-y:auto; padding: 20px;">
         <div id="posContainer"></div>
     </div>
-    <div id="katalogPaneli" class="panel" style="display:none; padding:0; flex:1; overflow:hidden;">
-        <iframe src="/katalog/index.html" style="width:100%; height:100%; border:none;"></iframe>
+    <div id="lacashPaneli" class="panel pos-panel" style="display:none; flex:1; flex-direction:column; overflow-y:auto; padding: 20px;">
+        <div id="lacashContainer"></div>
+    </div>
+    <div id="lotusPaneli" class="panel pos-panel" style="display:none; flex:1; flex-direction:column; overflow-y:auto; padding: 20px;">
+        <div id="lotusContainer"></div>
+    </div>
+    <div id="katalogPaneli" class="panel" style="display:none; padding:0; flex:1; overflow:hidden; min-width:0; width:100%; max-width:100%; height:100%; -webkit-overflow-scrolling:touch; position:relative;">
+        <iframe id="katalogIframe" src="/katalog/index.html" style="width:100%; min-width:0; max-width:100%; height:100%; border:none; display:block;" allowfullscreen></iframe>
     </div>
     
     </div><!-- /dashboard-container -->
@@ -2430,11 +2533,13 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             'rma':      { icon: '🔧', label: 'RMA Servis' },
             'elster':   { icon: '📋', label: 'ELSTER' },
             'pos':      { icon: '💳', label: 'POS' },
+            'lacash':   { icon: '💶', label: 'LaCash' },
+            'lotus':    { icon: '🪷', label: 'LotusPecas' },
             'tse':      { icon: '🔐', label: 'TSE USB' },
             'lisans':   { icon: '🔗', label: 'Lisans' }
         };
 
-        const moduleOrder = ['rental', 'custom', 'aylik', 'satis', 'teslimat', 'formhub', 'katalog', 'tickets', 'rma', 'elster', 'pos', 'tse', 'lisans'];
+        const moduleOrder = ['rental', 'custom', 'aylik', 'satis', 'teslimat', 'formhub', 'katalog', 'tickets', 'rma', 'elster', 'pos', 'lacash', 'lotus', 'tse', 'lisans'];
 
         function updateModuleComboboxUI(tab) {
             const meta = moduleMeta[tab] || { icon: '📋', label: tab };
@@ -2571,6 +2676,8 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             document.getElementById('tabRMA')?.classList.toggle('active', tab === 'rma');
             document.getElementById('tabKatalog')?.classList.toggle('active', tab === 'katalog');
             document.getElementById('tabPos')?.classList.toggle('active', tab === 'pos');
+            document.getElementById('tabLacash')?.classList.toggle('active', tab === 'lacash');
+            document.getElementById('tabLotus')?.classList.toggle('active', tab === 'lotus');
             document.getElementById('tabTse')?.classList.toggle('active', tab === 'tse');
 
             const filterPanel = document.querySelector('.filter-panel');
@@ -2585,7 +2692,11 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             const rmaPaneli = document.getElementById('rmaPaneli');
             const katalogPaneli = document.getElementById('katalogPaneli');
             const posPaneli = document.getElementById('posPaneli');
+            const lacashPaneli = document.getElementById('lacashPaneli');
+            const lotusPaneli = document.getElementById('lotusPaneli');
             const aylikControls = document.getElementById('aylikControls');
+
+            if (lotusPaneli) lotusPaneli.style.display = 'none';
 
             
 
@@ -2600,6 +2711,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
                 satisPaneli.style.display = 'flex';
                 initSatisTab();
             } else if (tab === 'teslimat') {
@@ -2614,6 +2726,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
                 teslimatPaneli.style.display = 'flex';
                 if (typeof initTeslimatTab === 'function') initTeslimatTab();
             } else if (tab === 'formhub') {
@@ -2628,6 +2741,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
                 formHubPaneli.style.display = 'flex';
             } else if (tab === 'lisans') {
                 filterPanel.style.display = 'none';
@@ -2641,6 +2755,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
                 lisansPaneli.style.display = 'flex';
                 if (typeof initLisansTab === 'function') initLisansTab();
             } else if (tab === 'tickets') {
@@ -2655,6 +2770,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
                 ticketsPaneli.style.display = 'flex';
                 if (typeof initTicketsTab === 'function') initTicketsTab();
             } else if (tab === 'elster') {
@@ -2669,6 +2785,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'flex';
                 if (typeof initElsterTab === 'function') initElsterTab();
             } else if (tab === 'rma') {
@@ -2683,6 +2800,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 elsterPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'flex';
                 if (typeof initRmaTab === 'function') initRmaTab();
             } else if (tab === 'pos') {
@@ -2698,7 +2816,40 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'flex';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
                 if (typeof initPosTab === 'function') initPosTab();
+            } else if (tab === 'lacash') {
+                filterPanel.style.display = 'none';
+                listPanel.style.display   = 'none';
+                satisPaneli.style.display = 'none';
+                if(tsePaneli) tsePaneli.style.display = 'none';
+                teslimatPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'none';
+                ticketsPaneli.style.display = 'none';
+                elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
+                katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'flex';
+                if(lotusPaneli) lotusPaneli.style.display = 'none';
+                if (typeof initLacashTab === 'function') initLacashTab();
+            } else if (tab === 'lotus') {
+                filterPanel.style.display = 'none';
+                listPanel.style.display   = 'none';
+                satisPaneli.style.display = 'none';
+                if(tsePaneli) tsePaneli.style.display = 'none';
+                teslimatPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'none';
+                ticketsPaneli.style.display = 'none';
+                elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
+                katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
+                if(lotusPaneli) lotusPaneli.style.display = 'flex';
+                if (typeof initLotusTab === 'function') initLotusTab();
             } else if (tab === 'katalog') {
                 filterPanel.style.display = 'none';
                 listPanel.style.display   = 'none';
@@ -2710,7 +2861,25 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 ticketsPaneli.style.display = 'none';
                 elsterPaneli.style.display = 'none';
                 rmaPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
+                if(lotusPaneli) lotusPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'flex';
+                const notifyKatalog = () => {
+                    try {
+                        const iframe = document.getElementById('katalogIframe');
+                        if (iframe && iframe.contentWindow) {
+                            const availW = (katalogPaneli && katalogPaneli.clientWidth > 0) ? katalogPaneli.clientWidth : window.innerWidth;
+                            if (typeof iframe.contentWindow.updateCatalogScale === 'function') {
+                                iframe.contentWindow.updateCatalogScale(availW);
+                            }
+                            iframe.contentWindow.dispatchEvent(new Event('resize'));
+                        }
+                    } catch(e) {}
+                };
+                notifyKatalog();
+                setTimeout(notifyKatalog, 50);
+                setTimeout(notifyKatalog, 200);
+                setTimeout(notifyKatalog, 500);
             } else if (tab === 'tse') {
                 filterPanel.style.display = 'none';
                 listPanel.style.display   = 'none';
@@ -2724,6 +2893,8 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
+                if(lotusPaneli) lotusPaneli.style.display = 'none';
                 if (typeof loadTseCustomers === 'function') loadTseCustomers();
             } else {
                 filterPanel.style.display = '';
@@ -2738,6 +2909,8 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 rmaPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'none';
                 if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
+                if(lotusPaneli) lotusPaneli.style.display = 'none';
                 if (tab === 'aylik') {
                     if (!aylikLoaded) {
                         await fetchAylikData();
@@ -4195,6 +4368,18 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                     }
                 });
             }
+
+            window.addEventListener('resize', () => {
+                const kp = document.getElementById('katalogPaneli');
+                if (kp && (kp.style.display === 'flex' || kp.style.display === 'block')) {
+                    try {
+                        const iframe = document.getElementById('katalogIframe');
+                        if (iframe && iframe.contentWindow && typeof iframe.contentWindow.updateCatalogScale === 'function') {
+                            iframe.contentWindow.updateCatalogScale(kp.clientWidth || window.innerWidth);
+                        }
+                    } catch(e) {}
+                }
+            });
 
             switchTab('tickets');
             fetchAllData();

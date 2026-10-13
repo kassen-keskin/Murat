@@ -4,11 +4,13 @@
     display: flex;
     flex-direction: column;
     height: 100%;
+    min-height: 0;
 }
 
 .tickets-container {
     display: flex;
     flex: 1;
+    min-height: 0;
     overflow: hidden;
     background: var(--surface-color);
     border-radius: 8px;
@@ -18,6 +20,7 @@
 /* Left Pane: List */
 .tickets-list-pane {
     width: 350px;
+    min-height: 0;
     border-right: 1px solid var(--border-color);
     display: flex;
     flex-direction: column;
@@ -65,8 +68,10 @@
 }
 
 .tickets-list-items {
-    flex: 1;
+    flex: 1 1 0%;
+    min-height: 0;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     padding: 10px;
     display: flex;
     flex-direction: column;
@@ -597,3 +602,33 @@
     }
 }
 
+
+
+@media (max-width: 768px) {
+    .tickets-list-header {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .tickets-list-header > button {
+        min-width: auto;
+        padding: 6px 10px;
+        font-size: 0.82rem;
+    }
+
+    .tickets-list-items {
+        padding-bottom: 50px;
+    }
+
+    .ticket-detail-header {
+        padding: 12px 14px;
+    }
+
+    .chat-container {
+        padding: 12px;
+    }
+
+    .reply-area {
+        padding: 10px 12px;
+    }
+}
