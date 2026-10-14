@@ -1,3 +1,6 @@
 /.venv-1
 /.venv
 /panel/__pycache__/*.pyc
+*.bak
+*.tmp
+/panel/catalog_backups/

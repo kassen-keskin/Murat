@@ -543,7 +543,15 @@
           </div>
         </div>
 
-        <div class="catalog-nav-actions">
+        <div class="catalog-nav-actions flex items-center gap-2 md:gap-3">
+          <!-- Sync Status Indicator -->
+          <div class="hidden sm:flex items-center text-xs font-semibold px-2.5 py-1.5 rounded-lg border"
+               :class="syncState === 'synced' ? 'bg-green-50 border-green-200 text-green-700' : (syncState === 'saving' ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-red-50 border-red-200 text-red-700')"
+               :title="syncMessage || (syncState === 'synced' ? t('syncSuccess') : (syncState === 'saving' ? t('saving') : t('syncError')))">
+            <i class="fas" :class="syncState === 'synced' ? 'fa-cloud text-green-500' : (syncState === 'saving' ? 'fa-spinner fa-spin text-amber-500' : 'fa-exclamation-triangle text-red-500')"></i>
+            <span class="ml-1.5">{{ syncState === 'synced' ? t('syncSuccess') : (syncState === 'saving' ? t('saving') : t('syncError')) }}</span>
+          </div>
+
           <!-- Desktop Lang Selector -->
           <div class="catalog-lang-desktop">
             <select v-model="lang" @change="changeLang(lang)" aria-label="Dil">
@@ -706,14 +714,63 @@
     </div>
 
     <div v-if="mode === 'admin'" class="admin-container p-8 max-w-7xl mx-auto">
-      <div class="admin-header-card flex justify-between items-center mb-8 bg-white p-6 rounded-xl shadow-sm border-l-8 border-blue-600">
+      <div class="admin-header-card flex flex-wrap justify-between items-center gap-4 mb-8 bg-white p-6 rounded-xl shadow-sm border-l-8 border-blue-600">
         <div>
           <h2 class="text-3xl font-black text-gray-800">{{ t('adminModule') }}</h2>
           <p class="text-gray-500 font-medium mt-1">{{ t('adminDesc') }}</p>
         </div>
-        <button @click="addNewProduct" class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600 font-bold text-lg flex items-center gap-2 transition-transform hover:scale-105 shrink-0">
-          <i class="fas fa-plus-circle"></i> <span>{{ t('addNew') }}</span>
-        </button>
+        <div class="flex items-center gap-3">
+          <button type="button" @click="openBackupsModal" class="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 px-4 py-3 rounded-lg shadow-sm font-bold text-sm md:text-base flex items-center gap-2 transition-transform hover:scale-105 shrink-0">
+            <i class="fas fa-history text-blue-600"></i> <span>{{ t('backups') }}</span>
+          </button>
+          <button type="button" @click="loadCatalog(false)" :title="t('syncSuccess')" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-4 py-3 rounded-lg shadow-sm font-bold text-sm md:text-base flex items-center gap-2 transition-transform hover:scale-105 shrink-0">
+            <i class="fas fa-sync-alt" :class="syncState === 'saving' ? 'fa-spin' : ''"></i> <span>Yenile</span>
+          </button>
+          <button type="button" @click="addNewProduct" class="bg-green-500 text-white px-6 py-3 rounded-lg shadow-md hover:bg-green-600 font-bold text-lg flex items-center gap-2 transition-transform hover:scale-105 shrink-0">
+            <i class="fas fa-plus-circle"></i> <span>{{ t('addNew') }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Backup & Restore Modal -->
+      <div v-if="isBackupsModalOpen" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[85vh] flex flex-col overflow-hidden">
+          <div class="p-5 border-b flex justify-between items-center bg-gray-50">
+            <h3 class="text-xl font-black text-gray-800 flex items-center gap-2">
+              <i class="fas fa-history text-blue-600"></i> {{ t('backupList') }}
+            </h3>
+            <button type="button" @click="isBackupsModalOpen = false" class="text-gray-400 hover:text-gray-600 p-2">
+              <i class="fas fa-times text-lg"></i>
+            </button>
+          </div>
+          <div class="p-6 overflow-y-auto flex-grow space-y-3">
+            <div v-if="isLoadingBackups" class="text-center py-8 text-gray-500">
+              <i class="fas fa-spinner fa-spin text-3xl mb-2 text-blue-600"></i>
+              <p>Yedekler yükleniyor...</p>
+            </div>
+            <div v-else-if="backupsList.length === 0" class="text-center py-8 text-gray-400">
+              {{ t('noBackups') }}
+            </div>
+            <div v-else v-for="b in backupsList" :key="b.filename" class="p-4 rounded-xl border border-gray-200 hover:border-blue-400 flex justify-between items-center bg-gray-50 transition-colors">
+              <div>
+                <div class="font-bold text-gray-800 text-sm flex items-center gap-2">
+                  <i class="fas fa-file-archive text-amber-500"></i> {{ b.time }}
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                  {{ b.productCount }} ürün &bull; {{ Math.round(b.size / 1024) }} KB
+                </div>
+              </div>
+              <button type="button" @click="restoreBackup(b.filename)" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center gap-1 shadow-sm transition-transform hover:scale-105">
+                <i class="fas fa-undo"></i> {{ t('restore') }}
+              </button>
+            </div>
+          </div>
+          <div class="p-4 border-t bg-gray-50 flex justify-end">
+            <button type="button" @click="isBackupsModalOpen = false" class="px-5 py-2 rounded-lg font-bold text-gray-600 hover:bg-gray-200">
+              {{ t('close') }}
+            </button>
+          </div>
+        </div>
       </div>
 
       <div class="admin-layout-grid grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -770,7 +827,13 @@
                 <datalist id="brand-list">
                   <option v-for="b in brands" :value="b"></option>
                 </datalist>
-                <p class="text-xs text-gray-500 mt-1">{{ t('brandSelect') }}</p>
+                <div class="flex justify-between items-center mt-1">
+                  <p class="text-xs text-gray-500">{{ t('brandSelect') }}</p>
+                  <div class="flex items-center gap-1">
+                    <input type="text" v-model="newBrandInput" @keyup.enter="addNewBrand" placeholder="Yeni Marka" class="border border-gray-300 rounded px-2 py-0.5 text-xs outline-none focus:border-blue-500 w-28">
+                    <button type="button" @click="addNewBrand" class="text-xs bg-gray-200 hover:bg-gray-300 text-gray-800 px-2 py-0.5 rounded font-bold">+ Ekle</button>
+                  </div>
+                </div>
               </div>
               <div>
                 <label class="block text-sm font-bold text-gray-700 mb-2">{{ t('modelReq') }} <span class="text-red-500">*</span></label>
@@ -793,20 +856,31 @@
             </div>
 
             <div class="mb-8 bg-gray-50 p-6 rounded-xl border border-gray-200">
-              <label class="block text-sm font-bold text-gray-700 mb-4">{{ t('images') }}</label>
+              <div class="flex flex-wrap justify-between items-center mb-4 gap-2">
+                <div>
+                  <label class="block text-sm font-bold text-gray-700">{{ t('images') }}</label>
+                  <p class="text-xs text-blue-600 font-medium mt-0.5 flex items-center gap-1.5">
+                    <i class="fas fa-folder-open text-amber-500"></i> Sunucu Klasörü: 
+                    <span class="font-mono bg-blue-100 text-blue-800 px-2 py-0.5 rounded">public/katalog/image/{{ getPreviewFolder() }}/</span>
+                  </p>
+                </div>
+                <div v-if="isUploadingImages" class="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200 flex items-center gap-2">
+                  <i class="fas fa-spinner fa-spin text-blue-600"></i> Resimler sunucuya yükleniyor...
+                </div>
+              </div>
               
               <div class="flex flex-col gap-4">
                 <div class="relative border-2 border-dashed border-gray-400 bg-white rounded-xl p-6 text-center hover:bg-gray-50 cursor-pointer transition-colors" onclick="document.getElementById('img-upload').click()">
-                  <i class="fas fa-images text-4xl text-blue-500 mb-2"></i>
+                  <i class="fas fa-cloud-upload-alt text-4xl text-blue-500 mb-2"></i>
                   <p class="font-bold text-gray-700">{{ t('clickToSelect') }}</p>
-                  <p class="text-sm text-gray-500 mt-1">{{ t('autoOptimize') }}</p>
+                  <p class="text-xs text-gray-500 mt-1">Görseller ürünün sunucu klasörüne kopyalanır ve herkes tarafından görüntülenir.</p>
                   <input id="img-upload" type="file" @change="handleImageUpload" class="hidden" accept="image/png, image/jpeg, image/webp" multiple>
                 </div>
                 
                 <div v-if="editingProduct.images && editingProduct.images.length > 0" class="flex flex-wrap gap-4 p-2 bg-white rounded-lg border border-gray-200">
                   <div v-for="(img, idx) in editingProduct.images" :key="idx" class="w-32 h-32 shrink-0 bg-gray-100 border-2 border-gray-200 rounded-xl relative overflow-hidden shadow-sm group">
                     <img :src="img" class="w-full h-full object-contain p-2">
-                    <button @click="editingProduct.images.splice(idx, 1)" class="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-600 shadow opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button type="button" @click="editingProduct.images.splice(idx, 1)" class="absolute top-1 right-1 bg-red-500 text-white w-6 h-6 rounded-full flex items-center justify-center hover:bg-red-600 shadow opacity-0 group-hover:opacity-100 transition-opacity">
                       <i class="fas fa-times text-xs"></i>
                     </button>
                     <div class="absolute bottom-0 left-0 w-full bg-black bg-opacity-50 text-white text-[10px] text-center py-0.5 opacity-0 group-hover:opacity-100">{{ t('delete') }}</div>
@@ -848,6 +922,12 @@
                   <i class="fas fa-tag text-sm" :class="editingProduct.industries.includes(ind) ? 'text-blue-500' : 'text-gray-400'"></i> {{ind}}
                 </label>
               </div>
+              <div class="mt-4 flex items-center gap-2">
+                <input type="text" v-model="newSectorInput" @keyup.enter="addNewSector" placeholder="Yeni Sektör Ekle (örn: Bäckerei)" class="border-2 border-gray-300 rounded-lg px-3 py-2 text-sm font-semibold outline-none focus:border-blue-500 max-w-xs">
+                <button type="button" @click="addNewSector" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-1 shadow-sm transition-transform hover:scale-105">
+                  <i class="fas fa-plus"></i> {{ t('addSector') }}
+                </button>
+              </div>
             </div>
             
             <div class="flex justify-end gap-4 border-t pt-6">
@@ -886,7 +966,12 @@
         feature1: '1. Özellik', feature2: '2. Özellik', feature3: '3. Özellik', feature4: '4. Özellik', industriesFilter: 'Uygun Müşteri Branşları (Filtreleme İçin)',
         cancel: 'İptal Et', save: 'Ürünü Kaydet', selectFromLeft: 'Düzenlemek için sol listeden bir ürün seçin', orUseNew: 'veya "Yeni Ürün Ekle" butonunu kullanın.',
         confirmDelete: 'Bu sayfayı katalogdan silmek istediğinize emin misiniz?', fieldsRequired: 'Marka ve Model alanları zorunludur!', priceLabel: 'Aylık Kiralama Fiyatı', notesDesc: 'Notlar (İsteğe Bağlı İçerik)',
-        priceTypeTitle: 'Fiyat Türü', ptMonthly: 'Aylık Kiralama', ptPurchase: 'Satın Alma (Net Fiyat)', ptHybrid: 'Hibrit'
+        priceTypeTitle: 'Fiyat Türü', ptMonthly: 'Aylık Kiralama', ptPurchase: 'Satın Alma (Net Fiyat)', ptHybrid: 'Hibrit',
+        syncSuccess: 'Senkronize', saving: 'Kaydediliyor...', syncError: 'Bağlantı Hatası',
+        addSector: 'Sektör Ekle', addBrand: 'Marka Ekle',
+        backups: 'Yedekler & Geri Yükle', backupList: 'Sunucu Katalog Yedekleri', restore: 'Geri Yükle', close: 'Kapat',
+        restoreConfirm: 'Bu yedeği geri yüklemek istediğinize emin misiniz? Mevcut katalog bu yedek ile değiştirilecektir.',
+        noBackups: 'Henüz yedek bulunmuyor.'
       },
       de: {
         title: 'KASSEN KESKİN KATALOG', catalogView: 'Katalog Ansicht', adminPanel: 'Admin Panel',
@@ -899,7 +984,12 @@
         feature1: 'Merkmal 1', feature2: 'Merkmal 2', feature3: 'Merkmal 3', feature4: 'Merkmal 4', industriesFilter: 'Passende Kundenbranchen (Zum Filtern)',
         cancel: 'Abbrechen', save: 'Produkt speichern', selectFromLeft: 'Wählen Sie ein Produkt aus der linken Liste zum Bearbeiten', orUseNew: 'oder verwenden Sie die Schaltfläche "Neues Produkt".',
         confirmDelete: 'Sind Sie sicher, dass Sie diese Seite aus dem Katalog löschen möchten?', fieldsRequired: 'Marke und Modell sind Pflichtfelder!', priceLabel: 'Monatlicher Mietpreis', notesDesc: 'Notizen (Optionaler Inhalt)',
-        priceTypeTitle: 'Preistyp', ptMonthly: 'Monatliche Miete', ptPurchase: 'Kauf (Nettopreis)', ptHybrid: 'Hybrid'
+        priceTypeTitle: 'Preistyp', ptMonthly: 'Monatliche Miete', ptPurchase: 'Kauf (Nettopreis)', ptHybrid: 'Hybrid',
+        syncSuccess: 'Synchronisiert', saving: 'Wird gespeichert...', syncError: 'Verbindungsfehler',
+        addSector: 'Branche hinzufügen', addBrand: 'Marke hinzufügen',
+        backups: 'Sicherungen & Wiederherstellen', backupList: 'Server-Katalogsicherungen', restore: 'Wiederherstellen', close: 'Schließen',
+        restoreConfirm: 'Sind Sie sicher, dass Sie diese Sicherung wiederherstellen möchten? Der aktuelle Katalog wird ersetzt.',
+        noBackups: 'Noch keine Sicherungen vorhanden.'
       },
       en: {
         title: 'KASSEN KESKİN CATALOG', catalogView: 'Catalog View', adminPanel: 'Admin Panel',
@@ -912,7 +1002,12 @@
         feature1: 'Feature 1', feature2: 'Feature 2', feature3: 'Feature 3', feature4: 'Feature 4', industriesFilter: 'Suitable Customer Industries (For Filtering)',
         cancel: 'Cancel', save: 'Save Product', selectFromLeft: 'Select a product from the left list to edit', orUseNew: 'or use the "Add New Product" button.',
         confirmDelete: 'Are you sure you want to delete this page from the catalog?', fieldsRequired: 'Brand and Model fields are required!', priceLabel: 'Monthly Rental Price', notesDesc: 'Notes (Optional Content)',
-        priceTypeTitle: 'Price Type', ptMonthly: 'Monthly Rental', ptPurchase: 'Purchase (Net Price)', ptHybrid: 'Hybrid'
+        priceTypeTitle: 'Price Type', ptMonthly: 'Monthly Rental', ptPurchase: 'Purchase (Net Price)', ptHybrid: 'Hybrid',
+        syncSuccess: 'Synchronized', saving: 'Saving...', syncError: 'Connection Error',
+        addSector: 'Add Sector', addBrand: 'Add Brand',
+        backups: 'Backups & Restore', backupList: 'Server Catalog Backups', restore: 'Restore', close: 'Close',
+        restoreConfirm: 'Are you sure you want to restore this backup? Current catalog will be replaced.',
+        noBackups: 'No backups available yet.'
       }
     };
 
@@ -1026,73 +1121,110 @@
         };
         const t = (key) => i18nDictionary[lang.value][key] || key;
 
-        let initialLoad = true;
         const products = ref([]);
-
-        fetch('/api/catalog')
-          .then(res => res.json())
-          .then(data => {
-            if (!data || data.length === 0) {
-              data = defaultProducts;
-            }
-            // Migrate
-            data.forEach(p => {
-              if (!p.images) { p.images = p.image ? [p.image] : []; delete p.image; }
-              if (p.price === undefined) p.price = '';
-              if (!p.translations) {
-                p.translations = {
-                  tr: { slogan: p.slogan || '', note: '', features: p.features || ['', '', '', ''] },
-                  de: { slogan: '', note: '', features: ['', '', '', ''] },
-                  en: { slogan: '', note: '', features: ['', '', '', ''] }
-                };
-                delete p.slogan;
-                delete p.features;
-              } else {
-                if (p.translations.tr.note === undefined) {
-                  p.translations.tr.note = '';
-                  p.translations.de.note = '';
-                  p.translations.en.note = '';
-                }
-              }
-            });
-            products.value = data;
-            setTimeout(() => { initialLoad = false; }, 100);
-          })
-          .catch(err => {
-            console.error(err);
-            let fallbackData = JSON.parse(JSON.stringify(defaultProducts));
-            fallbackData.forEach(p => {
-              if (!p.images) { p.images = p.image ? [p.image] : []; delete p.image; }
-              if (p.price === undefined) p.price = '';
-              if (!p.translations) {
-                p.translations = {
-                  tr: { slogan: p.slogan || '', note: '', features: p.features || ['', '', '', ''] },
-                  de: { slogan: '', note: '', features: ['', '', '', ''] },
-                  en: { slogan: '', note: '', features: ['', '', '', ''] }
-                };
-              }
-            });
-            products.value = fallbackData;
-            setTimeout(() => { initialLoad = false; }, 100);
-          });
-
-        watch(products, (newVal) => {
-          if (initialLoad) return;
-          fetch('/api/catalog', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(newVal)
-          }).then(res => {
-            if (!res.ok) {
-                alert('HATA: Katalog kaydedilemedi! Sunucu hatası veya API bulunamadı (Lütfen arka plan uygulamasını yeniden başlattığınızdan emin olun). Kod: ' + res.status);
-            }
-          }).catch(e => {
-              alert('HATA: Katalog sunucuya iletilemedi! ' + e.message);
-          });
-        }, { deep: true });
-
         const brands = ref(['Noris', 'Quorion', 'Olympia', 'RCH', 'Lotus Pecas', 'Lacash']);
         const industries = ref(['Imbiss', 'Restaurant', 'Kiosk', 'Spätikauf', 'Berber', 'Market', 'Cafe']);
+        const currentVersion = ref(0);
+        const syncState = ref('synced');
+        const syncMessage = ref('');
+        const isBackupsModalOpen = ref(false);
+        const backupsList = ref([]);
+        const isLoadingBackups = ref(false);
+        const newSectorInput = ref('');
+        const newBrandInput = ref('');
+
+        const normalizeProduct = (p) => {
+          if (!p.images) { p.images = p.image ? [p.image] : []; delete p.image; }
+          if (p.price === undefined) p.price = '';
+          if (p.priceSatis === undefined) p.priceSatis = '';
+          if (p.priceHibrit === undefined) p.priceHibrit = '';
+          if (!p.industries || !Array.isArray(p.industries)) p.industries = [];
+          if (!p.translations) {
+            p.translations = {
+              tr: { slogan: p.slogan || '', note: '', features: p.features || ['', '', '', ''] },
+              de: { slogan: '', note: '', features: ['', '', '', ''] },
+              en: { slogan: '', note: '', features: ['', '', '', ''] }
+            };
+            delete p.slogan;
+            delete p.features;
+          } else {
+            if (p.translations.tr && p.translations.tr.note === undefined) p.translations.tr.note = '';
+            if (p.translations.de && p.translations.de.note === undefined) p.translations.de.note = '';
+            if (p.translations.en && p.translations.en.note === undefined) p.translations.en.note = '';
+          }
+          return p;
+        };
+
+        const loadCatalog = async (silent = false) => {
+          try {
+            if (!silent) syncState.value = 'saving';
+            const res = await fetch('/api/catalog?v=2&_t=' + Date.now(), { cache: 'no-store' });
+            if (!res.ok) throw new Error('API Hatası: ' + res.status);
+            const data = await res.json();
+
+            let prods = [];
+            if (Array.isArray(data)) {
+              prods = data;
+            } else if (data && typeof data === 'object') {
+              prods = data.products || [];
+              if (Array.isArray(data.brands) && data.brands.length > 0) {
+                brands.value = data.brands;
+              }
+              if (Array.isArray(data.industries) && data.industries.length > 0) {
+                industries.value = data.industries;
+              }
+              if (data.version) {
+                currentVersion.value = data.version;
+              }
+            }
+
+            if (!prods || prods.length === 0) {
+              if (products.value.length === 0) {
+                prods = JSON.parse(JSON.stringify(defaultProducts));
+              } else {
+                prods = products.value;
+              }
+            }
+
+            prods.forEach(normalizeProduct);
+            products.value = prods;
+            syncState.value = 'synced';
+            syncMessage.value = '';
+          } catch (err) {
+            console.error('Katalog yükleme hatası:', err);
+            syncState.value = 'error';
+            syncMessage.value = err.message;
+            if (products.value.length === 0) {
+              let fallbackData = JSON.parse(JSON.stringify(defaultProducts));
+              fallbackData.forEach(normalizeProduct);
+              products.value = fallbackData;
+            }
+          }
+        };
+
+        // Initial Load
+        loadCatalog(false);
+
+        // Polling check for multi-user sync
+        let pollTimer = null;
+        let isCheckingUpdates = false;
+        const checkUpdates = async () => {
+          if (editingProduct.value !== null || isCheckingUpdates) return;
+          isCheckingUpdates = true;
+          try {
+            const res = await fetch('/api/catalog/version?_t=' + Date.now(), { cache: 'no-store' });
+            if (res.ok) {
+              const info = await res.json();
+              if (info.version && info.version !== currentVersion.value) {
+                await loadCatalog(true);
+              }
+            }
+          } catch(e) {
+          } finally {
+            isCheckingUpdates = false;
+          }
+        };
+
         const filterBrand = ref('');
         const filterIndustry = ref('');
         const filterPriceType = ref('aylik');
@@ -1147,12 +1279,20 @@
           updateCatalogScale();
           window.addEventListener('resize', updateCatalogScale);
           window.addEventListener('orientationchange', updateCatalogScale);
+          window.addEventListener('focus', checkUpdates);
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') checkUpdates();
+          });
+          window.refreshCatalog = () => loadCatalog(false);
+          pollTimer = setInterval(checkUpdates, 4000);
         });
         onUnmounted(() => { 
           if (slideInterval) clearInterval(slideInterval); 
           if (ecInterval) clearInterval(ecInterval);
+          if (pollTimer) clearInterval(pollTimer);
           window.removeEventListener('resize', updateCatalogScale);
           window.removeEventListener('orientationchange', updateCatalogScale);
+          window.removeEventListener('focus', checkUpdates);
         });
 
         // Admin State
@@ -1167,6 +1307,7 @@
             id: Date.now(),
             brand: 'Noris',
             model: '',
+            imageFolder: '',
             price: '',
             priceType: 'aylik',
             industries: [],
@@ -1219,6 +1360,7 @@
           }
           
           isSaving.value = true;
+          syncState.value = 'saving';
           
           try {
             const trSlogan = editingProduct.value.translations.tr.slogan;
@@ -1238,30 +1380,76 @@
              console.error("Translation failed", e);
           }
 
-          const currentProducts = [...products.value];
-          const index = currentProducts.findIndex(p => p.id === editingProduct.value.id);
           const productToSave = JSON.parse(JSON.stringify(editingProduct.value));
-          
-          if (index > -1) {
-            currentProducts[index] = productToSave;
-          } else {
-            currentProducts.push(productToSave);
-          }
-          products.value = currentProducts;
+          normalizeProduct(productToSave);
 
-          if (productToSave.brand && !brands.value.includes(productToSave.brand)) {
-            brands.value.push(productToSave.brand);
+          try {
+            const res = await fetch('/api/catalog/product', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ product: productToSave })
+            });
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.error || 'Sunucu hatası: ' + res.status);
+            }
+
+            const data = await res.json();
+            if (data.version) currentVersion.value = data.version;
+            if (Array.isArray(data.brands)) brands.value = data.brands;
+            if (Array.isArray(data.industries)) industries.value = data.industries;
+
+            const currentProducts = [...products.value];
+            const index = currentProducts.findIndex(p => p.id === productToSave.id);
+            if (index > -1) {
+              currentProducts[index] = data.product || productToSave;
+            } else {
+              currentProducts.push(data.product || productToSave);
+            }
+            products.value = currentProducts;
+
+            editingProduct.value = null;
+            isSaving.value = false;
+            syncState.value = 'synced';
+            syncMessage.value = '';
+          } catch (err) {
+            isSaving.value = false;
+            syncState.value = 'error';
+            syncMessage.value = err.message;
+            alert('HATA: Ürün sunucuya kaydedilemedi! ' + err.message);
           }
-          editingProduct.value = null;
-          isSaving.value = false;
         };
 
-        const deleteProduct = (id) => {
-          if (confirm(t('confirmDelete'))) {
+        const deleteProduct = async (id) => {
+          if (!confirm(t('confirmDelete'))) return;
+          
+          syncState.value = 'saving';
+          try {
+            const res = await fetch('/api/catalog/delete-product', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ id: id })
+            });
+
+            if (!res.ok) {
+              const errData = await res.json().catch(() => ({}));
+              throw new Error(errData.error || 'Sunucu hatası: ' + res.status);
+            }
+
+            const data = await res.json();
+            if (data.version) currentVersion.value = data.version;
+
             products.value = products.value.filter(p => p.id !== id);
             if (editingProduct.value && editingProduct.value.id === id) {
               editingProduct.value = null;
             }
+            syncState.value = 'synced';
+            syncMessage.value = '';
+          } catch (err) {
+            syncState.value = 'error';
+            syncMessage.value = err.message;
+            alert('HATA: Ürün sunucudan silinemedi! ' + err.message);
           }
         };
 
@@ -1286,13 +1474,27 @@
           }
         };
 
-        const onDrop = (e, index) => {
+        const onDrop = async (e, index) => {
           e.preventDefault();
           if (draggedIndex.value !== null && draggedIndex.value !== index) {
             const arr = JSON.parse(JSON.stringify(products.value));
             const movedItem = arr.splice(draggedIndex.value, 1)[0];
             arr.splice(index, 0, movedItem);
             products.value = arr;
+
+            try {
+              const res = await fetch('/api/catalog/reorder', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ ids: arr.map(p => p.id) })
+              });
+              if (res.ok) {
+                const data = await res.json();
+                if (data.version) currentVersion.value = data.version;
+              }
+            } catch(err) {
+              console.error('Sıralama sunucuya kaydedilemedi:', err);
+            }
           }
           dragOverIndex.value = null;
           draggedIndex.value = null;
@@ -1304,36 +1506,155 @@
           draggedIndex.value = null;
         };
 
-        const handleImageUpload = (e) => {
+        const isUploadingImages = ref(false);
+
+        const getPreviewFolder = () => {
+          if (!editingProduct.value) return 'urun';
+          if (editingProduct.value.imageFolder) return editingProduct.value.imageFolder;
+          const trMap = {'ç':'c','Ç':'c','ğ':'g','Ğ':'g','ı':'i','İ':'i','ö':'o','Ö':'o','ş':'s','Ş':'s','ü':'u','Ü':'u'};
+          const clean = (s) => (s || '').split('').map(c => trMap[c] || c).join('').toLowerCase().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^_+|_+$/g, '');
+          const b = clean(editingProduct.value.brand) || 'urun';
+          const m = clean(editingProduct.value.model) || 'model';
+          return `${b}_${m}`;
+        };
+
+        const handleImageUpload = async (e) => {
           const files = e.target.files;
           if (!files || files.length === 0) return;
           if (!editingProduct.value.images) editingProduct.value.images = [];
-          
+
+          isUploadingImages.value = true;
+          const formData = new FormData();
           Array.from(files).forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (event) => {
-              const img = new Image();
-              img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 1000;
-                const MAX_HEIGHT = 1000;
-                let width = img.width;
-                let height = img.height;
-                if (width > height) {
-                  if (width > MAX_WIDTH) { height *= MAX_WIDTH / width; width = MAX_WIDTH; }
-                } else {
-                  if (height > MAX_HEIGHT) { width *= MAX_HEIGHT / height; height = MAX_HEIGHT; }
-                }
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                editingProduct.value.images.push(canvas.toDataURL('image/webp', 0.8));
-              };
-              img.src = event.target.result;
-            };
-            reader.readAsDataURL(file);
+            formData.append('files', file);
           });
+          formData.append('brand', editingProduct.value.brand || '');
+          formData.append('model', editingProduct.value.model || '');
+          formData.append('productId', editingProduct.value.id || '');
+          if (editingProduct.value.imageFolder) {
+            formData.append('folder', editingProduct.value.imageFolder);
+          }
+
+          try {
+            const res = await fetch('/api/catalog/upload-image', {
+              method: 'POST',
+              body: formData
+            });
+
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.error || 'Yükleme başarısız (' + res.status + ')');
+            }
+
+            const data = await res.json();
+            if (data.folder) {
+              editingProduct.value.imageFolder = data.folder;
+            }
+            if (Array.isArray(data.urls)) {
+              data.urls.forEach(url => {
+                if (!editingProduct.value.images.includes(url)) {
+                  editingProduct.value.images.push(url);
+                }
+              });
+            }
+          } catch(err) {
+            console.error('Resim yükleme hatası:', err);
+            alert('Görsel sunucuya yüklenirken hata oluştu: ' + err.message);
+          } finally {
+            isUploadingImages.value = false;
+            e.target.value = '';
+          }
+        };
+
+        const addNewSector = async () => {
+          const name = (newSectorInput.value || '').trim();
+          if (!name) return;
+          if (!industries.value.includes(name)) {
+            industries.value.push(name);
+          }
+          if (editingProduct.value && !editingProduct.value.industries.includes(name)) {
+            editingProduct.value.industries.push(name);
+          }
+          newSectorInput.value = '';
+
+          try {
+            const res = await fetch('/api/catalog/categories', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ add_industry: name })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.industries) industries.value = data.industries;
+              if (data.version) currentVersion.value = data.version;
+            }
+          } catch(e) {
+            console.error('Kategori kaydedilemedi:', e);
+          }
+        };
+
+        const addNewBrand = async () => {
+          const name = (newBrandInput.value || '').trim();
+          if (!name) return;
+          if (!brands.value.includes(name)) {
+            brands.value.push(name);
+          }
+          if (editingProduct.value) {
+            editingProduct.value.brand = name;
+          }
+          newBrandInput.value = '';
+
+          try {
+            const res = await fetch('/api/catalog/categories', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ add_brand: name })
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.brands) brands.value = data.brands;
+              if (data.version) currentVersion.value = data.version;
+            }
+          } catch(e) {
+            console.error('Marka kaydedilemedi:', e);
+          }
+        };
+
+        const openBackupsModal = async () => {
+          isBackupsModalOpen.value = true;
+          isLoadingBackups.value = true;
+          try {
+            const res = await fetch('/api/catalog/backups?_t=' + Date.now(), { cache: 'no-store' });
+            if (res.ok) {
+              const data = await res.json();
+              backupsList.value = data.backups || [];
+            }
+          } catch(e) {
+            console.error('Yedekler yüklenemedi:', e);
+          } finally {
+            isLoadingBackups.value = false;
+          }
+        };
+
+        const restoreBackup = async (filename) => {
+          if (!confirm(t('restoreConfirm'))) return;
+          try {
+            syncState.value = 'saving';
+            const res = await fetch('/api/catalog/restore', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ filename: filename })
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.error || 'Geri yükleme hatası');
+            }
+            isBackupsModalOpen.value = false;
+            await loadCatalog(false);
+            alert('Yedek başarıyla geri yüklendi!');
+          } catch(err) {
+            alert('Hata: ' + err.message);
+          }
         };
 
         return {
@@ -1345,7 +1666,11 @@
           editingProduct, isNew, editLang, isSaving,
           addNewProduct, editProduct, saveProduct, deleteProduct,
           handleImageUpload,
-          draggedIndex, dragOverIndex, onDragStart, onDragOver, onDragEnter, onDrop, onDragEnd
+          draggedIndex, dragOverIndex, onDragStart, onDragOver, onDragEnter, onDrop, onDragEnd,
+          syncState, syncMessage, loadCatalog,
+          isBackupsModalOpen, backupsList, isLoadingBackups, openBackupsModal, restoreBackup,
+          newSectorInput, newBrandInput, addNewSector, addNewBrand,
+          isUploadingImages, getPreviewFolder
         };
       }
     }).mount('#app')

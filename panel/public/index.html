@@ -2242,7 +2242,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
         <div id="lotusContainer"></div>
     </div>
     <div id="katalogPaneli" class="panel" style="display:none; padding:0; flex:1; overflow:hidden; min-width:0; width:100%; max-width:100%; height:100%; -webkit-overflow-scrolling:touch; position:relative;">
-        <iframe id="katalogIframe" src="/katalog/index.html" style="width:100%; min-width:0; max-width:100%; height:100%; border:none; display:block;" allowfullscreen></iframe>
+        <iframe id="katalogIframe" src="/katalog/index.html?v=2.1" style="width:100%; min-width:0; max-width:100%; height:100%; border:none; display:block;" allowfullscreen></iframe>
     </div>
     
     </div><!-- /dashboard-container -->
@@ -2864,7 +2864,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 if(lacashPaneli) lacashPaneli.style.display = 'none';
                 if(lotusPaneli) lotusPaneli.style.display = 'none';
                 katalogPaneli.style.display = 'flex';
-                const notifyKatalog = () => {
+                const notifyKatalog = (shouldRefresh = false) => {
                     try {
                         const iframe = document.getElementById('katalogIframe');
                         if (iframe && iframe.contentWindow) {
@@ -2872,14 +2872,17 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                             if (typeof iframe.contentWindow.updateCatalogScale === 'function') {
                                 iframe.contentWindow.updateCatalogScale(availW);
                             }
+                            if (shouldRefresh && typeof iframe.contentWindow.refreshCatalog === 'function') {
+                                iframe.contentWindow.refreshCatalog();
+                            }
                             iframe.contentWindow.dispatchEvent(new Event('resize'));
                         }
                     } catch(e) {}
                 };
-                notifyKatalog();
-                setTimeout(notifyKatalog, 50);
-                setTimeout(notifyKatalog, 200);
-                setTimeout(notifyKatalog, 500);
+                notifyKatalog(true);
+                setTimeout(() => notifyKatalog(false), 50);
+                setTimeout(() => notifyKatalog(false), 200);
+                setTimeout(() => notifyKatalog(false), 500);
             } else if (tab === 'tse') {
                 filterPanel.style.display = 'none';
                 listPanel.style.display   = 'none';

@@ -11,6 +11,10 @@ from functools import wraps
 from decimal import Decimal
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
+import threading
+import shutil
+import base64
+from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -65,8 +69,11 @@ def set_cached_data(key, data):
 
 
 def save_json_file(file_path, payload):
-    with open(file_path, 'w', encoding='utf-8') as f:
+    tmp_path = f"{file_path}.tmp"
+    with open(tmp_path, 'w', encoding='utf-8') as f:
         json.dump(payload, f, ensure_ascii=False, indent=4)
+    if os.path.exists(tmp_path):
+        os.replace(tmp_path, file_path)
 
 
 def load_json_file(file_path, fallback):
@@ -77,8 +84,8 @@ def load_json_file(file_path, fallback):
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
-    except Exception:
-        save_json_file(file_path, fallback)
+    except Exception as e:
+        print(f"Error reading JSON file {file_path}: {e}")
         return fallback
 
 
@@ -191,6 +198,13 @@ def create_attachment_record(cursor, uploaded_file, kBenutzer, created_at):
 @app.route('/')
 def serve_index():
     return send_from_directory('public', 'index.html')
+
+
+@app.route('/katalog')
+@app.route('/katalog/')
+def serve_katalog():
+    return send_from_directory(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'public', 'katalog'), 'index.html')
+
 
 SATIS_DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'satis_data.json')
 
@@ -1407,15 +1421,439 @@ def login():
     finally:
         conn.close()
 
+catalog_lock = threading.Lock()
+CATALOG_BACKUP_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'catalog_backups')
+os.makedirs(CATALOG_BACKUP_DIR, exist_ok=True)
+
+DEFAULT_CATALOG_BRANDS = ['Noris', 'Quorion', 'Olympia', 'RCH', 'Lotus Pecas', 'Lacash']
+DEFAULT_CATALOG_INDUSTRIES = ['Imbiss', 'Restaurant', 'Kiosk', 'Spätikauf', 'Berber', 'Market', 'Cafe']
+
+KATALOG_IMAGE_DIR = os.path.join(app.static_folder, 'katalog', 'image')
+os.makedirs(KATALOG_IMAGE_DIR, exist_ok=True)
+ALLOWED_CATALOG_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'webp', 'bmp', 'gif', 'avif', 'svg'}
+
+def sanitize_folder_name(name):
+    if not name:
+        return ""
+    tr_map = {'ç': 'c', 'Ç': 'c', 'ğ': 'g', 'Ğ': 'g', 'ı': 'i', 'İ': 'i', 
+              'ö': 'o', 'Ö': 'o', 'ş': 's', 'Ş': 's', 'ü': 'u', 'Ü': 'u'}
+    res = []
+    for char in str(name):
+        res.append(tr_map.get(char, char))
+    s = "".join(res).lower().strip()
+    s = re.sub(r'[^a-z0-9_-]+', '-', s)
+    s = re.sub(r'-+', '-', s).strip('-_')
+    return s
+
+def get_product_folder(brand, model, product_id=None, existing_folder=None):
+    if existing_folder:
+        clean_existing = sanitize_folder_name(existing_folder)
+        if clean_existing:
+            return clean_existing
+    b = sanitize_folder_name(brand) or 'urun'
+    m = sanitize_folder_name(model) or str(product_id or 'yeni')
+    folder = f"{b}_{m}".strip('_')
+    return folder or f"urun_{product_id or int(time.time())}"
+
+def ensure_product_image_folder(folder_name):
+    target_dir = os.path.join(KATALOG_IMAGE_DIR, folder_name)
+    os.makedirs(target_dir, exist_ok=True)
+    return target_dir
+
+def process_base64_image(base64_str, folder_name, index=0):
+    try:
+        match = re.match(r'^data:image/([a-zA-Z0-9\+\-]+);base64,(.+)$', base64_str)
+        if not match:
+            return base64_str
+        ext = match.group(1).lower()
+        if ext == 'jpeg': ext = 'jpg'
+        b64data = match.group(2)
+        raw_bytes = base64.b64decode(b64data)
+        
+        folder_dir = ensure_product_image_folder(folder_name)
+        filename = f"img_{index}_{int(time.time() * 1000)}.{ext}"
+        filepath = os.path.join(folder_dir, filename)
+        with open(filepath, 'wb') as f:
+            f.write(raw_bytes)
+        return f"image/{folder_name}/{filename}"
+    except Exception as e:
+        print(f"Error saving base64 image: {e}")
+        return base64_str
+
+def get_catalog_data():
+    with catalog_lock:
+        raw_data = load_json_file(CATALOG_DATA_FILE, fallback=None)
+        if raw_data is None:
+            if os.path.exists(CATALOG_DATA_FILE):
+                try:
+                    with open(CATALOG_DATA_FILE, 'r', encoding='utf-8') as f:
+                        raw_data = json.load(f)
+                except Exception as e:
+                    print(f"Direct catalog read failed: {e}")
+        if isinstance(raw_data, list) and len(raw_data) > 0:
+            products = raw_data
+            brands = list(DEFAULT_CATALOG_BRANDS)
+            industries = list(DEFAULT_CATALOG_INDUSTRIES)
+            for p in products:
+                b = p.get('brand')
+                if b and b not in brands:
+                    brands.append(b)
+                for ind in p.get('industries', []):
+                    if ind and ind not in industries:
+                        industries.append(ind)
+            catalog_obj = {
+                "products": products,
+                "brands": brands,
+                "industries": industries,
+                "version": int(time.time() * 1000),
+                "lastModified": datetime.datetime.now().isoformat()
+            }
+            save_json_file(CATALOG_DATA_FILE, catalog_obj)
+            return catalog_obj
+        elif isinstance(raw_data, dict):
+            if 'products' not in raw_data or not isinstance(raw_data['products'], list):
+                raw_data['products'] = []
+            if 'brands' not in raw_data or not isinstance(raw_data['brands'], list):
+                raw_data['brands'] = list(DEFAULT_CATALOG_BRANDS)
+            if 'industries' not in raw_data or not isinstance(raw_data['industries'], list):
+                raw_data['industries'] = list(DEFAULT_CATALOG_INDUSTRIES)
+            if 'version' not in raw_data:
+                raw_data['version'] = int(time.time() * 1000)
+            return raw_data
+        else:
+            return {
+                "products": [],
+                "brands": list(DEFAULT_CATALOG_BRANDS),
+                "industries": list(DEFAULT_CATALOG_INDUSTRIES),
+                "version": int(time.time() * 1000),
+                "lastModified": datetime.datetime.now().isoformat()
+            }
+
+def save_catalog_data(catalog_obj, create_backup=True):
+    with catalog_lock:
+        catalog_obj['version'] = int(time.time() * 1000)
+        catalog_obj['lastModified'] = datetime.datetime.now().isoformat()
+        
+        # Ensure brand and industries lists contain all values used in products
+        brands = list(catalog_obj.get('brands', DEFAULT_CATALOG_BRANDS))
+        industries = list(catalog_obj.get('industries', DEFAULT_CATALOG_INDUSTRIES))
+        for p in catalog_obj.get('products', []):
+            b = p.get('brand')
+            if b and b not in brands:
+                brands.append(b)
+            for ind in p.get('industries', []):
+                if ind and ind not in industries:
+                    industries.append(ind)
+        catalog_obj['brands'] = brands
+        catalog_obj['industries'] = industries
+        
+        if create_backup:
+            try:
+                ts = datetime.datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+                backup_file = os.path.join(CATALOG_BACKUP_DIR, f"catalog_backup_{ts}.json")
+                with open(backup_file, 'w', encoding='utf-8') as bf:
+                    json.dump(catalog_obj, bf, ensure_ascii=False, indent=4)
+                
+                bak_path = f"{CATALOG_DATA_FILE}.bak"
+                with open(bak_path, 'w', encoding='utf-8') as bf:
+                    json.dump(catalog_obj, bf, ensure_ascii=False, indent=4)
+
+                backups = sorted(os.listdir(CATALOG_BACKUP_DIR))
+                if len(backups) > 30:
+                    for old_b in backups[:-30]:
+                        try:
+                            os.remove(os.path.join(CATALOG_BACKUP_DIR, old_b))
+                        except Exception:
+                            pass
+            except Exception as e:
+                print(f"Catalog backup failed: {e}")
+        
+        save_json_file(CATALOG_DATA_FILE, catalog_obj)
+        return catalog_obj
+
 @app.route('/api/catalog', methods=['GET', 'POST'])
 def manage_catalog_data():
     if request.method == 'GET':
-        data = load_json_file(CATALOG_DATA_FILE, [])
-        return jsonify(data)
+        catalog = get_catalog_data()
+        is_v2 = request.args.get('v') == '2' or request.args.get('full') == '1'
+        if is_v2:
+            resp = make_response(jsonify(catalog))
+        else:
+            resp = make_response(jsonify(catalog.get('products', [])))
+        
+        resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+        resp.headers['Pragma'] = 'no-cache'
+        resp.headers['Expires'] = '0'
+        resp.headers['X-Catalog-Version'] = str(catalog.get('version', 0))
+        return resp
     elif request.method == 'POST':
         payload = request.get_json()
-        save_json_file(CATALOG_DATA_FILE, payload)
-        return jsonify({"status": "success", "message": "Catalog data saved successfully"})
+        catalog = get_catalog_data()
+        if isinstance(payload, list):
+            catalog['products'] = payload
+        elif isinstance(payload, dict):
+            if 'products' in payload and isinstance(payload['products'], list):
+                catalog['products'] = payload['products']
+            if 'brands' in payload and isinstance(payload['brands'], list):
+                catalog['brands'] = payload['brands']
+            if 'industries' in payload and isinstance(payload['industries'], list):
+                catalog['industries'] = payload['industries']
+        save_catalog_data(catalog)
+        return jsonify({"status": "success", "message": "Catalog data saved successfully", "version": catalog["version"]})
+
+@app.route('/api/catalog/version', methods=['GET'])
+def get_catalog_version():
+    catalog = get_catalog_data()
+    resp = make_response(jsonify({
+        "version": catalog.get("version", 0),
+        "count": len(catalog.get("products", [])),
+        "lastModified": catalog.get("lastModified")
+    }))
+    resp.headers['Cache-Control'] = 'no-cache, no-store, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+@app.route('/api/catalog/upload-image', methods=['POST'])
+def upload_catalog_image():
+    brand = request.form.get('brand', '')
+    model = request.form.get('model', '')
+    product_id = request.form.get('productId', '')
+    folder = request.form.get('folder', '')
+
+    folder_name = get_product_folder(brand, model, product_id, folder)
+    folder_dir = ensure_product_image_folder(folder_name)
+
+    files = request.files.getlist('files')
+    if not files and 'file' in request.files:
+        files = [request.files['file']]
+    if not files and 'images' in request.files:
+        files = request.files.getlist('images')
+
+    if not files:
+        return jsonify({"error": "Hiçbir görsel dosyası seçilmedi."}), 400
+
+    saved_urls = []
+    for file in files:
+        if not file or not file.filename:
+            continue
+        orig_name = file.filename
+        ext = orig_name.rsplit('.', 1)[-1].lower() if '.' in orig_name else ''
+        if ext not in ALLOWED_CATALOG_IMAGE_EXTENSIONS:
+            continue
+
+        raw_base = orig_name.rsplit('.', 1)[0]
+        base_name = secure_filename(sanitize_folder_name(raw_base)) or f"img_{int(time.time()*1000)}"
+        safe_fn = f"{base_name}.{ext}"
+        dest_path = os.path.join(folder_dir, safe_fn)
+
+        if os.path.exists(dest_path):
+            safe_fn = f"{base_name}_{int(time.time() * 1000)}.{ext}"
+            dest_path = os.path.join(folder_dir, safe_fn)
+
+        file.save(dest_path)
+        saved_urls.append(f"image/{folder_name}/{safe_fn}")
+
+    if not saved_urls:
+        return jsonify({"error": "Desteklenmeyen görsel formatı. Lütfen PNG, JPG veya WEBP formatında yükleyin."}), 400
+
+    return jsonify({
+        "success": True,
+        "folder": folder_name,
+        "urls": saved_urls,
+        "url": saved_urls[0]
+    })
+
+@app.route('/api/catalog/product', methods=['POST'])
+def save_single_product():
+    req_data = request.get_json() or {}
+    product = req_data.get('product', req_data)
+    if not isinstance(product, dict) or not product.get('brand') or not product.get('model'):
+        return jsonify({"error": "Marka ve Model alanları zorunludur!"}), 400
+
+    catalog = get_catalog_data()
+    products = catalog.get('products', [])
+
+    prod_id = product.get('id')
+    if not prod_id:
+        prod_id = int(time.time() * 1000)
+        product['id'] = prod_id
+
+    # Normalization
+    if 'images' not in product:
+        product['images'] = [product['image']] if product.get('image') else []
+    if 'price' not in product:
+        product['price'] = ''
+    if 'industries' not in product or not isinstance(product['industries'], list):
+        product['industries'] = []
+
+    # Associate image folder
+    folder_name = get_product_folder(product.get('brand'), product.get('model'), prod_id, product.get('imageFolder'))
+    product['imageFolder'] = folder_name
+    ensure_product_image_folder(folder_name)
+
+    # Process and convert any base64 images to physical files in the folder
+    converted_images = []
+    for idx, img_val in enumerate(product.get('images', [])):
+        if isinstance(img_val, str) and img_val.startswith('data:image/'):
+            converted_images.append(process_base64_image(img_val, folder_name, idx))
+        else:
+            converted_images.append(img_val)
+    product['images'] = converted_images
+
+    # Update or append
+    found_idx = next((i for i, p in enumerate(products) if p.get('id') == prod_id), -1)
+    if found_idx >= 0:
+        products[found_idx] = product
+    else:
+        products.append(product)
+
+    catalog['products'] = products
+    save_catalog_data(catalog)
+    return jsonify({
+        "success": True,
+        "product": product,
+        "version": catalog["version"],
+        "brands": catalog["brands"],
+        "industries": catalog["industries"]
+    })
+
+@app.route('/api/catalog/delete-product', methods=['POST'])
+def delete_single_product():
+    req_data = request.get_json() or {}
+    prod_id = req_data.get('id')
+    if not prod_id:
+        return jsonify({"error": "Ürün ID belirtilmelidir!"}), 400
+
+    catalog = get_catalog_data()
+    products = catalog.get('products', [])
+    initial_len = len(products)
+    products = [p for p in products if p.get('id') != prod_id]
+
+    if len(products) == initial_len:
+        # Also try matching as string/int
+        products = [p for p in products if str(p.get('id')) != str(prod_id)]
+
+    catalog['products'] = products
+    save_catalog_data(catalog)
+    return jsonify({
+        "success": True,
+        "deleted_id": prod_id,
+        "version": catalog["version"],
+        "count": len(products)
+    })
+
+@app.route('/api/catalog/reorder', methods=['POST'])
+def reorder_catalog_products():
+    req_data = request.get_json() or {}
+    ordered_ids = req_data.get('ids', [])
+    if not isinstance(ordered_ids, list):
+        return jsonify({"error": "Geçersiz ID listesi"}), 400
+
+    catalog = get_catalog_data()
+    products = catalog.get('products', [])
+
+    id_map = {str(p.get('id')): p for p in products}
+    reordered = []
+    for oid in ordered_ids:
+        s_oid = str(oid)
+        if s_oid in id_map:
+            reordered.append(id_map.pop(s_oid))
+    # Add any remaining products that weren't in ordered_ids
+    for remaining in id_map.values():
+        reordered.append(remaining)
+
+    catalog['products'] = reordered
+    save_catalog_data(catalog)
+    return jsonify({"success": True, "version": catalog["version"]})
+
+@app.route('/api/catalog/categories', methods=['GET', 'POST'])
+def manage_catalog_categories():
+    catalog = get_catalog_data()
+    if request.method == 'GET':
+        return jsonify({
+            "brands": catalog.get('brands', []),
+            "industries": catalog.get('industries', []),
+            "version": catalog.get('version', 0)
+        })
+    elif request.method == 'POST':
+        req_data = request.get_json() or {}
+        if 'brands' in req_data and isinstance(req_data['brands'], list):
+            catalog['brands'] = req_data['brands']
+        if 'industries' in req_data and isinstance(req_data['industries'], list):
+            catalog['industries'] = req_data['industries']
+        
+        # Add single brand/industry if requested
+        new_brand = req_data.get('add_brand')
+        if new_brand and new_brand not in catalog['brands']:
+            catalog['brands'].append(new_brand)
+
+        new_ind = req_data.get('add_industry')
+        if new_ind and new_ind not in catalog['industries']:
+            catalog['industries'].append(new_ind)
+
+        save_catalog_data(catalog)
+        return jsonify({
+            "success": True,
+            "brands": catalog['brands'],
+            "industries": catalog['industries'],
+            "version": catalog['version']
+        })
+
+@app.route('/api/catalog/backups', methods=['GET'])
+def list_catalog_backups():
+    backups = []
+    if os.path.exists(CATALOG_BACKUP_DIR):
+        for fname in sorted(os.listdir(CATALOG_BACKUP_DIR), reverse=True):
+            if fname.endswith('.json'):
+                fpath = os.path.join(CATALOG_BACKUP_DIR, fname)
+                try:
+                    stat = os.stat(fpath)
+                    with open(fpath, 'r', encoding='utf-8') as f:
+                        bdata = json.load(f)
+                        pcount = len(bdata.get('products', [])) if isinstance(bdata, dict) else len(bdata)
+                    backups.append({
+                        "filename": fname,
+                        "size": stat.st_size,
+                        "time": datetime.datetime.fromtimestamp(stat.st_mtime).strftime("%d.%m.%Y %H:%M:%S"),
+                        "productCount": pcount
+                    })
+                except Exception:
+                    pass
+    return jsonify({"backups": backups})
+
+@app.route('/api/catalog/restore', methods=['POST'])
+def restore_catalog_backup():
+    req_data = request.get_json() or {}
+    filename = req_data.get('filename')
+    if not filename or '/' in filename or '\\' in filename:
+        return jsonify({"error": "Geçersiz dosya adı"}), 400
+
+    target = os.path.join(CATALOG_BACKUP_DIR, filename)
+    if not os.path.exists(target):
+        return jsonify({"error": "Yedek dosyası bulunamadı"}), 404
+
+    try:
+        with open(target, 'r', encoding='utf-8') as f:
+            bdata = json.load(f)
+        if isinstance(bdata, list):
+            catalog = {
+                "products": bdata,
+                "brands": list(DEFAULT_CATALOG_BRANDS),
+                "industries": list(DEFAULT_CATALOG_INDUSTRIES)
+            }
+        else:
+            catalog = bdata
+        
+        save_catalog_data(catalog, create_backup=True)
+        return jsonify({
+            "success": True,
+            "message": "Yedek başarıyla geri yüklendi",
+            "version": catalog["version"],
+            "count": len(catalog.get("products", []))
+        })
+    except Exception as e:
+        return jsonify({"error": f"Geri yükleme başarısız: {e}"}), 500
 
 POS_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'pos_config.json')
 POS_DEFAULT_CONFIG = {
