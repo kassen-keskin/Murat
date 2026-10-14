@@ -42,6 +42,12 @@ async function initRmaTab() {
     } catch (e) {
         console.error("Error loading RMA history:", e);
     }
+
+    // Update signature personel if visible
+    const personelInput = document.getElementById('rmaImzaPersonel');
+    if (personelInput) {
+        personelInput.value = getRmaLoggedInUserName();
+    }
 }
 
 function addRmaCustomItem() {
@@ -114,7 +120,11 @@ async function rmaPdfOlustur() {
     descContainer.innerHTML = '';
     descText.split('\n').forEach(line => {
         const div = document.createElement('div');
-        div.textContent = line || ' '; // preserve empty lines
+        div.textContent = line || '\u00A0'; // non-breaking space for empty lines
+        div.style.margin = '0';
+        div.style.padding = '0';
+        div.style.minHeight = '1.25em';
+        div.style.lineHeight = '1.25';
         div.style.pageBreakInside = 'avoid';
         descContainer.appendChild(div);
     });
@@ -158,6 +168,29 @@ async function rmaPdfOlustur() {
         });
     }
 
+    // Set Signature Block
+    const imzaEkleChecked = document.getElementById('rmaImzaEkle')?.checked;
+    const signatureBlock = document.getElementById('rmaPrintSignatureBlock');
+    const sigImg = document.getElementById('rmaPrintSignatureImg');
+    const sigName = document.getElementById('rmaPrintSignatureName');
+    
+    if (imzaEkleChecked) {
+        if (signatureBlock) signatureBlock.style.display = 'block';
+        if (sigName) {
+            const personelName = document.getElementById('rmaImzaPersonel')?.value || getRmaLoggedInUserName();
+            sigName.textContent = personelName;
+        }
+        if (sigImg && rmaImzaCanvas && !isRmaCanvasBlank()) {
+            sigImg.src = rmaImzaCanvas.toDataURL('image/png');
+            sigImg.style.display = 'block';
+        } else if (sigImg) {
+            sigImg.style.display = 'none';
+        }
+    } else {
+        if (signatureBlock) signatureBlock.style.display = 'none';
+        if (sigImg) sigImg.style.display = 'none';
+    }
+
     // Make visible briefly for html2canvas
     const printArea = document.getElementById('rmaPrintPreview');
     // Ensure it acts as A4 dimensions approximately for canvas capturing
@@ -171,12 +204,12 @@ async function rmaPdfOlustur() {
 
     try {
         // --- SMART PAGE BREAK LOGIC ---
-        // Calculate approximate page height in pixels (A4 ratio 297/210)
+        // Calculate approximate page height and 20mm top margin in pixels (printArea has padding 20mm)
         const pageHeightPx = printArea.offsetWidth * (297 / 210);
+        const topMarginPx = printArea.offsetWidth * (20 / 210); // 20mm margin at the top of subsequent pages
         
         // Find all description line divs
         const descDivs = document.getElementById('rmaPrintDescription').children;
-        let currentOffset = 0;
         
         for (let i = 0; i < descDivs.length; i++) {
             const div = descDivs[i];
@@ -188,19 +221,18 @@ async function rmaPdfOlustur() {
             const topPx = rect.top - parentRect.top;
             const bottomPx = topPx + rect.height;
             
-            // If this element crosses a page boundary
+            // If this element crosses a page boundary or touches the bottom buffer
             const pageNumTop = Math.floor(topPx / pageHeightPx);
-            const pageNumBottom = Math.floor(bottomPx / pageHeightPx);
+            const pageNumBottom = Math.floor((bottomPx + 15) / pageHeightPx);
             
             if (pageNumTop !== pageNumBottom) {
-                // Push it down to the next page + some margin (e.g. 20px)
-                const pushAmount = (pageHeightPx * pageNumBottom) - topPx + 20;
+                // Push it down to the next page + 20mm top margin
+                const pushAmount = (pageHeightPx * pageNumBottom) - topPx + topMarginPx;
                 div.style.marginTop = pushAmount + 'px';
             }
         }
         
         // Also check if the Materials Block crosses the boundary
-        const materialsBlock = document.getElementById('rmaPrintMaterialsBlock');
         if (materialsBlock && materialsBlock.style.display !== 'none') {
             materialsBlock.style.marginTop = '0';
             const rect = materialsBlock.getBoundingClientRect();
@@ -209,11 +241,28 @@ async function rmaPdfOlustur() {
             const bottomPx = topPx + rect.height;
             
             const pageNumTop = Math.floor(topPx / pageHeightPx);
-            const pageNumBottom = Math.floor(bottomPx / pageHeightPx);
+            const pageNumBottom = Math.floor((bottomPx + 15) / pageHeightPx);
             
             if (pageNumTop !== pageNumBottom) {
-                const pushAmount = (pageHeightPx * pageNumBottom) - topPx + 20;
+                const pushAmount = (pageHeightPx * pageNumBottom) - topPx + topMarginPx;
                 materialsBlock.style.marginTop = pushAmount + 'px';
+            }
+        }
+
+        // Also check if Signature Block crosses the boundary
+        if (signatureBlock && signatureBlock.style.display !== 'none') {
+            signatureBlock.style.marginTop = '30px'; // default
+            const rect = signatureBlock.getBoundingClientRect();
+            const parentRect = printArea.getBoundingClientRect();
+            const topPx = rect.top - parentRect.top;
+            const bottomPx = topPx + rect.height;
+
+            const pageNumTop = Math.floor(topPx / pageHeightPx);
+            const pageNumBottom = Math.floor((bottomPx + 15) / pageHeightPx);
+
+            if (pageNumTop !== pageNumBottom) {
+                const pushAmount = (pageHeightPx * pageNumBottom) - topPx + topMarginPx;
+                signatureBlock.style.marginTop = (pushAmount + 30) + 'px';
             }
         }
         // --- END SMART PAGE BREAK ---
@@ -307,4 +356,147 @@ function updateRmaCustomerOptions() {
     if (countLabel) {
         countLabel.textContent = customers.length;
     }
+}
+
+// ---- RMA Signature Canvas & User Helpers ----
+let rmaImzaCanvas = null;
+let rmaImzaCtx = null;
+let rmaImzaDrawing = false;
+let rmaImzaInited = false;
+
+function getRmaLoggedInUserName() {
+    try {
+        const ticketUserJson = localStorage.getItem('ticketUser');
+        if (ticketUserJson) {
+            const user = JSON.parse(ticketUserJson);
+            if (user && (user.cName || user.cLogin)) {
+                return (user.cName || user.cLogin).trim();
+            }
+        }
+    } catch (e) { }
+    return 'Yetkili Personel';
+}
+
+function toggleRmaImzaSection() {
+    const cb = document.getElementById('rmaImzaEkle');
+    const sec = document.getElementById('rmaImzaSection');
+    const input = document.getElementById('rmaImzaPersonel');
+    
+    if (cb && cb.checked) {
+        if (sec) sec.style.display = 'flex';
+        if (input) input.value = getRmaLoggedInUserName();
+        if (!rmaImzaInited) {
+            initRmaImzaCanvas();
+        } else {
+            // Resize canvas if needed when made visible
+            resizeRmaCanvas();
+        }
+    } else {
+        if (sec) sec.style.display = 'none';
+    }
+}
+
+function resizeRmaCanvas() {
+    if (!rmaImzaCanvas) return;
+    const rect = rmaImzaCanvas.getBoundingClientRect();
+    if (rect.width > 0) {
+        const temp = document.createElement('canvas');
+        temp.width = rmaImzaCanvas.width;
+        temp.height = rmaImzaCanvas.height;
+        const tempCtx = temp.getContext('2d');
+        tempCtx.drawImage(rmaImzaCanvas, 0, 0);
+
+        rmaImzaCanvas.width = Math.round(rect.width || 600);
+        rmaImzaCanvas.height = 150;
+        
+        rmaImzaCtx.strokeStyle = '#1a237e';
+        rmaImzaCtx.lineWidth = 2.5;
+        rmaImzaCtx.lineCap = 'round';
+        rmaImzaCtx.lineJoin = 'round';
+        rmaImzaCtx.drawImage(temp, 0, 0);
+    }
+}
+
+function initRmaImzaCanvas() {
+    rmaImzaCanvas = document.getElementById('rmaImzaCanvas');
+    if (!rmaImzaCanvas) return;
+    rmaImzaCtx = rmaImzaCanvas.getContext('2d');
+
+    const rect = rmaImzaCanvas.getBoundingClientRect();
+    rmaImzaCanvas.width = Math.round(rect.width || 600);
+    rmaImzaCanvas.height = 150;
+
+    rmaImzaCtx.strokeStyle = '#1a237e';
+    rmaImzaCtx.lineWidth = 2.5;
+    rmaImzaCtx.lineCap = 'round';
+    rmaImzaCtx.lineJoin = 'round';
+
+    const getPos = e => {
+        const r = rmaImzaCanvas.getBoundingClientRect();
+        return {
+            x: (e.clientX - r.left) * (rmaImzaCanvas.width / r.width),
+            y: (e.clientY - r.top) * (rmaImzaCanvas.height / r.height)
+        };
+    };
+
+    const getTPos = e => {
+        const r = rmaImzaCanvas.getBoundingClientRect();
+        const t = e.touches[0];
+        return {
+            x: (t.clientX - r.left) * (rmaImzaCanvas.width / r.width),
+            y: (t.clientY - r.top) * (rmaImzaCanvas.height / r.height)
+        };
+    };
+
+    rmaImzaCanvas.addEventListener('mousedown', e => {
+        rmaImzaDrawing = true;
+        const p = getPos(e);
+        rmaImzaCtx.beginPath();
+        rmaImzaCtx.moveTo(p.x, p.y);
+    });
+    rmaImzaCanvas.addEventListener('mousemove', e => {
+        if (!rmaImzaDrawing) return;
+        const p = getPos(e);
+        rmaImzaCtx.lineTo(p.x, p.y);
+        rmaImzaCtx.stroke();
+    });
+    rmaImzaCanvas.addEventListener('mouseup', () => rmaImzaDrawing = false);
+    rmaImzaCanvas.addEventListener('mouseleave', () => rmaImzaDrawing = false);
+
+    rmaImzaCanvas.addEventListener('touchstart', e => {
+        e.preventDefault();
+        rmaImzaDrawing = true;
+        const p = getTPos(e);
+        rmaImzaCtx.beginPath();
+        rmaImzaCtx.moveTo(p.x, p.y);
+    }, { passive: false });
+    rmaImzaCanvas.addEventListener('touchmove', e => {
+        e.preventDefault();
+        if (!rmaImzaDrawing) return;
+        const p = getTPos(e);
+        rmaImzaCtx.lineTo(p.x, p.y);
+        rmaImzaCtx.stroke();
+    }, { passive: false });
+    rmaImzaCanvas.addEventListener('touchend', () => rmaImzaDrawing = false);
+
+    window.addEventListener('resize', () => {
+        if (document.getElementById('rmaImzaEkle')?.checked) {
+            resizeRmaCanvas();
+        }
+    });
+
+    rmaImzaInited = true;
+}
+
+function rmaImzaTemizle() {
+    if (!rmaImzaCanvas || !rmaImzaCtx) return;
+    rmaImzaCtx.clearRect(0, 0, rmaImzaCanvas.width, rmaImzaCanvas.height);
+}
+
+function isRmaCanvasBlank() {
+    if (!rmaImzaCanvas) return true;
+    const blank = document.createElement('canvas');
+    blank.width = rmaImzaCanvas.width;
+    blank.height = rmaImzaCanvas.height;
+    return rmaImzaCanvas.toDataURL() === blank.toDataURL();
 }

@@ -2126,8 +2126,8 @@
             <div class="satis-top-bar">
                 <h2>🔧 RMA / Teknik Servis Formu</h2>
             </div>
-            <div class="satis-inner" style="max-width: 800px; margin: 0 auto; padding: 20px;">
-                <div class="wizard-wrap">
+            <div class="satis-inner" style="width: 100%; max-width: 100%; margin: 0; padding: 20px; box-sizing: border-box;">
+                <div class="wizard-wrap" style="max-width: 100%; width: 100%;">
                     <div class="form-grp" style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
                         <div style="flex:1; min-width:220px;">
                             <label>Müşteri Ara</label>
@@ -2162,7 +2162,7 @@
 
                     <div class="form-grp" style="margin-top: 15px;">
                         <label>Açıklama</label>
-                        <textarea id="rmaDescription" class="form-ctrl" rows="5" placeholder="Açıklama metni giriniz...">Bei dieser Kasse ist anscheinend Mainboard defekt. Displaybild flatterte letzte Woche.
+                        <textarea id="rmaDescription" class="form-ctrl" rows="20" style="min-height: 360px;" placeholder="Açıklama metni giriniz...">Bei dieser Kasse ist anscheinend Mainboard defekt. Displaybild flatterte letzte Woche.
 Nun ist kein Bild auf dem Display nach Einschalten. Stromversorgung ist ok. Kunde möchte einen Kostenvoranschlag für Reparatur.
 Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                     </div>
@@ -2180,6 +2180,30 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                             <div id="rmaCustomItemsList" style="display:flex; flex-direction:column; gap:8px;"></div>
                         </div>
                     </div>
+
+                    <!-- İMZA BÖLÜMÜ (OPSİYONEL) -->
+                    <div class="form-grp" style="margin-top: 20px;">
+                        <label style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:bold; font-size:1.05rem;">
+                            <input type="checkbox" id="rmaImzaEkle" style="width:20px; height:20px; cursor:pointer;" onchange="toggleRmaImzaSection()">
+                            ✍️ İmza Ekle
+                        </label>
+                    </div>
+
+                    <div id="rmaImzaSection" class="imza-section" style="display:none; margin-top:15px;">
+                        <div class="imza-info">
+                            <div class="imza-info-row">
+                                <div class="imza-lbl">👤 İmza Atan Personel</div>
+                                <input type="text" id="rmaImzaPersonel" class="form-ctrl" placeholder="Personel Adı Soyadı" readonly style="background:var(--bg-color); font-weight:bold;">
+                            </div>
+                        </div>
+                        <div class="imza-canvas-wrap">
+                            <div class="imza-lbl">✍️ Personel İmzası</div>
+                            <canvas id="rmaImzaCanvas" class="imza-canvas"></canvas>
+                            <div class="imza-canvas-acts">
+                                <button type="button" class="btn-s secondary" onclick="rmaImzaTemizle()">🗑️ İmzayı Temizle</button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="pdf-row" style="margin-top: 25px; display: flex; justify-content: center;">
@@ -2188,10 +2212,10 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 
                 <!-- Gizli yazdırma alanı -->
                 <div id="rmaPrintPreview" style="position: absolute; left: -9999px; width: 210mm; background: white; color: black; font-family: 'Times New Roman', serif; padding: 20mm;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 40px;">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
                         <div style="width: 50%;">
                             <h2 style="margin: 25px 0 10px 0; font-size: 16pt;">Kassenaufsteller: Kassen Keskin</h2>
-                            <p style="margin: 0; font-size: 12pt; line-height: 1.4;">
+                            <p style="margin: 0; font-size: 12pt; line-height: 1.3;">
                                 Stülpnagelstraße 3 * 14059 Berlin<br>
                                 Tel.: 030/ 23 57 15 27<br>
                                 Mobil: 0176 222 04 117<br>
@@ -2205,27 +2229,38 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                         </div>
                     </div>
                     
-                    <div style="margin-bottom: 30px;">
+                    <div style="margin-bottom: 25px;">
                         <h3 style="margin: 0 0 10px 0; font-size: 14pt; font-weight: bold;">Kunde:</h3>
-                        <p id="rmaPrintCustomer" style="margin: 0; font-size: 12pt; white-space: pre-wrap; line-height: 1.4;"></p>
+                        <p id="rmaPrintCustomer" style="margin: 0; font-size: 12pt; white-space: pre-wrap; line-height: 1.3;"></p>
                     </div>
 
-                    <div style="margin-bottom: 30px;">
+                    <div style="margin-bottom: 25px;">
                         <p style="margin: 0; font-size: 12pt;"><strong>Marka/Model:</strong> <span id="rmaPrintModel"></span></p>
                         <p style="margin: 0; font-size: 12pt;"><strong>S/N:</strong> <span id="rmaPrintSernr"></span></p>
                     </div>
 
-                    <div style="margin-bottom: 30px;">
+                    <div style="margin-bottom: 25px;">
                         <p style="margin: 0; font-size: 12pt; font-weight: bold;">Betreff: <span id="rmaPrintBetreff"></span></p>
                     </div>
                     
-                    <div style="margin-bottom: 40px;">
-                        <p id="rmaPrintDescription" style="margin: 0; font-size: 12pt; white-space: pre-wrap; line-height: 1.4;"></p>
+                    <div style="margin-bottom: 30px;">
+                        <p id="rmaPrintDescription" style="margin: 0; font-size: 12pt; white-space: pre-wrap; line-height: 1.25;"></p>
                     </div>
 
                     <div id="rmaPrintMaterialsBlock">
                         <p style="margin: 0 0 10px 0; font-size: 12pt; font-weight: bold; text-decoration: underline;">Beigefügte Materialien:</p>
-                        <ol id="rmaPrintItemsList" style="margin: 0; padding-left: 20px; font-size: 12pt; line-height: 1.6;"></ol>
+                        <ol id="rmaPrintItemsList" style="margin: 0; padding-left: 20px; font-size: 12pt; line-height: 1.4;"></ol>
+                    </div>
+
+                    <!-- İmza Bölümü (PDF) -->
+                    <div id="rmaPrintSignatureBlock" style="display: none; margin-top: 30px; text-align: right;">
+                        <div style="display: inline-block; text-align: center; min-width: 220px;">
+                            <div id="rmaPrintSignatureImgWrap" style="margin-bottom: 5px;">
+                                <img id="rmaPrintSignatureImg" src="" style="max-height: 70px; max-width: 200px; display: none; margin: 0 auto;">
+                            </div>
+                            <div style="border-top: 1px solid #000; width: 100%; margin: 5px 0;"></div>
+                            <div id="rmaPrintSignatureName" style="font-size: 11pt; font-weight: bold;"></div>
+                        </div>
                     </div>
                 </div>
             </div>
