@@ -1,0 +1,1 @@
+SELECT top 1 * FROM [Verkauf].[tAuftrag] order by kAuftrag desc

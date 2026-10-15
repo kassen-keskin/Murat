@@ -1,50 +1,55 @@
 {
     "products": [
         {
-            "id": 2,
             "brand": "Noris",
-            "model": "S-70",
+            "id": 2,
+            "imageFolder": "noris_s-70",
+            "images": [
+                "image/noris_s-70/s-70.png"
+            ],
             "industries": [
                 "Imbiss",
                 "Berber"
             ],
-            "images": [
-                "image/noris_s-70/s-70.png"
-            ],
-            "price": "",
+            "model": "S-70",
+            "offerNo": "AU-2024-10595",
+            "offerNoHibrit": "AU-2024-10591",
+            "offerNoSatis": "AU-2024-10592",
+            "price": "1",
             "translations": {
-                "tr": {
-                    "slogan": "Dokunmatik Ekranla Kolay Yönetim!",
-                    "note": "",
-                    "features": [
-                        "7\" Renkli Dokunmatik Ekran",
-                        "58mm Termal Yazıcı",
-                        "Adisyon ve Tartı Uyumu",
-                        "Hızlı İşlem Kapasitesi"
-                    ]
-                },
                 "de": {
-                    "slogan": "Einfache Verwaltung mit Touchscreen!",
-                    "note": "",
                     "features": [
                         "7\" Farb-Touchscreen",
                         "58-mm-Thermodrucker",
                         "Abrechnungs- und Wiegekompatibilität",
                         "Schnelle Verarbeitungskapazität"
-                    ]
+                    ],
+                    "note": "",
+                    "slogan": "Einfache Verwaltung mit Touchscreen!"
                 },
                 "en": {
-                    "slogan": "Easy Management with Touch Screen!",
-                    "note": "",
                     "features": [
                         "7\" Color Touch Screen",
                         "58mm Thermal Printer",
                         "Billing and Weighing Compatibility",
                         "Fast Processing Capacity"
-                    ]
+                    ],
+                    "note": "",
+                    "slogan": "Easy Management with Touch Screen!"
+                },
+                "tr": {
+                    "features": [
+                        "7\" Renkli Dokunmatik Ekran",
+                        "58mm Termal Yazıcı",
+                        "Adisyon ve Tartı Uyumu",
+                        "Hızlı İşlem Kapasitesi"
+                    ],
+                    "note": "",
+                    "slogan": "Dokunmatik Ekranla Kolay Yönetim!"
                 }
             },
-            "imageFolder": "noris_s-70"
+            "priceSatis": "2",
+            "priceHibrit": "3"
         },
         {
             "id": 3,
@@ -451,6 +456,6 @@
         "Cafe",
         "TestSektor"
     ],
-    "version": 1791967543206,
-    "lastModified": "2026-10-14T10:45:43.206997"
+    "version": 1792053947645,
+    "lastModified": "2026-10-15T10:45:47.645619"
 }
