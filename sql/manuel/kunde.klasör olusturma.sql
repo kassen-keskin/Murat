@@ -10,16 +10,6 @@ IF  EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Kunde
 DROP TABLE [dbo].[Kunde_Trigger_Log]
 GO
 
-CREATE TABLE dbo.Kunde_Trigger_Log (
-    LogId INT IDENTITY(1,1) PRIMARY KEY,
-    LogDate DATETIME DEFAULT GETDATE(),
-    ActionType NVARCHAR(20),
-    kKunde INT,
-    cKundenNr NVARCHAR(100),
-    FolderName NVARCHAR(400),
-    CmdOutput NVARCHAR(MAX)
-);
-
 CREATE OR ALTER TRIGGER trg_tkunde_CreateCustomerFolders
 ON dbo.tkunde
 AFTER INSERT, UPDATE
@@ -41,10 +31,13 @@ BEGIN
 
     CREATE TABLE #CmdResult (OutputLine NVARCHAR(1000));
 
+    -- YALNIZCA MÜŞTERİ NUMARASI 3075'TEN BÜYÜK OLANLAR (3076, 3077...)
     DECLARE cur_Kunde CURSOR LOCAL FAST_FORWARD FOR
         SELECT i.kKunde, i.cKundenNr
         FROM inserted i
-        WHERE i.cKundenNr IS NOT NULL AND LTRIM(RTRIM(i.cKundenNr)) <> '';
+        WHERE i.cKundenNr IS NOT NULL 
+          AND LTRIM(RTRIM(i.cKundenNr)) <> ''
+          AND TRY_CAST(i.cKundenNr AS INT) > 3075;
 
     OPEN cur_Kunde;
     FETCH NEXT FROM cur_Kunde INTO @kKunde, @cKundenNr;
@@ -94,7 +87,7 @@ BEGIN
             SET @FolderName = REPLACE(@FolderName, '>', '');
             SET @FolderName = REPLACE(@FolderName, '|', '');
 
-            -- 3. Temiz ve hatasız CMD komutu (iç içe tırnak/parantez olmadan)
+            -- 3. Klasör henüz yoksa oluştur
             SET @Cmd = 'net use \\fileserver\Ortak_Alan ' + @SambaPass + ' /user:' + @SambaUser + ' & '
                 + 'if not exist "' + @BasePath + '\' + @FolderName + '" '
                 + 'mkdir '
