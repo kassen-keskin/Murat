@@ -133,6 +133,11 @@ const translations = {
         datenschutz_back: "Zur\u00fcck",
         foot_desc: "Ihr zuverl\u00e4ssiger Partner f\u00fcr Mietkassen. Alles aus einer Hand f\u00fcr den perfekten Verkauf.",
         foot_contact: "Kontakt",
+        catalogAuthTitle: "Katalog-Zugang",
+        catalogAuthSubtitle: "Bitte geben Sie das Team-Passwort ein, um den Produktkatalog zu öffnen.",
+        catalogAuthPlaceholder: "Passwort eingeben...",
+        catalogAuthSubmit: "Katalog öffnen",
+        catalogAuthError: "Falsches Passwort. Bitte versuchen Sie es erneut.",
     },
     tr: {
         navRequest: 'Randevu',
@@ -267,7 +272,12 @@ const translations = {
         datenschutz_10_text: "Bu Gizlilik Politikas\u0131n\u0131, g\u00fcncel yasal gereklilikleri veya teknik de\u011fi\u015fiklikleri yans\u0131tmak i\u00e7in gerekti\u011finde g\u00fcncelleme hakk\u0131n\u0131 sakl\u0131 tutar\u0131z.",
         datenschutz_back: "Geri",
         foot_desc: "Ihr zuverl\u00e4ssiger Partner f\u00fcr Mietkassen. Alles aus einer Hand f\u00fcr den perfekten Verkauf.",
-        foot_contact: "Kontakt",
+        foot_contact: "İletişim",
+        catalogAuthTitle: "Katalog Girişi",
+        catalogAuthSubtitle: "Ürün kataloğunu ve teklif oluşturucuyu açmak için lütfen ekip şifresini girin.",
+        catalogAuthPlaceholder: "Ekip şifresini girin...",
+        catalogAuthSubmit: "Kataloğu Aç",
+        catalogAuthError: "Girdiğiniz şifre hatalı. Lütfen tekrar deneyin.",
     },
     en: {
         navRequest: 'Booking',
@@ -401,6 +411,11 @@ const translations = {
         datenschutz_10_title: "10. Changes to this Privacy Policy",
         datenschutz_10_text: "We reserve the right to adapt this privacy policy as necessary to reflect current legal requirements or technical changes.",
         datenschutz_back: "Back",
+        catalogAuthTitle: "Catalog Access",
+        catalogAuthSubtitle: "Please enter the team password to access the product catalog.",
+        catalogAuthPlaceholder: "Enter password...",
+        catalogAuthSubmit: "Open Catalog",
+        catalogAuthError: "Incorrect password. Please try again.",
     }
 };
 
@@ -746,3 +761,90 @@ function hideLegal() {
     });
     window.scrollTo(0, 0);
 }
+
+// Catalog Password Protected Access Functions
+function openCatalogWithAuth(e) {
+    if (e) e.preventDefault();
+    if (typeof window.isCatalogAuthorized === 'function' && window.isCatalogAuthorized()) {
+        window.open('katalog/', '_blank');
+        return;
+    }
+    const modal = document.getElementById('catalogAuthModal');
+    const input = document.getElementById('catalogPasswordInput');
+    const errorEl = document.getElementById('catalogAuthError');
+    if (errorEl) errorEl.style.display = 'none';
+    if (input) input.value = '';
+    if (modal) {
+        modal.classList.add('active');
+        setTimeout(() => { if (input) input.focus(); }, 150);
+    }
+}
+
+function closeCatalogAuthModal() {
+    const modal = document.getElementById('catalogAuthModal');
+    const errorEl = document.getElementById('catalogAuthError');
+    if (modal) modal.classList.remove('active');
+    if (errorEl) errorEl.style.display = 'none';
+}
+
+function handleCatalogOverlayClick(e) {
+    if (e.target && e.target.id === 'catalogAuthModal') {
+        closeCatalogAuthModal();
+    }
+}
+
+function toggleCatalogPasswordVisibility() {
+    const input = document.getElementById('catalogPasswordInput');
+    const icon = document.getElementById('togglePasswordIcon');
+    if (!input || !icon) return;
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.remove('fa-eye');
+        icon.classList.add('fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.remove('fa-eye-slash');
+        icon.classList.add('fa-eye');
+    }
+}
+
+async function handleCatalogAuthSubmit(e) {
+    if (e) e.preventDefault();
+    const input = document.getElementById('catalogPasswordInput');
+    const errorEl = document.getElementById('catalogAuthError');
+    const submitBtn = document.getElementById('catalogAuthSubmitBtn');
+    if (!input) return;
+    const pwd = input.value.trim();
+    if (!pwd) return;
+
+    if (submitBtn) submitBtn.disabled = true;
+
+    try {
+        let isAuthorized = false;
+        if (typeof window.verifyCatalogPassword === 'function') {
+            isAuthorized = await window.verifyCatalogPassword(pwd);
+        }
+        if (isAuthorized) {
+            if (typeof window.setCatalogAuthorized === 'function') {
+                window.setCatalogAuthorized();
+            }
+            closeCatalogAuthModal();
+            window.open('katalog/', '_blank');
+        } else {
+            if (errorEl) errorEl.style.display = 'flex';
+            input.focus();
+            input.select();
+        }
+    } catch(err) {
+        console.error('Katalog doğrulama hatası:', err);
+    } finally {
+        if (submitBtn) submitBtn.disabled = false;
+    }
+}
+
+// Close catalog auth modal on Escape key
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+        closeCatalogAuthModal();
+    }
+});

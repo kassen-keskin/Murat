@@ -401,5 +401,162 @@ html{overflow-x:hidden}
     opacity: 0.9;
 }
 
+/* Catalog Password Protection Modal */
+.catalog-auth-modal-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    background: rgba(9, 10, 15, 0.85);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+.catalog-auth-modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+.catalog-auth-modal-box {
+    position: relative;
+    max-width: 440px;
+    width: 100%;
+    background: linear-gradient(145deg, rgba(20, 24, 35, 0.96), rgba(12, 14, 22, 0.98));
+    border: 1px solid rgba(0, 232, 240, 0.25);
+    border-radius: 24px;
+    box-shadow: 0 25px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(0, 232, 240, 0.15);
+    padding: 2.25rem 2rem;
+    text-align: center;
+    transform: scale(0.95);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.catalog-auth-modal-overlay.active .catalog-auth-modal-box {
+    transform: scale(1);
+}
+.catalog-auth-close-btn {
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    font-size: 1.5rem;
+    cursor: pointer;
+    line-height: 1;
+    padding: 6px;
+    border-radius: 8px;
+    transition: color 0.15s, background-color 0.15s;
+}
+.catalog-auth-close-btn:hover {
+    color: var(--white);
+    background: rgba(255, 255, 255, 0.08);
+}
+.catalog-auth-icon {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 1.25rem;
+    border-radius: 20px;
+    background: linear-gradient(135deg, rgba(0, 232, 240, 0.15), rgba(121, 92, 255, 0.2));
+    border: 1px solid rgba(0, 232, 240, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    color: var(--cyan);
+    box-shadow: 0 8px 20px rgba(0, 232, 240, 0.15);
+}
+.catalog-auth-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: var(--white);
+    margin-bottom: 0.5rem;
+    letter-spacing: -0.5px;
+}
+.catalog-auth-subtitle {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+.catalog-auth-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.75rem;
+}
+.catalog-auth-input {
+    width: 100%;
+    background: rgba(0, 0, 0, 0.45);
+    border: 1.5px solid rgba(255, 255, 255, 0.16);
+    border-radius: 12px;
+    padding: 0.85rem 3rem 0.85rem 1rem;
+    color: var(--white);
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+.catalog-auth-input:focus {
+    border-color: var(--cyan);
+    box-shadow: 0 0 15px rgba(0, 232, 240, 0.25);
+}
+.catalog-auth-toggle-pwd {
+    position: absolute;
+    right: 12px;
+    background: transparent;
+    border: none;
+    color: var(--muted);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 6px;
+    transition: color 0.15s;
+}
+.catalog-auth-toggle-pwd:hover {
+    color: var(--cyan);
+}
+.catalog-auth-error {
+    background: rgba(239, 68, 68, 0.12);
+    border: 1px solid rgba(239, 68, 68, 0.35);
+    color: #fca5a5;
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 0.55rem 0.85rem;
+    border-radius: 10px;
+    margin-bottom: 1rem;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+.catalog-auth-submit-btn {
+    width: 100%;
+    padding: 0.9rem 1.25rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, var(--cyan), var(--purple));
+    border: none;
+    color: #071015;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    box-shadow: 0 8px 25px rgba(0, 232, 240, 0.3);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+.catalog-auth-submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 30px rgba(0, 232, 240, 0.45);
+}
+.catalog-auth-submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 
 

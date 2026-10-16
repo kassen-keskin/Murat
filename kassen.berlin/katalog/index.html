@@ -33,6 +33,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="catalog_data.js"></script>
+  <script src="catalog_auth_config.js"></script>
   
   <script>
     (function() {
@@ -599,6 +600,97 @@
       background: #1d4ed8 !important;
       transform: translateY(-1px) !important;
     }
+
+    /* DIRECT CATALOG AUTH LOCK SCREEN */
+    .catalog-lock-screen {
+      min-height: 100vh;
+      background: radial-gradient(ellipse at top, #1e293b 0%, #0f172a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .catalog-lock-card {
+      background: rgba(30, 41, 59, 0.75);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      max-width: 440px;
+      width: 100%;
+      padding: 36px 30px;
+      text-align: center;
+      color: #ffffff;
+      animation: lockFadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes lockFadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .catalog-lock-icon {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, rgba(37, 99, 235, 0.2), rgba(30, 64, 175, 0.4));
+      border: 2px solid rgba(59, 130, 246, 0.4);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      color: #60a5fa;
+      margin-bottom: 20px;
+      box-shadow: 0 8px 24px -4px rgba(37, 99, 235, 0.3);
+    }
+    .catalog-lock-input-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .catalog-lock-input {
+      width: 100%;
+      box-sizing: border-box;
+      background: rgba(15, 23, 42, 0.65);
+      border: 1.5px solid rgba(148, 163, 184, 0.25);
+      border-radius: 14px;
+      padding: 13px 44px 13px 42px;
+      color: #ffffff;
+      font-size: 15px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s ease;
+    }
+    .catalog-lock-input:focus {
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+      background: rgba(15, 23, 42, 0.85);
+    }
+    .catalog-lock-submit-btn {
+      width: 100%;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      border: none;
+      border-radius: 14px;
+      padding: 13px 20px;
+      font-size: 15px;
+      font-weight: 700;
+      font-family: inherit;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      box-shadow: 0 10px 20px -5px rgba(37, 99, 235, 0.4);
+      transition: all 0.2s ease;
+    }
+    .catalog-lock-submit-btn:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 24px -5px rgba(37, 99, 235, 0.5);
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+    .catalog-lock-submit-btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
   </style>
 </head>
 <body>
@@ -624,7 +716,68 @@
       </div>
     </div>
 
-    <!-- 2. MAIN CATALOG INTERFACE (CUSTOMER OR PUBLIC) -->
+    <!-- 2. DIRECT ACCESS LOCK SCREEN (UNAUTHORIZED TEAM ACCESS) -->
+    <div v-else-if="!isCustomerView && !isUnlocked" class="catalog-lock-screen">
+      <div class="catalog-lock-card">
+        <div class="catalog-lock-icon">
+          <i class="fas fa-lock"></i>
+        </div>
+        <h2 class="text-xl md:text-2xl font-black mb-2 text-white">{{ t('catalogAuthTitle') }}</h2>
+        <p class="text-slate-300 text-xs md:text-sm mb-6 leading-relaxed">
+          {{ t('catalogAuthSubtitle') }}
+        </p>
+
+        <form @submit.prevent="handleDirectAuthSubmit">
+          <div class="catalog-lock-input-wrap">
+            <i class="fas fa-key text-slate-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+            <input 
+              :type="showDirectPass ? 'text' : 'password'" 
+              v-model="directAuthPassword" 
+              class="catalog-lock-input" 
+              :placeholder="t('catalogAuthPlaceholder')"
+              autocomplete="current-password"
+              autofocus
+            >
+            <button 
+              type="button" 
+              @click="showDirectPass = !showDirectPass" 
+              class="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white bg-transparent border-none cursor-pointer p-1"
+            >
+              <i class="fas" :class="showDirectPass ? 'fa-eye-slash' : 'fa-eye'"></i>
+            </button>
+          </div>
+
+          <div v-if="directAuthError" class="mb-4 text-xs font-semibold text-rose-300 bg-rose-500/20 border border-rose-500/40 py-2 px-3 rounded-lg flex items-center justify-center gap-2">
+            <i class="fas fa-exclamation-triangle"></i>
+            <span>{{ directAuthError }}</span>
+          </div>
+
+          <button 
+            type="submit" 
+            class="catalog-lock-submit-btn" 
+            :disabled="isVerifyingAuth || !directAuthPassword.trim()"
+          >
+            <i v-if="isVerifyingAuth" class="fas fa-spinner fa-spin"></i>
+            <i v-else class="fas fa-arrow-right"></i>
+            <span>{{ t('catalogAuthSubmit') }}</span>
+          </button>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-slate-700/60 flex items-center justify-between text-xs text-slate-400">
+          <a href="../index.html" class="hover:text-white flex items-center gap-1.5 transition-colors">
+            <i class="fas fa-home"></i>
+            <span>{{ t('backToHome') }}</span>
+          </a>
+          <select v-model="lang" @change="changeLang(lang)" class="catalog-lang-select text-xs py-1 px-2">
+            <option value="de">DE</option>
+            <option value="tr">TR</option>
+            <option value="en">EN</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. MAIN CATALOG INTERFACE (CUSTOMER OR PUBLIC) -->
     <div v-else>
       <!-- A. CUSTOMER VIP NAVBAR & BANNER -->
       <div v-if="isCustomerView" class="no-print">
@@ -1233,6 +1386,12 @@
         notes: 'Notlar',
         offerPrefix: 'Teklif No',
         noImage: 'Görsel Yok',
+        catalogAuthTitle: 'Katalog Girişi',
+        catalogAuthSubtitle: 'Bu alan yetkili personel erişimine açıktır. Ürün kataloğunu ve teklif oluşturucuyu görüntülemek için lütfen ekip şifrenizi girin.',
+        catalogAuthPlaceholder: 'Ekip şifresini girin...',
+        catalogAuthSubmit: 'Kataloğu Aç',
+        catalogAuthError: 'Girdiğiniz şifre hatalı. Lütfen tekrar deneyin.',
+        backToHome: 'kassen.berlin Ana Sayfasına Dön',
         close: 'Kapat'
       },
       de: {
@@ -1287,6 +1446,12 @@
         notes: 'Hinweise',
         offerPrefix: 'Angebot-Nr.',
         noImage: 'Kein Bild',
+        catalogAuthTitle: 'Katalog-Zugang',
+        catalogAuthSubtitle: 'Dieser Bereich ist nur für autorisiertes Personal zugänglich. Bitte geben Sie das Team-Passwort ein.',
+        catalogAuthPlaceholder: 'Passwort eingeben...',
+        catalogAuthSubmit: 'Katalog öffnen',
+        catalogAuthError: 'Falsches Passwort. Bitte versuchen Sie es erneut.',
+        backToHome: 'Zurück zur Startseite von kassen.berlin',
         close: 'Schließen'
       },
       en: {
@@ -1341,6 +1506,12 @@
         notes: 'Notes',
         offerPrefix: 'Quote No',
         noImage: 'No Image',
+        catalogAuthTitle: 'Catalog Access',
+        catalogAuthSubtitle: 'This area is restricted to authorized team members. Please enter your team password.',
+        catalogAuthPlaceholder: 'Enter password...',
+        catalogAuthSubmit: 'Open Catalog',
+        catalogAuthError: 'Incorrect password. Please try again.',
+        backToHome: 'Back to kassen.berlin Homepage',
         close: 'Close'
       }
     };
@@ -1379,6 +1550,44 @@
         const isExpiredQuote = ref(false);
         const redirectCountdown = ref(3);
         let redirectTimer = null;
+
+        // Authentication State for Direct Team Access
+        const isUnlocked = ref(false);
+        const directAuthPassword = ref('');
+        const directAuthError = ref('');
+        const isVerifyingAuth = ref(false);
+        const showDirectPass = ref(false);
+
+        // Check if session already authorized
+        if (typeof isCatalogAuthorized === 'function' && isCatalogAuthorized()) {
+          isUnlocked.value = true;
+        }
+
+        const handleDirectAuthSubmit = async () => {
+          if (!directAuthPassword.value || isVerifyingAuth.value) return;
+          directAuthError.value = '';
+          isVerifyingAuth.value = true;
+          try {
+            if (typeof verifyCatalogPassword === 'function') {
+              const ok = await verifyCatalogPassword(directAuthPassword.value);
+              if (ok) {
+                if (typeof setCatalogAuthorized === 'function') setCatalogAuthorized();
+                isUnlocked.value = true;
+                directAuthPassword.value = '';
+              } else {
+                directAuthError.value = t('catalogAuthError');
+              }
+            } else {
+              // Fallback if config is missing (unlikely)
+              isUnlocked.value = true;
+            }
+          } catch(err) {
+            console.error('Doğrulama hatası:', err);
+            directAuthError.value = t('catalogAuthError');
+          } finally {
+            isVerifyingAuth.value = false;
+          }
+        };
 
         // Selection Modal State
         const selectedProductIds = ref([]);
@@ -1518,6 +1727,7 @@
 
             // Valid Customer Quote
             isCustomerView.value = true;
+            isUnlocked.value = true;
             customerQuoteData.value = payload;
             if (payload.pt) {
               filterPriceType.value = payload.pt;
@@ -1864,7 +2074,8 @@ ${generatedShareUrl.value}
           copyGeneratedLink, copyWhatsAppMessage, getWhatsAppShareUrl, getWhatsAppQuoteUrl,
           sentQuotesHistory, isHistoryModalOpen, copyHistoryLink, clearHistory,
           formatExpiryDate, getRemainingDays,
-          printSelected, printAll, getOfferDisplay, getOfferTooltip
+          printSelected, printAll, getOfferDisplay, getOfferTooltip,
+          isUnlocked, directAuthPassword, directAuthError, isVerifyingAuth, showDirectPass, handleDirectAuthSubmit
         };
       }
     }).mount('#app');

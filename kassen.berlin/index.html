@@ -26,6 +26,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
     <link rel="icon" type="image/bmp" href="assets/k.bmp">
+    <script src="catalog_auth_config.js"></script>
 	
 	<!-- Google tag (gtag.js) -->
 	<script async src="https://www.googletagmanager.com/gtag/js?id=G-F04L2121CT"></script>
@@ -392,10 +393,39 @@
             <a href="#" onclick="showLegal('agb', event)" style="color: var(--muted); text-decoration: none;" data-i18n="foot_terms">AGB</a>
         </div>
         <div class="footer-social-links" aria-label="Social Media">
-            <a href="https://www.instagram.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="https://www.facebook.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="https://www.youtube.com/@KassenKeskin" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a><a href="https://www.tiktok.com/@kassenkeskin" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>            <a href="https://www.linkedin.com/in/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>            <a href="https://x.com/KassenKeskin" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X"><i class="fa-brands fa-x-twitter"></i></a><a href="https://wa.me/4917622204117" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a><a href="https://maps.app.goo.gl/CxSuDaSSADDdxb86A" target="_blank" rel="noopener noreferrer" aria-label="Google Maps"><i class="fa-solid fa-map-location-dot"></i></a><a href="tel:+4917622204117" aria-label="Telefon"><i class="fa-solid fa-phone"></i></a><a href="katalog/" target="_blank" rel="noopener noreferrer" aria-label="Katalog" title="Katalog"><i class="fa-solid fa-book-open"></i></a>
+            <a href="https://www.instagram.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a><a href="https://www.facebook.com/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="https://www.youtube.com/@KassenKeskin" target="_blank" rel="noopener noreferrer" aria-label="YouTube"><i class="fa-brands fa-youtube"></i></a><a href="https://www.tiktok.com/@kassenkeskin" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fa-brands fa-tiktok"></i></a>            <a href="https://www.linkedin.com/in/kassenkeskin/" target="_blank" rel="noopener noreferrer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>            <a href="https://x.com/KassenKeskin" target="_blank" rel="noopener noreferrer" aria-label="Twitter / X"><i class="fa-brands fa-x-twitter"></i></a><a href="https://wa.me/4917622204117" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp"><i class="fa-brands fa-whatsapp"></i></a><a href="https://maps.app.goo.gl/CxSuDaSSADDdxb86A" target="_blank" rel="noopener noreferrer" aria-label="Google Maps"><i class="fa-solid fa-map-location-dot"></i></a><a href="tel:+4917622204117" aria-label="Telefon"><i class="fa-solid fa-phone"></i></a><a href="javascript:void(0)" onclick="openCatalogWithAuth(event)" aria-label="Katalog" title="Katalog"><i class="fa-solid fa-book-open"></i></a>
         </div>
         <p data-i18n="footerText">&copy; 2026 Kassen Keskin | Ihr Partner für moderne Geschäftslösungen.</p>
     </footer>
+
+    <!-- Catalog Auth Modal -->
+    <div id="catalogAuthModal" class="catalog-auth-modal-overlay" onclick="handleCatalogOverlayClick(event)">
+        <div class="catalog-auth-modal-box">
+            <button class="catalog-auth-close-btn" onclick="closeCatalogAuthModal()" aria-label="Schließen">&times;</button>
+            <div class="catalog-auth-icon">
+                <i class="fa-solid fa-lock"></i>
+            </div>
+            <h3 class="catalog-auth-title" data-i18n="catalogAuthTitle">Katalog-Zugang</h3>
+            <p class="catalog-auth-subtitle" data-i18n="catalogAuthSubtitle">Bitte geben Sie das Team-Passwort ein, um den Produktkatalog zu öffnen.</p>
+            <form onsubmit="handleCatalogAuthSubmit(event)">
+                <div class="catalog-auth-input-wrap">
+                    <input type="password" id="catalogPasswordInput" class="catalog-auth-input" placeholder="Passwort eingeben..." required autocomplete="current-password" data-i18n-placeholder="catalogAuthPlaceholder">
+                    <button type="button" class="catalog-auth-toggle-pwd" onclick="toggleCatalogPasswordVisibility()" aria-label="Passwort anzeigen">
+                        <i class="fa-solid fa-eye" id="togglePasswordIcon"></i>
+                    </button>
+                </div>
+                <div id="catalogAuthError" class="catalog-auth-error">
+                    <i class="fa-solid fa-circle-exclamation"></i>
+                    <span data-i18n="catalogAuthError">Falsches Passwort. Bitte versuchen Sie es erneut.</span>
+                </div>
+                <button type="submit" class="catalog-auth-submit-btn" id="catalogAuthSubmitBtn">
+                    <span data-i18n="catalogAuthSubmit">Katalog öffnen</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>
