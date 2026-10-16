@@ -1,0 +1,1873 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Kassen Keskin | Ürün Kataloğu</title>
+  <meta name="description" content="Kassen Keskin Berlin • Size özel hazırlanan ürün teklif kataloğumuz ve avantajlı kassa sistemlerimiz.">
+
+  <!-- Open Graph / WhatsApp Preview Meta Tags -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Kassen Keskin">
+  <meta property="og:url" content="https://kassen.berlin/katalog/">
+  <meta property="og:title" content="Kassen Keskin | Dijital Ürün Kataloğu & Özel Teklif">
+  <meta property="og:description" content="Kassen Keskin Berlin • Size özel hazırlanan ürün teklif kataloğumuz ve avantajlı kassa sistemlerimiz.">
+  <meta property="og:image" content="https://kassen.berlin/katalog/og_image.jpg">
+  <meta property="og:image:secure_url" content="https://kassen.berlin/katalog/og_image.jpg">
+  <meta property="og:image:type" content="image/jpeg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Kassen Keskin Logo">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Kassen Keskin | Dijital Ürün Kataloğu & Özel Teklif">
+  <meta name="twitter:description" content="Kassen Keskin Berlin • Size özel hazırlanan ürün teklif kataloğumuz ve avantajlı kassa sistemlerimiz.">
+  <meta name="twitter:image" content="https://kassen.berlin/katalog/og_image.jpg">
+
+  <link rel="image_src" href="https://kassen.berlin/katalog/og_image.jpg">
+  <link rel="icon" type="image/jpeg" href="logo.jpg">
+  
+  <link rel="stylesheet" href="tailwind.css">
+  <script src="vue.global.prod.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="catalog_data.js"></script>
+  
+  <script>
+    (function() {
+      function runEarly() {
+        var docEl = document.documentElement;
+        var w = 0;
+        try {
+          if (window.parent && window.parent !== window && window.parent.innerWidth) {
+            w = window.parent.innerWidth;
+          }
+        } catch(e) {}
+        if (window.screen && window.screen.width) {
+          var isMob = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                      (window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+          if (isMob) {
+            var sw = Math.min(window.screen.width, window.screen.height);
+            if (sw > 0 && (!w || sw < w)) w = sw;
+          }
+        }
+        if (!w || w <= 0) {
+          w = docEl ? docEl.clientWidth : (window.innerWidth || 0);
+        }
+        if (!w || w <= 0) w = 360;
+
+        if (w < 768) {
+          docEl.classList.add('is-mobile');
+        }
+        var scale = 1.0;
+        if (w < 820) {
+          var pad = w < 480 ? 12 : 24;
+          scale = Math.max(w - pad, 200) / 794;
+        } else if (w >= 1400) {
+          scale = 1.4;
+        } else if (w >= 1100) {
+          scale = 1.2;
+        } else if (w >= 850) {
+          scale = 1.0;
+        } else {
+          scale = 0.9;
+        }
+
+        docEl.style.setProperty('--catalog-scale', scale);
+        docEl.style.setProperty('--catalog-width', Math.round(794 * scale) + 'px');
+        docEl.style.setProperty('--catalog-height', Math.round(1123 * scale) + 'px');
+      }
+      runEarly();
+      window.addEventListener('resize', runEarly);
+    })();
+  </script>
+
+  <style>
+    :root {
+      --catalog-scale: 1;
+      --catalog-width: 1191px;
+      --catalog-height: 1684px;
+    }
+
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+
+    html, body { 
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+      font-family: 'Poppins', sans-serif; 
+      background-color: #f8fafc;
+      -webkit-text-size-adjust: 100%;
+    }
+
+    #app {
+      width: 100%;
+      max-width: 100%;
+      overflow-x: hidden;
+    }
+
+    /* Navbar */
+    .catalog-navbar {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      padding: 12px 24px;
+    }
+    .catalog-nav-inner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      box-sizing: border-box;
+      gap: 10px;
+    }
+    .catalog-header-top {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .catalog-brand-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .catalog-lang-select {
+      background: #1e3a8a;
+      color: #fff;
+      font-weight: 700;
+      padding: 6px 12px;
+      outline: none;
+      border: 2px solid #1e40af;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 0.875rem;
+      text-align: center;
+    }
+    .catalog-nav-btn {
+      padding: 8px 18px;
+      border-radius: 8px;
+      font-weight: 700;
+      transition: all 0.2s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      text-decoration: none;
+    }
+    .catalog-nav-btn.primary {
+      background: #2563eb;
+      border: 2px solid #1d4ed8;
+      color: #fff;
+    }
+    .catalog-nav-btn.primary:hover {
+      background: #1d4ed8;
+    }
+    .catalog-nav-btn.secondary {
+      background: #ffffff;
+      border: 2px solid #cbd5e1;
+      color: #1e293b;
+    }
+    .catalog-nav-btn.secondary:hover {
+      background: #f1f5f9;
+    }
+
+    /* Container and Page */
+    .catalog-page-container {
+      width: var(--catalog-width, 794px);
+      height: var(--catalog-height, 1123px);
+      max-width: 100%;
+      position: relative;
+      margin: 0 auto;
+      overflow: hidden;
+      box-sizing: border-box;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    
+    .print-page {
+      width: 794px;
+      height: 1123px;
+      transform: scale(var(--catalog-scale, 1));
+      transform-origin: top left;
+      background: white;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+      margin: 0;
+    }
+
+    .catalog-image-box {
+      height: 550px;
+    }
+
+    .no-print-bg {
+      width: 100%;
+      max-width: 100%;
+      box-sizing: border-box;
+      overflow-x: hidden;
+      padding-left: 6px;
+      padding-right: 6px;
+    }
+
+    @media screen and (min-width: 2000px) {
+      :root { --catalog-scale: 2.1; --catalog-width: 1667px; --catalog-height: 2358px; }
+    }
+    @media screen and (min-width: 1700px) and (max-width: 1999px) {
+      :root { --catalog-scale: 1.8; --catalog-width: 1429px; --catalog-height: 2021px; }
+    }
+    @media screen and (min-width: 1400px) and (max-width: 1699px) {
+      :root { --catalog-scale: 1.5; --catalog-width: 1191px; --catalog-height: 1684px; }
+    }
+    @media screen and (min-width: 1200px) and (max-width: 1399px) {
+      :root { --catalog-scale: 1.3; --catalog-width: 1032px; --catalog-height: 1460px; }
+    }
+    @media screen and (min-width: 950px) and (max-width: 1199px) {
+      :root { --catalog-scale: 1.1; --catalog-width: 873px; --catalog-height: 1235px; }
+    }
+    @media screen and (min-width: 850px) and (max-width: 949px) {
+      :root { --catalog-scale: 1.0; --catalog-width: 794px; --catalog-height: 1123px; }
+    }
+    @media screen and (max-width: 849px) {
+      :root { --catalog-scale: 0.90; --catalog-width: 715px; --catalog-height: 1011px; }
+    }
+    @media screen and (max-width: 768px) {
+      :root { --catalog-scale: 0.80; --catalog-width: 635px; --catalog-height: 898px; }
+    }
+    @media screen and (max-width: 640px) {
+      :root { --catalog-scale: 0.65; --catalog-width: 516px; --catalog-height: 730px; }
+    }
+    @media screen and (max-width: 520px) {
+      :root { --catalog-scale: 0.55; --catalog-width: 437px; --catalog-height: 618px; }
+    }
+    @media screen and (max-width: 440px) {
+      :root { --catalog-scale: 0.47; --catalog-width: 373px; --catalog-height: 528px; }
+    }
+    @media screen and (max-width: 390px) {
+      :root { --catalog-scale: 0.44; --catalog-width: 349px; --catalog-height: 494px; }
+    }
+    @media screen and (max-width: 360px) {
+      :root { --catalog-scale: 0.40; --catalog-width: 318px; --catalog-height: 449px; }
+    }
+
+    @media print {
+      @page { 
+        size: A4 portrait; 
+        margin: 0; 
+      }
+      *, *::before, *::after { 
+        box-sizing: border-box !important; 
+      }
+      html, body { 
+        margin: 0 !important; 
+        padding: 0 !important; 
+        width: 210mm !important; 
+        height: auto !important; 
+        min-height: 0 !important;
+        background-color: white !important; 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+      }
+      #app, .min-h-screen {
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+        display: block !important;
+      }
+      .no-print { 
+        display: none !important; 
+      }
+      .no-print-bg { 
+        display: block !important;
+        background: none !important; 
+        padding: 0 !important; 
+        margin: 0 !important; 
+        gap: 0 !important;
+        width: 210mm !important;
+      }
+      .catalog-page-container { 
+        width: 210mm !important; 
+        height: 297mm !important; 
+        max-height: 297mm !important;
+        max-width: 210mm !important;
+        overflow: hidden !important; 
+        margin: 0 !important; 
+        padding: 0 !important;
+        box-shadow: none !important; 
+        border: none !important; 
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        break-after: page !important;
+        page-break-after: always !important; 
+        box-sizing: border-box !important;
+        position: relative !important;
+      }
+      .catalog-page-container:last-child { 
+        break-after: auto !important;
+        page-break-after: auto !important; 
+      }
+      .print-page { 
+        width: 210mm !important; 
+        height: 297mm !important; 
+        max-height: 297mm !important;
+        max-width: 210mm !important;
+        transform: none !important;
+        margin: 0 !important; 
+        padding: 0 !important;
+        box-shadow: none !important; 
+        border: none !important; 
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        display: flex !important;
+        flex-direction: column !important;
+      }
+      .print-page:last-child { 
+        break-after: auto !important;
+        page-break-after: auto !important; 
+      }
+      .catalog-image-box {
+        height: 470px !important;
+      }
+      .slogan-card {
+        transform: none !important;
+      }
+      .slider-img, .ec-img { 
+        opacity: 0 !important; 
+        z-index: 0 !important; 
+      }
+      .slider-img-0, .ec-img-1 { 
+        opacity: 1 !important; 
+        z-index: 10 !important; 
+      }
+    }
+
+    @keyframes jitter {
+      0% { transform: translate(1px, 1px) rotate(0deg); }
+      20% { transform: translate(-1px, -1px) rotate(-0.5deg); }
+      40% { transform: translate(1px, -1px) rotate(0.5deg); }
+      60% { transform: translate(-1px, 1px) rotate(0deg); }
+      80% { transform: translate(-1px, -1px) rotate(0.5deg); }
+      100% { transform: translate(1px, 1px) rotate(-0.5deg); }
+    }
+    .sketch-border {
+      border: 6px solid #2563eb;
+      border-radius: 255px 15px 225px 15px/15px 225px 15px 255px;
+      animation: jitter 0.5s infinite steps(3);
+    }
+    @media print {
+      .sketch-border { animation: none !important; }
+    }
+
+    .selection-item-card {
+      user-select: none;
+      -webkit-user-select: none;
+      transition: all 0.15s ease-in-out;
+    }
+    .selection-item-card:hover {
+      transform: translateY(-1px);
+    }
+
+    /* VIP Customer Quote Styles */
+    .customer-vip-navbar {
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 100%) !important;
+      color: #ffffff !important;
+    }
+    .customer-vip-logo {
+      height: 44px !important;
+      width: auto !important;
+      max-width: 160px !important;
+      object-fit: contain !important;
+      background: #ffffff !important;
+      padding: 4px 6px !important;
+      border-radius: 8px !important;
+    }
+    .customer-vip-banner {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 50%, #2563eb 100%) !important;
+      color: #ffffff !important;
+      border-radius: 20px !important;
+      box-shadow: 0 10px 25px -5px rgba(30, 58, 138, 0.35) !important;
+      border: 1px solid rgba(255, 255, 255, 0.2) !important;
+    }
+    .customer-whatsapp-btn {
+      background-color: #25D366 !important;
+      color: #ffffff !important;
+      font-weight: 800 !important;
+      border-radius: 14px !important;
+      box-shadow: 0 4px 6px -1px rgba(37, 211, 102, 0.3) !important;
+      transition: all 0.2s !important;
+    }
+    .customer-whatsapp-btn:hover {
+      background-color: #20bd5a !important;
+      transform: translateY(-1px) !important;
+    }
+    .customer-print-btn {
+      background-color: #ffffff !important;
+      color: #1e3a8a !important;
+      font-weight: 800 !important;
+      border-radius: 14px !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1) !important;
+      transition: all 0.2s !important;
+    }
+    .customer-print-btn:hover {
+      background-color: #f8fafc !important;
+    }
+
+    .customer-vip-award-icon {
+      background: rgba(255, 255, 255, 0.2) !important;
+      border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    }
+    .customer-quote-badge {
+      background: rgba(15, 23, 42, 0.45) !important;
+      color: #ffffff !important;
+      padding: 5px 12px !important;
+      border-radius: 9999px !important;
+      border: 1px solid rgba(255, 255, 255, 0.25) !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      font-size: 0.8rem !important;
+    }
+    .customer-quote-note-box {
+      background: #ffffff !important;
+      color: #1e293b !important;
+      border-left: 4px solid #f59e0b !important;
+      border-radius: 10px !important;
+      padding: 8px 14px !important;
+      margin-top: 10px !important;
+      display: flex !important;
+      align-items: flex-start !important;
+      gap: 8px !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15) !important;
+      max-width: 100% !important;
+      line-height: 1.4 !important;
+    }
+    .modal-close-btn {
+      color: #ffffff !important;
+      padding: 8px 10px !important;
+      border-radius: 8px !important;
+      background: transparent !important;
+      border: none !important;
+      cursor: pointer !important;
+      transition: background-color 0.15s !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+    }
+    .modal-close-btn:hover {
+      background-color: rgba(255, 255, 255, 0.18) !important;
+    }
+
+    /* Expired Screen Styles */
+    .expired-card {
+      max-width: 520px !important;
+      width: 100% !important;
+      margin: 40px auto !important;
+      padding: 36px 32px !important;
+      background: #ffffff !important;
+      border-radius: 24px !important;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1) !important;
+      border-top: 8px solid #f59e0b !important;
+      text-align: center !important;
+      box-sizing: border-box !important;
+    }
+    .expired-icon-box {
+      width: 80px !important;
+      height: 80px !important;
+      margin: 0 auto 20px auto !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      border-radius: 50% !important;
+      background: #fef3c7 !important;
+      color: #d97706 !important;
+      font-size: 36px !important;
+      border: 2px solid #fde68a !important;
+    }
+    .expired-countdown-badge {
+      background: #eff6ff !important;
+      color: #1d4ed8 !important;
+      padding: 12px 16px !important;
+      border-radius: 12px !important;
+      font-weight: 700 !important;
+      margin: 20px 0 !important;
+      border: 1px solid #bfdbfe !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+    }
+    .expired-home-btn {
+      background: #2563eb !important;
+      color: #ffffff !important;
+      padding: 14px 24px !important;
+      border-radius: 14px !important;
+      font-weight: 800 !important;
+      text-decoration: none !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      width: 100% !important;
+      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3) !important;
+      transition: all 0.2s !important;
+    }
+    .expired-home-btn:hover {
+      background: #1d4ed8 !important;
+    }
+
+    /* Modal Overlays & Cards */
+    .fixed { position: fixed !important; }
+    .fixed-modal-overlay {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      right: 0 !important;
+      bottom: 0 !important;
+      background-color: rgba(15, 23, 42, 0.75) !important;
+      z-index: 99999 !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      padding: 16px !important;
+      backdrop-filter: blur(4px) !important;
+    }
+    .selection-modal-card {
+      background: #ffffff !important;
+      border-radius: 20px !important;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.45) !important;
+      width: 100% !important;
+      max-width: 860px !important;
+      max-height: 90vh !important;
+      display: flex !important;
+      flex-direction: column !important;
+      overflow: hidden !important;
+      border: 1px solid #cbd5e1 !important;
+      animation: modalFadeIn 0.2s ease-out !important;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .modal-create-link {
+      max-width: 580px !important;
+    }
+    .modal-header-gradient {
+      background: linear-gradient(135deg, #1e3a8a 0%, #1e40af 100%) !important;
+      color: #ffffff !important;
+      padding: 16px 20px !important;
+      display: flex !important;
+      justify-content: space-between !important;
+      align-items: center !important;
+      flex-shrink: 0 !important;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.15) !important;
+    }
+    .modal-primary-btn {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%) !important;
+      color: #ffffff !important;
+      font-weight: 800 !important;
+      border-radius: 12px !important;
+      padding: 14px 20px !important;
+      box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.3) !important;
+      cursor: pointer !important;
+      border: none !important;
+      width: 100% !important;
+      transition: all 0.2s !important;
+      display: flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      gap: 8px !important;
+      font-size: 0.95rem !important;
+    }
+    .modal-primary-btn:hover {
+      background: #1d4ed8 !important;
+      transform: translateY(-1px) !important;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <!-- 1. EXPIRED QUOTE SCREEN -->
+    <div v-if="isExpiredQuote" class="min-h-screen bg-slate-100 flex items-center justify-center p-4">
+      <div class="expired-card">
+        <div class="expired-icon-box">
+          <i class="fas fa-hourglass-end"></i>
+        </div>
+        <h1 class="text-2xl md:text-3xl font-black text-gray-800 mb-3">{{ t('quoteExpiredTitle') }}</h1>
+        <p class="text-gray-600 text-sm md:text-base mb-6 leading-relaxed">
+          {{ t('quoteExpiredDesc') }}
+        </p>
+        <div class="expired-countdown-badge">
+          <i class="fas fa-spinner fa-spin text-blue-600"></i>
+          <span>{{ redirectCountdown }} {{ t('redirectingToHome') }}</span>
+        </div>
+        <a href="../index.html" class="expired-home-btn text-base">
+          <i class="fas fa-home"></i>
+          <span>{{ t('goToHomeNow') }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- 2. MAIN CATALOG INTERFACE (CUSTOMER OR PUBLIC) -->
+    <div v-else>
+      <!-- A. CUSTOMER VIP NAVBAR & BANNER -->
+      <div v-if="isCustomerView" class="no-print">
+        <nav class="customer-vip-navbar shadow-lg sticky top-0 z-50 px-4 md:px-8 py-3">
+          <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <img src="logo.jpg" alt="Logo" class="customer-vip-logo" onerror="this.style.display='none'">
+              <span class="font-black text-lg md:text-xl tracking-tight uppercase text-white">Kassen Keskin</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <select v-model="lang" @change="changeLang(lang)" class="catalog-lang-select text-xs md:text-sm">
+                <option value="de">DE</option>
+                <option value="tr">TR</option>
+                <option value="en">EN</option>
+              </select>
+              <a href="https://wa.me/4917622204117" target="_blank" class="px-3.5 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg text-xs md:text-sm shadow flex items-center gap-1.5 transition-colors">
+                <i class="fab fa-whatsapp text-base"></i>
+                <span class="hidden sm:inline">WhatsApp</span>
+              </a>
+              <a href="tel:+4917622204117" class="px-3.5 py-2 bg-white text-blue-900 hover:bg-blue-50 font-bold rounded-lg text-xs md:text-sm shadow flex items-center gap-1.5 transition-colors">
+                <i class="fas fa-phone"></i>
+                <span class="hidden sm:inline">+49 176 22204117</span>
+              </a>
+            </div>
+          </div>
+        </nav>
+
+        <!-- VIP Quote Banner -->
+        <div class="max-w-5xl mx-auto px-4 pt-5 pb-2">
+          <div class="customer-vip-banner p-5 md:p-6 flex flex-col md:flex-row items-center justify-between gap-5">
+            <div class="flex items-start gap-4">
+              <div class="customer-vip-award-icon w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 shadow-inner">
+                <i class="fas fa-award text-yellow-300"></i>
+              </div>
+              <div>
+                <div class="text-[11px] uppercase tracking-wider font-extrabold text-blue-200 flex items-center gap-1.5">
+                  <span class="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
+                  {{ t('vipQuoteSubtitle') }}
+                </div>
+                <h1 class="text-xl md:text-2xl font-black mt-0.5 text-white">
+                  {{ customerQuoteData.n ? (lang === 'de' ? 'Erstellt für ' + customerQuoteData.n : (lang === 'en' ? 'Prepared for ' + customerQuoteData.n : 'Sayın ' + customerQuoteData.n + ' İçin Hazırlandı')) : t('specialQuoteTitle') }}
+                </h1>
+                <div class="flex flex-wrap items-center gap-2.5 text-xs md:text-sm text-blue-100 mt-2 font-medium">
+                  <span class="customer-quote-badge">
+                    <i class="far fa-calendar-check text-yellow-300"></i>
+                    <span>{{ t('quoteValidUntil').replace('{date}', formatExpiryDate(customerQuoteData.exp)) }}</span>
+                    <span class="text-yellow-300 font-bold ml-1">({{ getRemainingDays(customerQuoteData.exp) }} {{ t('daysLeft') }})</span>
+                  </span>
+                  <span v-if="customerQuoteData.pt" class="customer-quote-badge font-bold">
+                    {{ customerQuoteData.pt === 'aylik' ? t('monthlyRent') : (customerQuoteData.pt === 'satis' ? t('salePrice') : t('hybridPrice')) }}
+                  </span>
+                </div>
+                <div v-if="customerQuoteData.note" class="customer-quote-note-box">
+                  <i class="fas fa-comment-dots text-amber-500 shrink-0 text-sm mt-0.5"></i>
+                  <span class="text-xs md:text-sm text-gray-800 font-bold italic">"{{ customerQuoteData.note }}"</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 shrink-0 w-full md:w-auto">
+              <a :href="getWhatsAppQuoteUrl()" target="_blank" class="customer-whatsapp-btn flex-1 md:flex-initial px-5 py-3 text-sm whitespace-nowrap flex items-center justify-center gap-2">
+                <i class="fab fa-whatsapp text-xl"></i>
+                <span>{{ t('approveQuote') }}</span>
+              </a>
+              <button type="button" @click="window.print()" class="customer-print-btn px-4 py-3 text-sm whitespace-nowrap flex items-center justify-center gap-2">
+                <i class="fas fa-print"></i>
+                <span class="hidden sm:inline">{{ t('printQuote') }}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- B. PUBLIC NAVBAR (WHEN OPENED FROM WEBSITE INDEX) -->
+      <nav v-else class="no-print catalog-navbar bg-blue-700 text-white shadow-md sticky top-0 z-50">
+        <div class="catalog-nav-inner max-w-7xl mx-auto">
+          <div class="catalog-header-top">
+            <a href="../index.html" class="flex items-center gap-2 text-white hover:text-blue-100 transition-colors mr-2 text-sm md:text-base font-bold" title="kassen.berlin Ana Sayfa">
+              <i class="fas fa-arrow-left"></i> <span class="hidden sm:inline">kassen.berlin</span>
+            </a>
+            <div class="catalog-brand-title">
+              <i class="fas fa-book-open"></i> <span>{{ t('title') }}</span>
+            </div>
+          </div>
+
+          <div class="catalog-nav-actions flex items-center gap-2 md:gap-3">
+            <select v-model="lang" @change="changeLang(lang)" class="catalog-lang-select">
+              <option value="de">DE</option>
+              <option value="tr">TR</option>
+              <option value="en">EN</option>
+            </select>
+            <button type="button" @click="openSelectionModal" class="catalog-nav-btn primary text-xs md:text-sm">
+              <i class="fas fa-check-square"></i> <span>{{ t('selectProducts') }}</span>
+            </button>
+            <button v-if="sentQuotesHistory.length > 0" type="button" @click="isHistoryModalOpen = true" class="catalog-nav-btn secondary text-xs md:text-sm" :title="t('pastQuotes')">
+              <i class="fas fa-history text-blue-600"></i> <span class="hidden sm:inline">{{ t('pastQuotes') }}</span>
+            </button>
+          </div>
+        </div>
+      </nav>
+
+      <!-- FILTER BAR (PUBLIC MODE ONLY) -->
+      <div v-if="!isCustomerView" class="no-print catalog-filter-bar p-4 md:p-6 bg-white shadow-sm mb-6 flex flex-wrap gap-4 md:gap-6 items-end justify-center border-b-2 border-blue-500 w-full max-w-full box-border">
+        <div class="filter-group">
+          <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">{{ t('brand') }}</label>
+          <select v-model="filterBrand" class="block w-full md:w-52 rounded-xl shadow-sm p-2.5 border-2 border-gray-300 focus:border-blue-500 font-semibold text-sm outline-none cursor-pointer bg-white">
+            <option value="">{{ t('allBrands') }}</option>
+            <option v-for="b in brands" :key="b" :value="b">{{b}}</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">{{ t('industry') }}</label>
+          <select v-model="filterIndustry" class="block w-full md:w-52 rounded-xl shadow-sm p-2.5 border-2 border-gray-300 focus:border-blue-500 font-semibold text-sm outline-none cursor-pointer bg-white">
+            <option value="">{{ t('allIndustries') }}</option>
+            <option v-for="i in industries" :key="i" :value="i">{{i}}</option>
+          </select>
+        </div>
+        <div class="filter-group">
+          <label class="block text-xs font-bold text-gray-700 mb-1 uppercase tracking-wider">{{ t('priceTypeTitle') }}</label>
+          <select v-model="filterPriceType" class="block w-full md:w-52 rounded-xl shadow-sm p-2.5 border-2 border-gray-300 focus:border-blue-500 font-semibold text-sm outline-none cursor-pointer bg-white">
+            <option value="aylik">{{ t('monthlyRent') }}</option>
+            <option value="satis">{{ t('salePrice') }}</option>
+            <option value="hibrit">{{ t('hybridPrice') }}</option>
+          </select>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" @click="openSelectionModal" class="px-4 py-2.5 rounded-xl font-black text-sm bg-indigo-600 hover:bg-indigo-700 text-white shadow transition-all flex items-center gap-2">
+            <i class="fas fa-link"></i>
+            <span>{{ t('createCustomerLink') }}</span>
+          </button>
+          <button type="button" @click="printAll" class="px-4 py-2.5 rounded-xl font-bold text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-300 shadow-sm transition-all flex items-center gap-2">
+            <i class="fas fa-print text-gray-600"></i>
+            <span>{{ t('printAll') }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- FILTER ACTIVE BADGE -->
+      <div v-if="isSelectionOnlyMode && !isCustomerView" class="no-print max-w-4xl mx-auto mb-4 px-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
+          <span class="text-xs md:text-sm font-bold text-blue-900 flex items-center gap-2">
+            <i class="fas fa-filter text-blue-600"></i>
+            <span>{{ t('onlySelectedActive').replace('{count}', filteredProducts.length) }}</span>
+          </span>
+          <button type="button" @click="showAllProductsView" class="text-xs font-black text-blue-700 hover:text-blue-900 underline">
+            {{ t('showAllCatalog') }}
+          </button>
+        </div>
+      </div>
+
+      <!-- CATALOG PAGES LIST -->
+      <div class="no-print-bg flex flex-col items-center gap-8 md:gap-12 py-4 md:py-6">
+        <div v-for="(p, pIndex) in filteredProducts" :key="p.id" class="catalog-page-container shadow-2xl">
+          <div class="print-page">
+            <!-- Decorative Accent Circle -->
+            <div class="absolute top-0 right-0 w-80 h-80 bg-blue-50 rounded-full blur-3xl -mr-20 -mt-20 pointer-events-none"></div>
+
+            <!-- Page Header -->
+            <div class="flex justify-between items-start px-6 pt-6 pb-0 z-10 w-full shrink-0">
+              <img src="logo.jpg" alt="Logo" class="h-20 object-contain" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'200\' height=\'80\'><text x=\'10\' y=\'45\' font-size=\'30\' font-family=\'sans-serif\' font-weight=\'bold\'>KASSEN KESKİN</text></svg>'">
+              <div class="text-right">
+                <h2 class="text-5xl font-black text-gray-900 tracking-tight uppercase">{{ p.brand }}</h2>
+                <h3 class="text-3xl font-bold text-blue-600 mt-1 tracking-wide">{{ p.model }}</h3>
+              </div>
+            </div>
+
+            <!-- Image Showcase -->
+            <div class="px-10 w-full z-10 shrink-0 mt-0">
+              <div class="catalog-image-box h-[550px] w-full relative flex flex-col items-center justify-center p-4 group cursor-pointer bg-white bg-opacity-50" @click="nextImage(p.id)">
+                <!-- Sketch Border Background -->
+                <div class="absolute inset-0 pointer-events-none sketch-border z-0"></div>
+
+                <!-- Smooth Crossfade Images -->
+                <div v-if="p.images && p.images.length > 0" class="w-full h-full relative z-10">
+                  <img v-for="(img, idx) in p.images" :key="idx" 
+                       :src="img" 
+                       class="slider-img absolute top-0 bottom-0 left-0 right-0 m-auto max-w-full max-h-full drop-shadow-2xl transition-opacity duration-1000 ease-in-out rounded-[2.5rem] object-contain"
+                       :class="[(activeIndices[p.id] || 0) === idx ? 'opacity-100 z-10' : 'opacity-0 z-0', 'slider-img-' + idx]">
+                </div>
+                
+                <!-- Placeholder -->
+                <div v-else class="text-gray-300 flex flex-col items-center justify-center bg-gray-50 rounded-3xl p-8 border-4 border-dashed border-gray-200 h-full w-2/3">
+                  <i class="fas fa-cash-register text-7xl mb-4"></i>
+                  <span class="text-2xl font-bold">{{ t('noImage') }}</span>
+                </div>
+                
+                <!-- Dots -->
+                <div v-if="p.images && p.images.length > 1" class="absolute bottom-2 left-0 w-full flex justify-center gap-2 z-20">
+                  <div v-for="(img, idx) in p.images" :key="idx" 
+                       @click.stop="setImage(p.id, idx)"
+                       class="w-3 h-3 rounded-full transition-colors shadow-sm cursor-pointer"
+                       :class="(activeIndices[p.id] || 0) === idx ? 'bg-blue-600 scale-125' : 'bg-gray-300 hover:bg-gray-400'">
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Slogan & Features -->
+            <div class="px-10 py-2 z-10 flex flex-col items-start justify-start w-full flex-grow">
+              <div class="slogan-card bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-xl mb-4 w-full text-center transform -rotate-1 border-b-4 border-blue-800">
+                <h1 class="text-2xl font-black italic tracking-wide leading-tight">
+                  "{{ p.translations[lang].slogan }}"
+                </h1>
+              </div>
+
+              <!-- Features Grid -->
+              <div class="grid grid-cols-2 gap-x-8 gap-y-3 w-full mt-1 mb-2">
+                <div v-for="(feat, idx) in p.translations[lang].features" :key="idx" class="flex items-center gap-2">
+                  <div class="bg-green-500 text-white rounded-lg flex items-center justify-center h-8 w-8 shrink-0 shadow-sm border-b-[3px] border-green-700">
+                    <i class="fas fa-check text-base"></i>
+                  </div>
+                  <span class="text-lg font-bold text-gray-800 leading-snug">{{ feat }}</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Price Tag -->
+            <div v-if="(filterPriceType === 'aylik' && p.price) || (filterPriceType === 'satis' && p.priceSatis) || (filterPriceType === 'hibrit' && p.priceHibrit)" class="absolute bottom-[198px] right-[7px] transform -rotate-[15deg] z-40 drop-shadow-2xl opacity-90 scale-110 origin-bottom-right">
+              <div class="relative bg-yellow-400 text-red-700 px-6 py-2 rounded-lg border-4 border-red-600 shadow-xl inline-block text-center flex flex-col justify-center min-w-[140px] min-h-[70px]" style="font-family: 'Impact', 'Arial Black', sans-serif;">
+                <span class="uppercase tracking-tighter" :class="(filterPriceType === 'satis' && p.priceSatis && p.priceSatis.length >= 4) || (filterPriceType === 'hibrit' && p.priceHibrit && p.priceHibrit.length >= 4) ? 'text-4xl' : 'text-6xl'">
+                  {{ filterPriceType === 'aylik' ? p.price : filterPriceType === 'satis' ? p.priceSatis : p.priceHibrit }}
+                </span>
+                <div class="absolute top-[100%] left-1/2 -translate-x-1/2 -translate-y-[45%] bg-yellow-400 text-red-700 px-2 py-0.5 text-[10px] rounded-full border border-red-600 shadow-sm" style="font-family: 'Poppins', sans-serif; font-weight: 900; white-space: nowrap; line-height: 1;">
+                  {{ filterPriceType === 'aylik' ? (lang === 'tr' ? 'AYLIK' : lang === 'de' ? 'MONATLICH' : 'MONTHLY') : filterPriceType === 'satis' ? (lang === 'tr' ? 'NET FİYAT' : lang === 'de' ? 'NETTOPREIS' : 'NET PRICE') : (lang === 'tr' ? 'HİBRİT' : 'HYBRID') }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Section -->
+            <div class="mt-auto w-full bg-blue-800 text-white flex justify-between items-center px-10 py-6 relative shrink-0 z-20 shadow-[0_-10px_30px_rgba(0,0,0,0.1)]">
+              <!-- Notes and EC Slider -->
+              <div class="absolute bottom-8 left-10 flex shadow-2xl z-30" style="bottom: 34px;">
+                <div class="w-[5cm] h-[5cm] border-4 border-dashed border-gray-400 bg-white p-3 flex flex-col" style="background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; border-right-width: 0;">
+                  <span class="text-sm text-gray-500 font-bold mb-2 border-b-2 border-gray-200 pb-1 uppercase tracking-wider text-center">{{ t('notes') }}</span>
+                  <p class="text-[10px] font-light text-gray-700 leading-tight flex-grow overflow-hidden text-center whitespace-pre-wrap">{{ p.translations[lang].note }}</p>
+                </div>
+                <div class="w-[5cm] h-[5cm] border-4 border-dashed border-gray-400 bg-white relative overflow-hidden flex items-center justify-center p-2" style="background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;">
+                  <img v-for="i in 5" :key="i"
+                       :src="'image/ec/' + i + '.png'"
+                       class="ec-img absolute max-w-full max-h-full object-contain transition-opacity duration-1000 ease-in-out p-2"
+                       :class="[ecActiveIndex === (i-1) ? 'opacity-100 z-10' : 'opacity-0 z-0', 'ec-img-' + i]">
+                </div>
+              </div>
+
+              <!-- Offer Number -->
+              <div v-if="getOfferDisplay(p)" 
+                   style="position: absolute; bottom: 6px; left: 40px; z-index: 50; font-size: 11px; font-weight: 600; color: #93c5fd; letter-spacing: 0.5px; opacity: 0.9; line-height: 1.2; display: flex; align-items: center; gap: 5px; user-select: text !important; -webkit-user-select: text !important; cursor: text;">
+                <span style="color: #93c5fd; font-weight: 700;">{{ t('offerPrefix') }}:</span>
+                <span style="color: #bfdbfe; font-family: monospace; font-weight: 600;">{{ getOfferDisplay(p) }}</span>
+              </div>
+
+              <div class="w-10"></div>
+
+              <!-- Contact & WhatsApp QR -->
+              <div class="flex items-center gap-4 z-10">
+                <div class="text-right max-w-[10cm]">
+                  <div class="text-[22px] font-black text-white mb-1">
+                    <i class="fab fa-whatsapp text-green-400 drop-shadow-md"></i> +49 176 222 0 4117
+                  </div>
+                  <div class="text-lg font-bold text-blue-100 leading-tight">
+                    <i class="fas fa-map-marker-alt text-red-400 drop-shadow-md"></i> Stülpnagelstraße 3<br>14059 Berlin
+                  </div>
+                </div>
+                <img src="whatsapp.bmp" alt="WhatsApp" class="w-[85px] h-[85px] object-contain bg-white p-1 rounded-lg shadow-md shrink-0">
+              </div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. PRODUCT SELECTION MODAL -->
+    <div v-if="isSelectionModalOpen" class="fixed-modal-overlay">
+      <div class="selection-modal-card">
+        <!-- Modal Header -->
+        <div class="modal-header-gradient">
+          <div>
+            <h3 class="text-lg md:text-xl font-black flex items-center gap-2 text-white">
+              <i class="fas fa-tasks text-yellow-300"></i> {{ t('selectionTitle') }}
+            </h3>
+            <p class="text-xs text-blue-100 mt-0.5">{{ t('selectionSubtitle') }}</p>
+          </div>
+          <button type="button" @click="isSelectionModalOpen = false" class="modal-close-btn" aria-label="Close">
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Search & Quick Selection -->
+        <div class="p-3 md:p-4 bg-gray-50 border-b flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div class="relative flex-grow max-w-md">
+            <i class="fas fa-search absolute left-3.5 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" v-model="selectionSearch" :placeholder="t('searchProduct')" 
+                   class="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-xl text-xs md:text-sm font-semibold focus:border-blue-500 focus:outline-none bg-white">
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" @click="selectAllProducts" class="px-3 py-1.5 bg-blue-100 hover:bg-blue-200 text-blue-700 font-bold rounded-lg text-xs transition-colors flex items-center gap-1">
+              <i class="fas fa-check-double"></i> <span>{{ t('selectAll') }}</span>
+            </button>
+            <button type="button" @click="deselectAllProducts" class="px-3 py-1.5 bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold rounded-lg text-xs transition-colors flex items-center gap-1">
+              <i class="fas fa-times"></i> <span>{{ t('deselectAll') }}</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Products List -->
+        <div class="p-3 md:p-4 overflow-y-auto flex-grow space-y-2.5 max-h-[55vh] bg-gray-50">
+          <div v-for="p in filteredModalProducts" :key="p.id" 
+               @click="toggleProductSelection(p.id)"
+               class="selection-item-card p-3 rounded-xl border-2 cursor-pointer flex items-center justify-between gap-3 select-none"
+               :class="selectedProductIds.includes(p.id) ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-white border-gray-200 hover:border-blue-300'">
+            <div class="flex items-center gap-3 overflow-hidden">
+              <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 border-2 transition-colors"
+                   :class="selectedProductIds.includes(p.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-transparent'">
+                <i class="fas fa-check text-xs"></i>
+              </div>
+              <div class="w-12 h-12 bg-white border border-gray-200 rounded-lg p-1 shrink-0 flex items-center justify-center overflow-hidden">
+                <img v-if="p.images && p.images.length > 0" :src="p.images[0]" class="max-w-full max-h-full object-contain">
+                <i v-else class="fas fa-cash-register text-gray-300 text-xl"></i>
+              </div>
+              <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                  <span class="font-black text-gray-900 text-sm md:text-base">{{ p.brand }}</span>
+                  <span class="font-bold text-blue-600 text-xs md:text-sm">{{ p.model }}</span>
+                </div>
+                <p v-if="p.translations && p.translations[lang] && p.translations[lang].slogan" class="text-xs text-gray-500 truncate font-medium max-w-xs md:max-w-md">
+                  {{ p.translations[lang].slogan }}
+                </p>
+              </div>
+            </div>
+            <div class="text-right shrink-0">
+              <div class="text-sm md:text-base font-black text-gray-800">
+                {{ filterPriceType === 'aylik' ? (p.price || '-') : filterPriceType === 'satis' ? (p.priceSatis || '-') : (p.priceHibrit || '-') }}
+              </div>
+              <div class="text-[9px] font-bold text-gray-400 uppercase">
+                {{ filterPriceType === 'aylik' ? t('monthlyRent') : (filterPriceType === 'satis' ? t('salePrice') : t('hybridPrice')) }}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Modal Footer Actions -->
+        <div class="p-3 md:p-4 border-t bg-gray-50 flex flex-wrap items-center justify-between gap-3 shrink-0">
+          <div class="text-xs md:text-sm font-bold text-gray-700">
+            <span class="text-blue-600 font-black text-sm md:text-base">{{ selectedProductIds.length }}</span> / {{ products.length }} {{ t('selectedCount') }}
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" @click="isSelectionModalOpen = false" class="px-3 py-2 rounded-lg font-bold text-gray-600 hover:bg-gray-200 text-xs md:text-sm transition-colors">
+              {{ t('close') }}
+            </button>
+            <button type="button" @click="openCreateLinkModal" :disabled="selectedProductIds.length === 0" 
+                    class="btn-open-create-link px-3.5 md:px-4 py-2 md:py-2.5 rounded-xl font-black text-xs md:text-sm transition-all flex items-center gap-1.5 bg-blue-600 hover:bg-blue-700 text-white shadow-md disabled:opacity-40 disabled:cursor-not-allowed">
+              <i class="fas fa-link text-yellow-300"></i> <span>{{ t('createCustomerLink') }}</span>
+            </button>
+            <button type="button" @click="applySelectionFilter" :disabled="selectedProductIds.length === 0" 
+                    class="px-3 py-2 rounded-lg font-bold text-xs md:text-sm transition-all flex items-center gap-1.5 bg-blue-100 hover:bg-blue-200 text-blue-800 disabled:opacity-40 disabled:cursor-not-allowed">
+              <i class="fas fa-eye"></i> <span>{{ t('showOnlySelected') }}</span>
+            </button>
+            <button type="button" @click="printSelected" :disabled="selectedProductIds.length === 0" 
+                    class="px-4 py-2 rounded-lg font-black text-xs md:text-sm transition-all flex items-center gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white shadow disabled:opacity-40 disabled:cursor-not-allowed">
+              <i class="fas fa-print"></i> <span>{{ t('printSelected') }} ({{ selectedProductIds.length }})</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. CREATE CUSTOMER LINK MODAL -->
+    <div v-if="isCreateLinkModalOpen" class="fixed-modal-overlay">
+      <div class="selection-modal-card modal-create-link">
+        <!-- Header -->
+        <div class="modal-header-gradient">
+          <div>
+            <h3 class="text-lg md:text-xl font-black flex items-center gap-2 text-white">
+              <i class="fas fa-link text-yellow-300"></i> {{ t('createLinkTitle') }}
+            </h3>
+            <p class="text-xs text-blue-100 mt-0.5">{{ t('createLinkSubtitle') }}</p>
+          </div>
+          <button type="button" @click="isCreateLinkModalOpen = false" class="modal-close-btn" aria-label="Close">
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Form Body -->
+        <div class="p-4 md:p-6 overflow-y-auto space-y-4">
+          <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-check-circle text-blue-600 text-lg"></i>
+              <span class="text-xs md:text-sm font-bold text-gray-800">
+                <span class="text-blue-700 font-black">{{ selectedProductIds.length }}</span> {{ t('selectedCount') }}
+              </span>
+            </div>
+            <span class="text-[11px] font-bold text-blue-600 bg-white px-2 py-0.5 rounded-full border border-blue-200">
+              5 {{ t('daysLeft') }}
+            </span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              {{ t('customerName') }} <span class="text-gray-400 font-normal">({{ t('optional') }})</span>
+            </label>
+            <input type="text" v-model="linkCustomerName" :placeholder="t('customerNamePlaceholder')" 
+                   class="w-full px-3.5 py-2.5 border-2 border-gray-300 rounded-xl text-sm font-semibold focus:border-blue-500 focus:outline-none">
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                {{ t('priceTypeTitle') }}
+              </label>
+              <select v-model="linkPriceType" class="w-full px-3.5 py-2.5 border-2 border-gray-300 rounded-xl text-sm font-semibold focus:border-blue-500 focus:outline-none bg-white">
+                <option value="aylik">{{ t('monthlyRent') }}</option>
+                <option value="satis">{{ t('salePrice') }}</option>
+                <option value="hibrit">{{ t('hybridPrice') }}</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+                {{ t('validityPeriod') }}
+              </label>
+              <select v-model="linkValidDays" class="w-full px-3.5 py-2.5 border-2 border-gray-300 rounded-xl text-sm font-semibold focus:border-blue-500 focus:outline-none bg-white">
+                <option :value="3">3 {{ t('days') }}</option>
+                <option :value="5">5 {{ t('days') }} ({{ t('standard') }})</option>
+                <option :value="7">7 {{ t('days') }} (1 {{ t('week') }})</option>
+                <option :value="14">14 {{ t('days') }} (2 {{ t('weeks') }})</option>
+                <option :value="30">30 {{ t('days') }} (1 {{ t('month') }})</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">
+              {{ t('quoteNote') }} <span class="text-gray-400 font-normal">({{ t('optional') }})</span>
+            </label>
+            <input type="text" v-model="linkNote" :placeholder="t('quoteNotePlaceholder')" 
+                   class="w-full px-3.5 py-2.5 border-2 border-gray-300 rounded-xl text-sm font-semibold focus:border-blue-500 focus:outline-none">
+          </div>
+
+          <div>
+            <button type="button" @click="generateCustomerLink" 
+                    class="modal-primary-btn">
+              <i class="fas fa-magic text-yellow-300"></i>
+              <span>{{ t('generateLinkBtn') }}</span>
+            </button>
+          </div>
+
+          <!-- Generated Link Box -->
+          <div v-if="generatedShareUrl" class="bg-slate-50 border-2 border-blue-500 rounded-2xl p-4 space-y-3 mt-4 animate-fadeIn">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold uppercase tracking-wider text-blue-700 flex items-center gap-1">
+                <i class="fas fa-check-circle text-green-500"></i> {{ t('linkReady') }}
+              </span>
+              <span class="text-[11px] font-semibold text-gray-500">
+                {{ linkValidDays }} {{ t('daysValid') }}
+              </span>
+            </div>
+
+            <!-- URL input with copy button -->
+            <div class="flex items-center gap-2 bg-white border border-gray-300 rounded-xl p-1.5 focus-within:border-blue-500">
+              <input type="text" readonly :value="generatedShareUrl" 
+                     class="w-full px-2 py-1.5 text-xs text-gray-700 font-mono bg-transparent outline-none select-all">
+              <button type="button" @click="copyGeneratedLink" 
+                      class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-bold shrink-0 transition-colors flex items-center gap-1">
+                <i :class="isCopiedNotification ? 'fas fa-check' : 'fas fa-copy'"></i>
+                <span>{{ isCopiedNotification ? t('copied') : t('copy') }}</span>
+              </button>
+            </div>
+
+            <!-- WhatsApp & Preview Buttons -->
+            <div class="flex flex-col sm:flex-row items-center gap-2 pt-1">
+              <a :href="getWhatsAppShareUrl()" target="_blank" 
+                 class="w-full py-2.5 px-4 bg-[#25D366] hover:bg-[#20bd5a] text-white font-black text-xs md:text-sm rounded-xl shadow transition-all flex items-center justify-center gap-2">
+                <i class="fab fa-whatsapp text-lg"></i>
+                <span>{{ t('shareOnWhatsApp') }}</span>
+              </a>
+              <button type="button" @click="copyWhatsAppMessage" 
+                      class="w-full sm:w-auto py-2.5 px-3.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs md:text-sm rounded-xl border border-blue-200 transition-all flex items-center justify-center gap-1.5 whitespace-nowrap">
+                <i class="far fa-comment-alt"></i>
+                <span>{{ t('copyMessage') }}</span>
+              </button>
+              <a :href="generatedShareUrl" target="_blank" 
+                 class="py-2.5 px-3 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold text-xs md:text-sm rounded-xl transition-all flex items-center justify-center gap-1.5 shrink-0"
+                 :title="t('previewLink')">
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 md:p-4 border-t bg-gray-50 flex justify-end shrink-0">
+          <button type="button" @click="isCreateLinkModalOpen = false" class="px-4 py-2 rounded-lg font-bold text-gray-600 hover:bg-gray-200 text-xs md:text-sm transition-colors">
+            {{ t('close') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. SENT QUOTES HISTORY MODAL -->
+    <div v-if="isHistoryModalOpen" class="fixed-modal-overlay">
+      <div class="selection-modal-card max-w-2xl">
+        <div class="p-4 md:p-5 border-b bg-gray-50 flex justify-between items-center shrink-0">
+          <h3 class="text-lg font-black text-gray-800 flex items-center gap-2">
+            <i class="fas fa-history text-blue-600"></i> {{ t('pastQuotes') }}
+          </h3>
+          <button type="button" @click="isHistoryModalOpen = false" class="text-gray-400 hover:text-gray-600 p-2">
+            <i class="fas fa-times text-lg"></i>
+          </button>
+        </div>
+
+        <div class="p-4 md:p-6 overflow-y-auto space-y-3 flex-grow">
+          <div v-if="sentQuotesHistory.length === 0" class="text-center py-8 text-gray-400">
+            <i class="fas fa-inbox text-3xl mb-2 text-gray-300"></i>
+            <p>{{ t('noPastQuotes') }}</p>
+          </div>
+          <div v-for="(q, idx) in sentQuotesHistory" :key="idx" 
+               class="p-3.5 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
+            <div>
+              <div class="font-bold text-sm text-gray-900">
+                {{ q.customerName || t('unnamedCustomer') }}
+              </div>
+              <div class="text-xs text-gray-500 mt-0.5 flex items-center gap-2">
+                <span>{{ q.productCount }} {{ t('productsCount') }}</span>
+                <span>•</span>
+                <span>{{ q.dateFormatted }}</span>
+                <span>•</span>
+                <span :class="Date.now() > q.exp ? 'text-red-600 font-bold' : 'text-green-600 font-bold'">
+                  {{ Date.now() > q.exp ? t('expired') : t('active') }}
+                </span>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+              <button type="button" @click="copyHistoryLink(q.url)" class="p-2 bg-blue-100 hover:bg-blue-200 text-blue-700 rounded-lg text-xs font-bold transition-colors" :title="t('copy')">
+                <i class="fas fa-copy"></i>
+              </button>
+              <a :href="q.url" target="_blank" class="p-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-xs font-bold transition-colors" :title="t('previewLink')">
+                <i class="fas fa-external-link-alt"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 md:p-4 border-t bg-gray-50 flex justify-between items-center shrink-0">
+          <button type="button" @click="clearHistory" class="text-xs text-red-600 hover:text-red-800 font-semibold">
+            {{ t('clearHistory') }}
+          </button>
+          <button type="button" @click="isHistoryModalOpen = false" class="px-4 py-2 rounded-lg font-bold text-gray-600 hover:bg-gray-200 text-xs md:text-sm transition-colors">
+            {{ t('close') }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    const i18nDictionary = {
+      tr: {
+        title: 'KASSEN KESKİN KATALOG',
+        brand: 'Marka', allBrands: 'Tüm Markalar',
+        industry: 'Sektör', allIndustries: 'Tüm Sektörler',
+        priceTypeTitle: 'Fiyat Türü',
+        monthlyRent: 'Aylık Kiralama', salePrice: 'Satın Alma', hybridPrice: 'Hibrit Teklif',
+        selectProducts: 'Ürün Seç / Link Oluştur',
+        selectionTitle: 'Ürün Seçimi & Müşteri Linki',
+        selectionSubtitle: 'İstediğiniz ürünleri seçerek müşteriye özel 5 gün geçerli web bağlantısı oluşturabilirsiniz.',
+        selectAll: 'Tümünü Seç', deselectAll: 'Seçimi Kaldır',
+        selectedCount: 'ürün seçildi',
+        searchProduct: 'Ürün ara (marka, model, sektör)...',
+        showOnlySelected: 'Sayfada Göster',
+        showAllCatalog: 'Tüm Kataloğu Göster',
+        onlySelectedActive: 'Yalnızca seçili {count} ürün görüntüleniyor',
+        printSelected: 'Seçilenleri Yazdır', printAll: 'Tümünü Yazdır',
+        createCustomerLink: 'Müşteri Linki Oluştur',
+        createLinkTitle: 'Müşteri Teklif Linki Oluştur',
+        createLinkSubtitle: 'Seçilen ürünler için 5 gün geçerli benzersiz bir bağlantı oluşturun.',
+        customerName: 'Müşteri / Firma Adı',
+        customerNamePlaceholder: 'Örn: Ali Bey - Bistro Berlin',
+        validityPeriod: 'Geçerlilik Süresi',
+        quoteNote: 'Özel Not / Mesaj',
+        quoteNotePlaceholder: 'Müşteriye iletmek istediğiniz kısa bir not...',
+        generateLinkBtn: 'Teklif Bağlantısını Oluştur',
+        linkReady: 'Müşteri Bağlantısı Hazır!',
+        copy: 'Kopyala', copied: 'Kopyalandı!',
+        copyMessage: 'Mesaj Metnini Kopyala',
+        shareOnWhatsApp: 'WhatsApp ile Gönder',
+        previewLink: 'Müşteri Sayfasını Gör',
+        pastQuotes: 'Geçmiş Teklifler',
+        noPastQuotes: 'Henüz kaydedilmiş bir teklif bulunmuyor.',
+        clearHistory: 'Geçmişi Temizle',
+        unnamedCustomer: 'İsimsiz Teklif',
+        productsCount: 'ürün',
+        expired: 'Süresi Doldu', active: 'Aktif',
+        quoteExpiredTitle: 'Bu Teklifin Geçerlilik Süresi Dolmuştur',
+        quoteExpiredDesc: 'Bu özel teklif 5 günlük süre için geçerliydi ve geçerlilik süresi tamamlanmıştır. Güncel ürünlerimizi ve kampanyalarımızı incelemeniz için ana sayfamıza yönlendiriliyorsunuz...',
+        redirectingToHome: 'saniye içinde ana sayfaya yönlendiriliyorsunuz...',
+        goToHomeNow: 'Hemen Kassen Keskin Ana Sayfasına Git',
+        vipQuoteSubtitle: 'Size Özel Hazırlanan Teklif',
+        specialQuoteTitle: 'Özel Ürün Teklif Kataloğu',
+        quoteValidUntil: 'Bu teklif {date} tarihine kadar geçerlidir.',
+        daysLeft: 'gün kaldı',
+        approveQuote: 'Teklifi Onayla / WhatsApp',
+        printQuote: 'Yazdır',
+        optional: 'İsteğe bağlı',
+        standard: 'Standart',
+        week: 'Hafta', weeks: 'Hafta', month: 'Ay', days: 'Gün', daysValid: 'gün geçerli',
+        notes: 'Notlar',
+        offerPrefix: 'Teklif No',
+        noImage: 'Görsel Yok',
+        close: 'Kapat'
+      },
+      de: {
+        title: 'KASSEN KESKİN KATALOG',
+        brand: 'Marke', allBrands: 'Alle Marken',
+        industry: 'Branche', allIndustries: 'Alle Branchen',
+        priceTypeTitle: 'Preistyp',
+        monthlyRent: 'Monatliche Miete', salePrice: 'Kaufpreis', hybridPrice: 'Hybrid-Angebot',
+        selectProducts: 'Produkte Auswählen',
+        selectionTitle: 'Produktauswahl & Kundenlink',
+        selectionSubtitle: 'Wählen Sie Produkte aus, um einen exklusiven Kundenlink mit 5 Tagen Gültigkeit zu erstellen.',
+        selectAll: 'Alle auswählen', deselectAll: 'Auswahl aufheben',
+        selectedCount: 'ausgewählt',
+        searchProduct: 'Produkt suchen (Marke, Modell, Branche)...',
+        showOnlySelected: 'Auf Seite anzeigen',
+        showAllCatalog: 'Gesamten Katalog anzeigen',
+        onlySelectedActive: 'Nur {count} ausgewählte Produkte werden angezeigt',
+        printSelected: 'Auswahl drucken', printAll: 'Gesamten Katalog drucken',
+        createCustomerLink: 'Kundenlink Erstellen',
+        createLinkTitle: 'Kunden-Angebotslink Erstellen',
+        createLinkSubtitle: 'Erstellen Sie einen einzigartigen Link mit 5 Tagen Gültigkeit für die ausgewählten Produkte.',
+        customerName: 'Kundenname / Firma',
+        customerNamePlaceholder: 'z.B. Herr Ali - Bistro Berlin',
+        validityPeriod: 'Gültigkeitsdauer',
+        quoteNote: 'Besondere Notiz / Nachricht',
+        quoteNotePlaceholder: 'Kurze Notiz für den Kunden...',
+        generateLinkBtn: 'Angebotslink Erstellen',
+        linkReady: 'Kundenlink ist bereit!',
+        copy: 'Kopieren', copied: 'Kopiert!',
+        copyMessage: 'Nachricht kopieren',
+        shareOnWhatsApp: 'Über WhatsApp teilen',
+        previewLink: 'Kundenseite ansehen',
+        pastQuotes: 'Bisherige Angebote',
+        noPastQuotes: 'Noch keine gespeicherten Angebote vorhanden.',
+        clearHistory: 'Verlauf leeren',
+        unnamedCustomer: 'Unbenanntes Angebot',
+        productsCount: 'Produkte',
+        expired: 'Abgelaufen', active: 'Aktiv',
+        quoteExpiredTitle: 'Dieses Angebot ist abgelaufen',
+        quoteExpiredDesc: 'Dieses persönliche Angebot war für 5 Tage gültig und ist nun abgelaufen. Sie werden zur Startseite weitergeleitet...',
+        redirectingToHome: 'Sekunden bis zur Weiterleitung...',
+        goToHomeNow: 'Jetzt zur Startseite',
+        vipQuoteSubtitle: 'Ihr persönliches Angebot',
+        specialQuoteTitle: 'Individueller Produktkatalog',
+        quoteValidUntil: 'Dieses Angebot ist gültig bis zum {date}.',
+        daysLeft: 'Tage übrig',
+        approveQuote: 'Angebot annehmen / WhatsApp',
+        printQuote: 'Drucken',
+        optional: 'Optional',
+        standard: 'Standard',
+        week: 'Woche', weeks: 'Wochen', month: 'Monat', days: 'Tage', daysValid: 'Tage gültig',
+        notes: 'Hinweise',
+        offerPrefix: 'Angebot-Nr.',
+        noImage: 'Kein Bild',
+        close: 'Schließen'
+      },
+      en: {
+        title: 'KASSEN KESKİN CATALOG',
+        brand: 'Brand', allBrands: 'All Brands',
+        industry: 'Industry', allIndustries: 'All Industries',
+        priceTypeTitle: 'Price Type',
+        monthlyRent: 'Monthly Rental', salePrice: 'Purchase Price', hybridPrice: 'Hybrid Offer',
+        selectProducts: 'Select Products',
+        selectionTitle: 'Product Selection & Customer Link',
+        selectionSubtitle: 'Select products to generate an exclusive web quote link valid for 5 days.',
+        selectAll: 'Select All', deselectAll: 'Deselect All',
+        selectedCount: 'selected',
+        searchProduct: 'Search product (brand, model, industry)...',
+        showOnlySelected: 'Show on Page',
+        showAllCatalog: 'Show Entire Catalog',
+        onlySelectedActive: 'Showing only {count} selected products',
+        printSelected: 'Print Selected', printAll: 'Print Entire Catalog',
+        createCustomerLink: 'Create Customer Link',
+        createLinkTitle: 'Generate Customer Quote Link',
+        createLinkSubtitle: 'Create a unique link valid for 5 days for the selected products.',
+        customerName: 'Customer / Company Name',
+        customerNamePlaceholder: 'e.g. Mr. Ali - Bistro Berlin',
+        validityPeriod: 'Validity Period',
+        quoteNote: 'Custom Note / Message',
+        quoteNotePlaceholder: 'Short note for the customer...',
+        generateLinkBtn: 'Generate Quote Link',
+        linkReady: 'Customer Link is Ready!',
+        copy: 'Copy', copied: 'Copied!',
+        copyMessage: 'Copy Message Text',
+        shareOnWhatsApp: 'Share via WhatsApp',
+        previewLink: 'View Customer Page',
+        pastQuotes: 'Sent Quotes',
+        noPastQuotes: 'No saved quotes yet.',
+        clearHistory: 'Clear History',
+        unnamedCustomer: 'Unnamed Quote',
+        productsCount: 'products',
+        expired: 'Expired', active: 'Active',
+        quoteExpiredTitle: 'This Quote Has Expired',
+        quoteExpiredDesc: 'This personalized quote was valid for 5 days and has now expired. You are being redirected to our homepage...',
+        redirectingToHome: 'seconds until redirect...',
+        goToHomeNow: 'Go to Homepage Now',
+        vipQuoteSubtitle: 'Special Offer Prepared for You',
+        specialQuoteTitle: 'Custom Product Quote Catalog',
+        quoteValidUntil: 'This offer is valid until {date}.',
+        daysLeft: 'days left',
+        approveQuote: 'Approve Quote / WhatsApp',
+        printQuote: 'Print',
+        optional: 'Optional',
+        standard: 'Standard',
+        week: 'Week', weeks: 'Weeks', month: 'Month', days: 'Days', daysValid: 'days valid',
+        notes: 'Notes',
+        offerPrefix: 'Quote No',
+        noImage: 'No Image',
+        close: 'Close'
+      }
+    };
+
+    const { createApp, ref, computed, watch, onMounted, onUnmounted, nextTick } = Vue;
+
+    createApp({
+      setup() {
+        const lang = ref('de');
+        const t = (k) => {
+          return (i18nDictionary[lang.value] && i18nDictionary[lang.value][k]) || 
+                 (i18nDictionary['de'] && i18nDictionary['de'][k]) || k;
+        };
+
+        const changeLang = (l) => {
+          lang.value = l;
+          try { localStorage.setItem('kassen_catalog_lang', l); } catch(e) {}
+        };
+
+        const savedLang = localStorage.getItem('kassen_catalog_lang');
+        if (savedLang && ['tr', 'de', 'en'].includes(savedLang)) {
+          lang.value = savedLang;
+        }
+
+        // Catalog Data State
+        const products = ref([]);
+        const brands = ref([]);
+        const industries = ref([]);
+        const filterBrand = ref('');
+        const filterIndustry = ref('');
+        const filterPriceType = ref('aylik');
+
+        // Customer & Expiration State
+        const isCustomerView = ref(false);
+        const customerQuoteData = ref(null);
+        const isExpiredQuote = ref(false);
+        const redirectCountdown = ref(3);
+        let redirectTimer = null;
+
+        // Selection Modal State
+        const selectedProductIds = ref([]);
+        const isSelectionModalOpen = ref(false);
+        const isSelectionOnlyMode = ref(false);
+        const selectionSearch = ref('');
+
+        // Create Link Modal State
+        const isCreateLinkModalOpen = ref(false);
+        const linkCustomerName = ref('');
+        const linkPriceType = ref('aylik');
+        const linkValidDays = ref(5);
+        const linkNote = ref('');
+        const generatedShareUrl = ref('');
+        const isCopiedNotification = ref(false);
+
+        // History of sent quotes
+        const sentQuotesHistory = ref([]);
+        const isHistoryModalOpen = ref(false);
+
+        try {
+          const stored = localStorage.getItem('kassen_sent_quotes');
+          if (stored) sentQuotesHistory.value = JSON.parse(stored);
+        } catch(e) {}
+
+        const normalizeProduct = (p) => {
+          if (!p.id) p.id = (p.brand || 'p') + '_' + (p.model || Math.random());
+          if (!p.images) p.images = [];
+          if (!p.translations) p.translations = {};
+          ['tr', 'de', 'en'].forEach(l => {
+            if (!p.translations[l]) p.translations[l] = { slogan: '', features: [], note: '' };
+            if (!p.translations[l].features) p.translations[l].features = [];
+            if (p.translations[l].note === undefined) p.translations[l].note = '';
+          });
+          return p;
+        };
+
+        const applyData = (data) => {
+          if (!data) return;
+          let prods = [];
+          if (Array.isArray(data)) {
+            prods = data;
+          } else if (typeof data === 'object') {
+            prods = data.products || [];
+            if (Array.isArray(data.brands) && data.brands.length > 0) brands.value = data.brands;
+            if (Array.isArray(data.industries) && data.industries.length > 0) industries.value = data.industries;
+          }
+          if (prods.length > 0) {
+            prods.forEach(normalizeProduct);
+            products.value = prods;
+          }
+        };
+
+        const loadCatalog = async () => {
+          // 1. Önce window.KATALOG_DATA'yı yükle (file:/// ve hızlı açılış için)
+          if (window.KATALOG_DATA) {
+            applyData(window.KATALOG_DATA);
+          }
+
+          // 2. HTTP/HTTPS üzerinden açıldıysa dinamik JSON çekmeyi dene
+          if (window.location.protocol.startsWith('http')) {
+            try {
+              const res = await fetch('./catalog_data.json?_t=' + Date.now(), { cache: 'no-store' });
+              if (res.ok) {
+                const data = await res.json();
+                applyData(data);
+              }
+            } catch(err) {
+              console.warn('Dinamik JSON çekilemedi, yerel veri kullanılıyor:', err);
+            }
+          }
+        };
+
+        // Token Encode / Decode (Ultra-Compact URL Safe Format + Legacy Support)
+        const encodeToken = (payload) => {
+          const pStr = (payload.p || []).join(',');
+          const expSec = Math.floor((payload.exp || 0) / 1000).toString(36);
+          const ptCode = (payload.pt === 'satis') ? 's' : (payload.pt === 'hibrit' ? 'h' : 'a');
+          const name = (payload.n || '').trim();
+          const note = (payload.note || '').trim();
+
+          const packed = `${pStr}*${expSec}*${ptCode}*${name}*${note}`;
+          return btoa(unescape(encodeURIComponent(packed)))
+                 .replace(/\+/g, '-')
+                 .replace(/\//g, '_')
+                 .replace(/=+$/, '');
+        };
+
+        const decodeToken = (str) => {
+          if (!str) return null;
+          let b64 = str.replace(/-/g, '+').replace(/_/g, '/');
+          while (b64.length % 4) b64 += '=';
+          const decoded = decodeURIComponent(escape(atob(b64)));
+
+          // Support legacy JSON format for existing links
+          if (decoded.trim().startsWith('{')) {
+            return JSON.parse(decoded);
+          }
+
+          // Compact format: "pStr*expSec*ptCode*name*note"
+          const parts = decoded.split('*');
+          if (parts.length >= 3) {
+            const pIds = parts[0] ? parts[0].split(',').map(Number).filter(n => !isNaN(n)) : [];
+            const expMs = parseInt(parts[1], 36) * 1000;
+            const ptCode = parts[2];
+            const pt = ptCode === 's' ? 'satis' : (ptCode === 'h' ? 'hibrit' : 'aylik');
+            const name = parts[3] || '';
+            const note = parts.slice(4).join('*') || '';
+
+            return {
+              p: pIds,
+              exp: expMs,
+              pt: pt,
+              n: name,
+              note: note
+            };
+          }
+          return null;
+        };
+
+        // Check URL Token on startup
+        const initFromUrl = () => {
+          const urlParams = new URLSearchParams(window.location.search);
+          const token = urlParams.get('t') || urlParams.get('teklif') || urlParams.get('q');
+          if (!token) return;
+
+          try {
+            const payload = decodeToken(token);
+            if (!payload || !payload.exp) return;
+
+            // Check if expired
+            if (Date.now() > payload.exp) {
+              isExpiredQuote.value = true;
+              startExpiryRedirect();
+              return;
+            }
+
+            // Valid Customer Quote
+            isCustomerView.value = true;
+            customerQuoteData.value = payload;
+            if (payload.pt) {
+              filterPriceType.value = payload.pt;
+            }
+            if (Array.isArray(payload.p) && payload.p.length > 0) {
+              selectedProductIds.value = payload.p;
+              isSelectionOnlyMode.value = true;
+            }
+          } catch(e) {
+            console.error('Geçersiz teklif tokenı:', e);
+          }
+        };
+
+        const startExpiryRedirect = () => {
+          redirectCountdown.value = 3;
+          redirectTimer = setInterval(() => {
+            redirectCountdown.value--;
+            if (redirectCountdown.value <= 0) {
+              clearInterval(redirectTimer);
+              window.location.href = '../index.html';
+            }
+          }, 1000);
+        };
+
+        const filteredProducts = computed(() => {
+          if (isSelectionOnlyMode.value) {
+            return products.value.filter(p => selectedProductIds.value.includes(p.id));
+          }
+          return products.value.filter(p => {
+            const matchBrand = filterBrand.value === '' || p.brand === filterBrand.value;
+            const matchIndustry = filterIndustry.value === '' || (p.industries && p.industries.includes(filterIndustry.value));
+            return matchBrand && matchIndustry;
+          });
+        });
+
+        // Image Sliders
+        const activeIndices = ref({});
+        let slideInterval = null;
+        const startInterval = () => {
+          if (slideInterval) clearInterval(slideInterval);
+          slideInterval = setInterval(() => {
+            products.value.forEach(p => {
+              if (p.images && p.images.length > 1) {
+                const current = activeIndices.value[p.id] || 0;
+                activeIndices.value[p.id] = (current + 1) % p.images.length;
+              }
+            });
+          }, 4000);
+        };
+
+        const nextImage = (id) => {
+          const prod = products.value.find(p => p.id === id);
+          if (prod && prod.images && prod.images.length > 1) {
+            const current = activeIndices.value[id] || 0;
+            activeIndices.value[id] = (current + 1) % prod.images.length;
+          }
+        };
+
+        const setImage = (id, idx) => {
+          activeIndices.value[id] = idx;
+        };
+
+        // EC Reader Slider
+        const ecActiveIndex = ref(0);
+        let ecInterval = null;
+        const startEcInterval = () => {
+          if (ecInterval) clearInterval(ecInterval);
+          ecInterval = setInterval(() => {
+            ecActiveIndex.value = (ecActiveIndex.value + 1) % 5;
+          }, 3500);
+        };
+
+        // Selection Actions
+        const openSelectionModal = () => {
+          selectionSearch.value = '';
+          isSelectionModalOpen.value = true;
+        };
+
+        const toggleProductSelection = (id) => {
+          const idx = selectedProductIds.value.indexOf(id);
+          if (idx > -1) {
+            selectedProductIds.value.splice(idx, 1);
+          } else {
+            selectedProductIds.value.push(id);
+          }
+        };
+
+        const selectAllProducts = () => {
+          filteredModalProducts.value.forEach(p => {
+            if (!selectedProductIds.value.includes(p.id)) {
+              selectedProductIds.value.push(p.id);
+            }
+          });
+        };
+
+        const deselectAllProducts = () => {
+          selectedProductIds.value = [];
+          if (isSelectionOnlyMode.value) {
+            isSelectionOnlyMode.value = false;
+          }
+        };
+
+        const filteredModalProducts = computed(() => {
+          const q = (selectionSearch.value || '').trim().toLowerCase();
+          if (!q) return products.value;
+          return products.value.filter(p => {
+            const brand = (p.brand || '').toLowerCase();
+            const model = (p.model || '').toLowerCase();
+            const trSlogan = (p.translations && p.translations[lang.value] && p.translations[lang.value].slogan) ? p.translations[lang.value].slogan.toLowerCase() : '';
+            const inds = (p.industries || []).join(' ').toLowerCase();
+            const offer = (getOfferDisplay(p) || '').toLowerCase();
+            return brand.includes(q) || model.includes(q) || trSlogan.includes(q) || inds.includes(q) || offer.includes(q);
+          });
+        });
+
+        const applySelectionFilter = () => {
+          if (selectedProductIds.value.length === 0) return;
+          isSelectionOnlyMode.value = true;
+          isSelectionModalOpen.value = false;
+        };
+
+        const showAllProductsView = () => {
+          isSelectionOnlyMode.value = false;
+        };
+
+        // Create Link Modal Actions
+        const openCreateLinkModal = () => {
+          if (selectedProductIds.value.length === 0) return;
+          linkCustomerName.value = '';
+          linkPriceType.value = filterPriceType.value || 'aylik';
+          linkValidDays.value = 5;
+          linkNote.value = '';
+          generatedShareUrl.value = '';
+          isCopiedNotification.value = false;
+          isSelectionModalOpen.value = false;
+          isCreateLinkModalOpen.value = true;
+        };
+
+        const generateCustomerLink = () => {
+          const uniqueId = Math.random().toString(36).substring(2, 9) + Date.now().toString(36).substring(4);
+          const validDays = Number(linkValidDays.value) || 5;
+          const now = Date.now();
+          const exp = now + (validDays * 24 * 60 * 60 * 1000);
+
+          const payload = {
+            q: uniqueId,
+            n: (linkCustomerName.value || '').trim(),
+            p: selectedProductIds.value,
+            pt: linkPriceType.value || 'aylik',
+            ts: now,
+            exp: exp,
+            note: (linkNote.value || '').trim()
+          };
+
+          const token = encodeToken(payload);
+          let currentUrl = window.location.href.split('?')[0].split('#')[0];
+          if (currentUrl.endsWith('/index.html') && (currentUrl.startsWith('http://') || currentUrl.startsWith('https://'))) {
+            currentUrl = currentUrl.replace(/\/index\.html$/, '/');
+          }
+          const fullUrl = currentUrl + '?t=' + token;
+          generatedShareUrl.value = fullUrl;
+
+          // Save to local storage history
+          const historyEntry = {
+            id: uniqueId,
+            customerName: payload.n,
+            productCount: payload.p.length,
+            dateFormatted: new Date(now).toLocaleDateString(lang.value === 'tr' ? 'tr-TR' : 'de-DE'),
+            exp: exp,
+            url: fullUrl
+          };
+          sentQuotesHistory.value.unshift(historyEntry);
+          if (sentQuotesHistory.value.length > 50) sentQuotesHistory.value.pop();
+          try {
+            localStorage.setItem('kassen_sent_quotes', JSON.stringify(sentQuotesHistory.value));
+          } catch(e) {}
+        };
+
+        const copyGeneratedLink = async () => {
+          if (!generatedShareUrl.value) return;
+          try {
+            await navigator.clipboard.writeText(generatedShareUrl.value);
+            isCopiedNotification.value = true;
+            setTimeout(() => { isCopiedNotification.value = false; }, 2500);
+          } catch(e) {
+            // Fallback for older browsers
+            const el = document.createElement('textarea');
+            el.value = generatedShareUrl.value;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            isCopiedNotification.value = true;
+            setTimeout(() => { isCopiedNotification.value = false; }, 2500);
+          }
+        };
+
+        const getWhatsAppMessageText = () => {
+          if (!generatedShareUrl.value) return '';
+          const name = linkCustomerName.value ? linkCustomerName.value.trim() : '';
+          const greeting = lang.value === 'de' ? 'Hallo' : (lang.value === 'en' ? 'Hello' : 'Merhaba');
+          if (lang.value === 'de') {
+            return `${greeting}${name ? ' ' + name : ''},
+
+hier ist Ihr persönliches Angebot & Produktkatalog von Kassen Keskin:
+${generatedShareUrl.value}
+
+(Hinweis: Dieses Angebot ist für ${linkValidDays.value} Tage gültig.)`;
+          } else if (lang.value === 'en') {
+            return `${greeting}${name ? ' ' + name : ''},
+
+here is your personalized product catalog quote from Kassen Keskin:
+${generatedShareUrl.value}
+
+(Note: This quote is valid for ${linkValidDays.value} days.)`;
+          } else {
+            return `${greeting}${name ? ' ' + name : ''},
+
+görüşmemize istinaden sizin için hazırladığımız özel ürün teklif kataloğuna aşağıdaki bağlantıdan ulaşabilirsiniz:
+${generatedShareUrl.value}
+
+(Not: Bu teklif ${linkValidDays.value} gün süreyle geçerlidir.)`;
+          }
+        };
+
+        const copyWhatsAppMessage = async () => {
+          const text = getWhatsAppMessageText();
+          if (!text) return;
+          try {
+            await navigator.clipboard.writeText(text);
+            isCopiedNotification.value = true;
+            setTimeout(() => { isCopiedNotification.value = false; }, 2500);
+          } catch(e) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+            isCopiedNotification.value = true;
+            setTimeout(() => { isCopiedNotification.value = false; }, 2500);
+          }
+        };
+
+        const copyHistoryLink = async (url) => {
+          try {
+            await navigator.clipboard.writeText(url);
+            alert(t('copied'));
+          } catch(e) {}
+        };
+
+        const clearHistory = () => {
+          if (!confirm('Geçmişi temizlemek istediğinize emin misiniz?')) return;
+          sentQuotesHistory.value = [];
+          try { localStorage.removeItem('kassen_sent_quotes'); } catch(e) {}
+        };
+
+        const getWhatsAppShareUrl = () => {
+          const text = getWhatsAppMessageText();
+          return text ? ('https://wa.me/?text=' + encodeURIComponent(text)) : '#';
+        };
+
+        const getWhatsAppQuoteUrl = () => {
+          const name = customerQuoteData.value && customerQuoteData.value.n ? customerQuoteData.value.n : '';
+          let text = '';
+          if (lang.value === 'de') {
+            text = `Hallo Kassen Keskin Team, ich habe mir das persönliche Angebot angesehen${name ? ' (' + name + ')' : ''} und möchte dazu weitere Informationen erhalten.`;
+          } else {
+            text = `Merhaba Kassen Keskin, bana özel iletilen ürün teklif kataloğunu inceledim${name ? ' (' + name + ')' : ''} ve onaylamak / detayları görüşmek istiyorum.`;
+          }
+          return 'https://wa.me/4917622204117?text=' + encodeURIComponent(text);
+        };
+
+        const formatExpiryDate = (ms) => {
+          if (!ms) return '';
+          const d = new Date(ms);
+          return d.toLocaleDateString(lang.value === 'tr' ? 'tr-TR' : (lang.value === 'de' ? 'de-DE' : 'en-US'), {
+            day: '2-digit', month: '2-digit', year: 'numeric'
+          });
+        };
+
+        const getRemainingDays = (ms) => {
+          if (!ms) return 0;
+          const diff = ms - Date.now();
+          return Math.max(0, Math.ceil(diff / (24 * 60 * 60 * 1000)));
+        };
+
+        const printSelected = async () => {
+          if (selectedProductIds.value.length === 0) return;
+          isSelectionModalOpen.value = false;
+          isSelectionOnlyMode.value = true;
+          await nextTick();
+          setTimeout(() => { window.print(); }, 150);
+        };
+
+        const printAll = async () => {
+          isSelectionOnlyMode.value = false;
+          await nextTick();
+          setTimeout(() => { window.print(); }, 150);
+        };
+
+        const getOfferDisplay = (p) => {
+          if (!p) return '';
+          if (filterPriceType.value === 'aylik' && p.offerNo) return p.offerNo;
+          if (filterPriceType.value === 'satis' && p.offerNoSatis) return p.offerNoSatis;
+          if (filterPriceType.value === 'hibrit' && p.offerNoHibrit) return p.offerNoHibrit;
+          return p.offerNo || p.offerNoSatis || p.offerNoHibrit || '';
+        };
+
+        const getOfferTooltip = (p) => {
+          if (!p) return '';
+          const parts = [];
+          if (p.offerNo) parts.push(`Aylık: ${p.offerNo}`);
+          if (p.offerNoSatis) parts.push(`Satış: ${p.offerNoSatis}`);
+          if (p.offerNoHibrit) parts.push(`Hibrit: ${p.offerNoHibrit}`);
+          return parts.join(' | ');
+        };
+
+        onMounted(async () => {
+          initFromUrl();
+          await loadCatalog();
+          startInterval();
+          startEcInterval();
+        });
+
+        onUnmounted(() => {
+          if (slideInterval) clearInterval(slideInterval);
+          if (ecInterval) clearInterval(ecInterval);
+          if (redirectTimer) clearInterval(redirectTimer);
+        });
+
+        return {
+          lang, changeLang, t,
+          products, brands, industries,
+          filterBrand, filterIndustry, filterPriceType,
+          filteredProducts,
+          activeIndices, nextImage, setImage, ecActiveIndex,
+          isCustomerView, customerQuoteData, isExpiredQuote, redirectCountdown,
+          selectedProductIds, isSelectionModalOpen, isSelectionOnlyMode, selectionSearch,
+          openSelectionModal, toggleProductSelection, selectAllProducts, deselectAllProducts,
+          filteredModalProducts, applySelectionFilter, showAllProductsView,
+          isCreateLinkModalOpen, linkCustomerName, linkPriceType, linkValidDays, linkNote,
+          generatedShareUrl, isCopiedNotification, openCreateLinkModal, generateCustomerLink,
+          copyGeneratedLink, copyWhatsAppMessage, getWhatsAppShareUrl, getWhatsAppQuoteUrl,
+          sentQuotesHistory, isHistoryModalOpen, copyHistoryLink, clearHistory,
+          formatExpiryDate, getRemainingDays,
+          printSelected, printAll, getOfferDisplay, getOfferTooltip
+        };
+      }
+    }).mount('#app');
+  </script>
+</body>
+</html>
