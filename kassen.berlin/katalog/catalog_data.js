@@ -900,6 +900,239 @@
                     ]
                 }
             }
+        },
+        {
+            "id": 1792152356107,
+            "brand": "POS",
+            "model": "80D",
+            "imageFolder": "pos_80d",
+            "price": "5",
+            "priceSatis": "180",
+            "priceHibrit": "100+3",
+            "offerNo": "1",
+            "offerNoSatis": "2",
+            "offerNoHibrit": "3",
+            "priceType": "aylik",
+            "industries": [
+                "Imbiss",
+                "Restaurant",
+                "Kiosk",
+                "Spätikauf",
+                "Cafe",
+                "Market",
+                "Berber"
+            ],
+            "images": [
+                "image/pos_80d/3.webp",
+                "image/pos_80d/4.webp",
+                "image/pos_80d/2.webp",
+                "image/pos_80d/1.webp"
+            ],
+            "translations": {
+                "tr": {
+                    "slogan": "Kompakt kübik yazıcı",
+                    "note": "Cubic and fashionable design\nLow printing noise\nCutter jam auto-elimination\n80 mm paper\nTop/Front paper loading/exit\nVery compact : 132 (D) x 134.8 (W) x 132 (H) mm\nPrint speed 260 mm/sec\nLED Indicators of printer status\nIncluded power supply, serial & USB cable\nInterface : RS232, USB, LAN (RJ45)\nAvailable in various drivers/SDK for different platforms, such as Windows, MAC, iOS, Android, Linux, OPOS, and JavaPOS.",
+                    "features": [
+                        "132 (D) x 134.8 (W) x 132 (H) mm",
+                        " RS232, USB, LAN (RJ45)",
+                        "Yazdırma hızı 260 mm/sn",
+                        "80 mm kağıt"
+                    ]
+                },
+                "de": {
+                    "slogan": "Kompakter kubischer Drucker",
+                    "note": "Kubisches und modisches Design\nGeringes Druckgeräusch\nAutomatische Beseitigung von Messerstaus\n80-mm-Papier\nPapiereinzug/-ausgabe oben/vorne\nSehr kompakt: 132 (T) x 134,8 (B) x 132 (H) mm\nDruckgeschwindigkeit 260 mm/Sek\nLED-Anzeigen für den Druckerstatus\nIm Lieferumfang sind Netzteil, serielles und USB-Kabel enthalten\nSchnittstelle: RS232, USB, LAN (RJ45)\nVerfügbar in verschiedenen Treibern/SDKs für verschiedene Plattformen, wie Windows, MAC, iOS, Android, Linux, OPOS und JavaPOS.",
+                    "features": [
+                        "132 (T) x 134,8 (B) x 132 (H) mm",
+                        "RS232, USB, LAN (RJ45)",
+                        "Druckgeschwindigkeit 260 mm/Sek",
+                        "80-mm-Papier"
+                    ]
+                },
+                "en": {
+                    "slogan": "Compact cubic printer",
+                    "note": "Cubic and fashionable design\nLow printing noise\nCutter jam auto-elimination\n80mm paper\nTop/Front paper loading/exit\nVery compact: 132 (D) x 134.8 (W) x 132 (H) mm\nPrint speed 260 mm/sec\nLED Indicators of printer status\nIncluded power supply, serial & USB cable\nInterface: RS232, USB, LAN (RJ45)\nAvailable in various drivers/SDK for different platforms, such as Windows, MAC, iOS, Android, Linux, OPOS, and JavaPOS.",
+                    "features": [
+                        "132 (D) x 134.8 (W) x 132 (H) mm",
+                        "RS232, USB, LAN (RJ45)",
+                        "Print speed 260mm/sec",
+                        "80mm paper"
+                    ]
+                }
+            }
+        },
+        {
+            "id": 1792152922933,
+            "brand": "Honeywell",
+            "model": "Orbit 7190g",
+            "imageFolder": "honeywell_orbit-7190g",
+            "price": "5",
+            "priceSatis": "250",
+            "priceHibrit": "150+3",
+            "offerNo": "11",
+            "offerNoSatis": "22",
+            "offerNoHibrit": "33",
+            "priceType": "aylik",
+            "industries": [
+                "Imbiss",
+                "Restaurant",
+                "Kiosk",
+                "Spätikauf",
+                "Cafe",
+                "Market",
+                "Berber"
+            ],
+            "images": [
+                "image/honeywell_orbit-7190g/1.jpg"
+            ],
+            "translations": {
+                "tr": {
+                    "slogan": "Çok yönlü sunum tarayıcısı",
+                    "note": "Perakende ve konaklama sektörü için lazer tarayıcı ve alan görüntüleyicinin birleşimi\nKasa alanında 1D barkodlar ve müşteri uygulamaları için 2D barkodlar için\nMüşteriye doğru kolayca çevrilebilmesi için dönebilen montaj plakası\nDoğru tarama modunu otomatik olarak seçer\nSaniyede 1.120 tarama\nUSB çıkışı\nRenk: siyah veya beyaz",
+                    "features": [
+                        "USB çıkışı",
+                        "Saniyede 1.120 tarama",
+                        "Doğru tarama modunu otomatik olarak seçer",
+                        "Lazer tarayıcı kombinasyonu"
+                    ]
+                },
+                "de": {
+                    "slogan": "Vielseitiger Präsentationsbrowser",
+                    "note": "Kombination aus Laserscanner und Area Imager für Einzelhandel und Gastronomie\nFür 1D-Barcodes im Kassenbereich und 2D-Barcodes für Kundenanwendungen\nDrehbare Montageplatte zur einfachen Drehung zum Kunden hin\nWählt automatisch den richtigen Scanmodus aus\n1.120 Scans pro Sekunde\nUSB-Ausgang\nFarbe: Schwarz oder Weiß",
+                    "features": [
+                        "USB-Ausgang",
+                        "1.120 Scans pro Sekunde",
+                        "Wählt automatisch den richtigen Scanmodus aus",
+                        "Laserscanner-Kombination"
+                    ]
+                },
+                "en": {
+                    "slogan": "Versatile presentation browser",
+                    "note": "Combination of laser scanner and area imager for retail and hospitality\nFor 1D barcodes in the checkout area and 2D barcodes for customer applications\nRotatable mounting plate for easy rotation towards the customer\nAutomatically selects the correct scan mode\n1,120 scans per second\nUSB output\nColor: black or white",
+                    "features": [
+                        "USB output",
+                        "1,120 scans per second",
+                        "Automatically selects the correct scan mode",
+                        "Laser scanner combination"
+                    ]
+                }
+            }
+        },
+        {
+            "brand": "Honeywell",
+            "id": 1792153436580,
+            "imageFolder": "honeywell_1200g",
+            "images": [
+                "image/honeywell_1200g/2.jpg"
+            ],
+            "industries": [
+                "Imbiss",
+                "Restaurant",
+                "Kiosk",
+                "Spätikauf",
+                "Cafe",
+                "Market",
+                "Berber"
+            ],
+            "model": "1200g",
+            "offerNo": "33",
+            "offerNoHibrit": "33",
+            "offerNoSatis": "33",
+            "price": "4",
+            "priceHibrit": "100+2",
+            "priceSatis": "220",
+            "priceType": "aylik",
+            "translations": {
+                "de": {
+                    "features": [
+                        "USB-Kabel",
+                        "40 Grad",
+                        "120 Volt",
+                        "300 Kelvin"
+                    ],
+                    "note": "",
+                    "slogan": "Barcode-Lesegeräte"
+                },
+                "en": {
+                    "features": [
+                        "USB Cable",
+                        "40 degrees",
+                        "120 volts",
+                        "300 Kelvin"
+                    ],
+                    "note": "",
+                    "slogan": "Barcode Readers"
+                },
+                "tr": {
+                    "features": [
+                        "USB Kablosu",
+                        "40 derece",
+                        "120 volts",
+                        "300 Kelvin"
+                    ],
+                    "note": "",
+                    "slogan": "Barkod Okuyucular"
+                }
+            }
+        },
+        {
+            "id": 1792153734616,
+            "brand": "Epson",
+            "model": "TM-T20II",
+            "imageFolder": "epson_tm-t20ii",
+            "price": "5",
+            "priceSatis": "200",
+            "priceHibrit": "100+3",
+            "offerNo": "44",
+            "offerNoSatis": "444",
+            "offerNoHibrit": "44",
+            "priceType": "aylik",
+            "industries": [
+                "Imbiss",
+                "Restaurant",
+                "Kiosk",
+                "Spätikauf",
+                "Cafe",
+                "Market",
+                "Berber"
+            ],
+            "images": [
+                "image/epson_tm-t20ii/1.avif",
+                "image/epson_tm-t20ii/2.avif",
+                "image/epson_tm-t20ii/3.avif"
+            ],
+            "translations": {
+                "tr": {
+                    "slogan": "Termal Doğrudan Fiş Yazıcısı",
+                    "note": "",
+                    "features": [
+                        "203 x 203 dpi ",
+                        "250 mm/s’ye kadar baskı hızı",
+                        "Siyah USB",
+                        "80 mm ve 58 mm genişliğinde fişler yazdırır"
+                    ]
+                },
+                "de": {
+                    "slogan": "Thermodirekt-Belegdrucker",
+                    "note": "",
+                    "features": [
+                        "203x203dpi",
+                        "Druckgeschwindigkeit bis zu 250 mm/s",
+                        "Schwarzer USB",
+                        "Druckt 80 mm und 58 mm breite Belege"
+                    ]
+                },
+                "en": {
+                    "slogan": "Thermal Direct Receipt Printer",
+                    "note": "",
+                    "features": [
+                        "203x203dpi",
+                        "Print speed up to 250 mm/s",
+                        "Black USB",
+                        "Prints 80mm and 58mm wide receipts"
+                    ]
+                }
+            }
         }
     ],
     "brands": [
@@ -910,7 +1143,10 @@
         "Lotus Pecas",
         "Lacash",
         "TestMarka",
-        "Sunmi"
+        "Sunmi",
+        "POS",
+        "Honeywell",
+        "Epson"
     ],
     "industries": [
         "Imbiss",
@@ -922,6 +1158,6 @@
         "Cafe",
         "TestSektor"
     ],
-    "version": 1792079392178,
-    "lastModified": "2026-10-15T15:49:52.178834"
+    "version": 1792154043602,
+    "lastModified": "2026-10-16T12:34:03.602034"
 };
