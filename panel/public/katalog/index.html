@@ -194,6 +194,10 @@
       margin: 0;
     }
 
+    .catalog-image-box {
+      height: 550px;
+    }
+
     .no-print-bg {
       width: 100%;
       max-width: 100%;
@@ -244,32 +248,97 @@
     }
 
     @media print {
-      @page { size: A4; margin: 0; }
-      body { margin: 0; padding: 0; background-color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-      .no-print { display: none !important; }
-      .no-print-bg { background: none !important; padding: 0 !important; }
+      @page { 
+        size: A4 portrait; 
+        margin: 0; 
+      }
+      *, *::before, *::after { 
+        box-sizing: border-box !important; 
+      }
+      html, body { 
+        margin: 0 !important; 
+        padding: 0 !important; 
+        width: 210mm !important; 
+        height: auto !important; 
+        min-height: 0 !important;
+        background-color: white !important; 
+        -webkit-print-color-adjust: exact !important; 
+        print-color-adjust: exact !important; 
+      }
+      #app, .min-h-screen {
+        margin: 0 !important;
+        padding: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+        display: block !important;
+      }
+      .no-print { 
+        display: none !important; 
+      }
+      .no-print-bg { 
+        display: block !important;
+        background: none !important; 
+        padding: 0 !important; 
+        margin: 0 !important; 
+        gap: 0 !important;
+        width: 210mm !important;
+      }
       .catalog-page-container { 
         width: 210mm !important; 
         height: 297mm !important; 
-        max-width: none !important;
-        overflow: visible !important;
+        max-height: 297mm !important;
+        max-width: 210mm !important;
+        overflow: hidden !important; 
         margin: 0 !important; 
+        padding: 0 !important;
         box-shadow: none !important; 
         border: none !important; 
-        page-break-after: always; 
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        break-after: page !important;
+        page-break-after: always !important; 
+        box-sizing: border-box !important;
+        position: relative !important;
       }
-      .catalog-page-container:last-child { page-break-after: auto; }
+      .catalog-page-container:last-child { 
+        break-after: auto !important;
+        page-break-after: auto !important; 
+      }
       .print-page { 
         width: 210mm !important; 
         height: 297mm !important; 
+        max-height: 297mm !important;
+        max-width: 210mm !important;
         transform: none !important;
         margin: 0 !important; 
+        padding: 0 !important;
         box-shadow: none !important; 
         border: none !important; 
+        overflow: hidden !important;
+        box-sizing: border-box !important;
+        break-inside: avoid !important;
+        page-break-inside: avoid !important;
+        display: flex !important;
+        flex-direction: column !important;
       }
-      .print-page:last-child { page-break-after: auto; }
-      .slider-img, .ec-img { opacity: 0 !important; z-index: 0 !important; }
-      .slider-img-0, .ec-img-1 { opacity: 1 !important; z-index: 10 !important; }
+      .print-page:last-child { 
+        break-after: auto !important;
+        page-break-after: auto !important; 
+      }
+      .catalog-image-box {
+        height: 470px !important;
+      }
+      .slogan-card {
+        transform: none !important;
+      }
+      .slider-img, .ec-img { 
+        opacity: 0 !important; 
+        z-index: 0 !important; 
+      }
+      .slider-img-0, .ec-img-1 { 
+        opacity: 1 !important; 
+        z-index: 10 !important; 
+      }
     }
 
     /* Hand-drawn sketchy border with jitter */
@@ -516,12 +585,111 @@
         grid-template-columns: 1fr !important;
         gap: 8px !important;
       }
-      .admin-features-2col {
-        grid-template-columns: 1fr !important;
-        gap: 8px !important;
+      .selection-modal-card {
+        max-height: 94vh !important;
+        border-radius: 12px !important;
+      }
+      .filter-actions {
+        width: 100% !important;
+        justify-content: center !important;
       }
     }
 
+    .fixed { position: fixed !important; }
+    .fixed-modal-overlay {
+      position: fixed !important;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: rgba(15, 23, 42, 0.7);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 16px;
+      backdrop-filter: blur(3px);
+    }
+    .selection-modal-card {
+      background: #ffffff;
+      border-radius: 18px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.35);
+      width: 100%;
+      max-width: 860px;
+      max-height: 88vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border: 1px solid #cbd5e1;
+      animation: modalFadeIn 0.2s ease-out;
+    }
+    @keyframes modalFadeIn {
+      from { opacity: 0; transform: scale(0.96); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .selection-item-card {
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+      transition: all 0.15s ease-in-out;
+    }
+    .selection-item-card:hover {
+      transform: translateY(-1px);
+    }
+    .print-selected-btn {
+      background-color: #059669 !important;
+      color: #ffffff !important;
+      font-weight: 800 !important;
+      border: 2px solid #047857 !important;
+      border-radius: 8px !important;
+      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.15) !important;
+      transition: all 0.2s ease !important;
+      cursor: pointer !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    }
+    .print-selected-btn:hover {
+      background-color: #047857 !important;
+      border-color: #065f46 !important;
+      transform: translateY(-1px) !important;
+      box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.2) !important;
+    }
+    .modal-print-btn-active {
+      background-color: #059669 !important;
+      color: #ffffff !important;
+      border: 1px solid #047857 !important;
+      font-weight: 800 !important;
+      box-shadow: 0 4px 6px -1px rgba(5, 150, 105, 0.3) !important;
+      cursor: pointer !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    }
+    .modal-print-btn-active:hover {
+      background-color: #047857 !important;
+    }
+    .modal-print-btn-disabled {
+      background-color: #e2e8f0 !important;
+      color: #64748b !important;
+      border: 1px solid #cbd5e1 !important;
+      cursor: not-allowed !important;
+      font-weight: 700 !important;
+    }
+    .modal-view-btn-active {
+      background-color: #2563eb !important;
+      color: #ffffff !important;
+      border: 1px solid #1d4ed8 !important;
+      font-weight: 700 !important;
+      cursor: pointer !important;
+      text-shadow: 0 1px 2px rgba(0, 0, 0, 0.25) !important;
+    }
+    .modal-view-btn-active:hover {
+      background-color: #1d4ed8 !important;
+    }
+    .modal-view-btn-disabled {
+      background-color: #e2e8f0 !important;
+      color: #64748b !important;
+      border: 1px solid #cbd5e1 !important;
+      cursor: not-allowed !important;
+      font-weight: 700 !important;
+    }
   </style>
 </head>
 <body>
@@ -595,9 +763,161 @@
             <option value="hibrit">{{ t('ptHybrid') }}</option>
           </select>
         </div>
-        <button onclick="window.print()" class="print-catalog-btn px-6 md:px-8 py-2.5 md:py-3 bg-green-500 text-white font-black text-base md:text-lg rounded-md shadow-lg hover:bg-green-600 hover:shadow-xl transition-all flex items-center justify-center gap-2 md:gap-3">
-          <i class="fas fa-print text-xl md:text-2xl"></i> {{ t('printCatalog') }}
-        </button>
+        <!-- Action Buttons: Print All, Select Products, Print Selected -->
+        <div class="filter-actions flex flex-wrap items-center gap-2 md:gap-3">
+          <button type="button" @click="printAll" class="print-catalog-btn px-5 md:px-7 py-2.5 md:py-3 bg-green-500 text-white font-black text-base md:text-lg rounded-md shadow-lg hover:bg-green-600 hover:shadow-xl transition-all flex items-center justify-center gap-2 md:gap-3">
+            <i class="fas fa-print text-xl md:text-2xl"></i> <span>{{ t('printCatalog') }}</span>
+          </button>
+
+          <!-- Seç / Ürün Seç Butonu -->
+          <button type="button" @click="openSelectionModal" class="select-products-btn px-5 md:px-7 py-2.5 md:py-3 bg-blue-600 text-white font-black text-base md:text-lg rounded-md shadow-lg hover:bg-blue-700 hover:shadow-xl transition-all flex items-center justify-center gap-2 md:gap-3">
+            <i class="fas fa-check-square text-xl md:text-2xl"></i>
+            <span>{{ t('selectProducts') }}</span>
+            <span v-if="selectedProductIds.length > 0" class="ml-1 bg-white text-blue-700 text-xs font-black px-2 py-0.5 rounded-full shadow-inner">
+              {{ selectedProductIds.length }}
+            </span>
+          </button>
+
+          <!-- Seçili Ürün Varsa: Hızlı Bastırma Butonu -->
+          <button v-if="selectedProductIds.length > 0" type="button" @click="printSelected" class="print-selected-btn px-5 md:px-7 py-2.5 md:py-3 text-white font-black text-base md:text-lg rounded-md shadow-lg transition-all flex items-center justify-center gap-2 md:gap-3">
+            <i class="fas fa-print text-xl md:text-2xl"></i>
+            <span>{{ t('printSelected') }} ({{ selectedProductIds.length }})</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Sadece Seçili Ürünler Modu Bilgi Çubuğu -->
+      <div v-if="isSelectionOnlyMode" class="no-print max-w-4xl mx-auto mb-6 px-4 py-3 bg-blue-50 border-2 border-blue-400 rounded-xl shadow-sm flex flex-wrap items-center justify-between gap-3 text-blue-900 font-bold">
+        <div class="flex items-center gap-2">
+          <i class="fas fa-check-circle text-blue-600 text-lg"></i>
+          <span>{{ t('onlySelectedActive').replace('{count}', selectedProductIds.length) }}</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" @click="openSelectionModal" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold flex items-center gap-1 shadow-sm transition-colors">
+            <i class="fas fa-edit"></i> <span>{{ t('selectProducts') }}</span>
+          </button>
+          <button type="button" @click="printSelected" class="print-selected-btn px-4 py-1.5 rounded-lg text-xs md:text-sm font-black flex items-center gap-1.5 shadow transition-colors">
+            <i class="fas fa-print"></i> <span>{{ t('printSelected') }}</span>
+          </button>
+          <button type="button" @click="showAllProductsView" class="bg-white hover:bg-gray-100 text-gray-700 border border-gray-300 px-3 py-1.5 rounded-lg text-xs md:text-sm font-bold flex items-center gap-1 shadow-sm transition-colors">
+            <i class="fas fa-undo"></i> <span>{{ t('showAllCatalog') }}</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Ürün Seçimi Modalı -->
+      <div v-if="isSelectionModalOpen" class="fixed-modal-overlay no-print" @click.self="isSelectionModalOpen = false">
+        <div class="selection-modal-card">
+          <!-- Modal Başlık -->
+          <div class="p-4 md:p-5 border-b flex justify-between items-center bg-gray-50 shrink-0">
+            <div>
+              <h3 class="text-lg md:text-xl font-black text-gray-800 flex items-center gap-2">
+                <i class="fas fa-check-square text-blue-600"></i> {{ t('selectionTitle') }}
+              </h3>
+              <p class="text-xs text-gray-500 mt-0.5 font-medium hidden sm:block">{{ t('selectionSubtitle') }}</p>
+            </div>
+            <button type="button" @click="isSelectionModalOpen = false" class="text-gray-400 hover:text-gray-600 p-2 rounded-lg hover:bg-gray-200 transition-colors">
+              <i class="fas fa-times text-xl"></i>
+            </button>
+          </div>
+
+          <!-- Arama ve Hızlı Seçim Araç Çubuğu -->
+          <div class="p-3 md:p-4 bg-white border-b flex flex-wrap items-center justify-between gap-2 md:gap-3 shrink-0">
+            <div class="relative flex-grow max-w-sm">
+              <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+              <input type="text" v-model="selectionSearch" :placeholder="t('searchProduct')" class="w-full pl-9 pr-4 py-2 border-2 border-gray-200 rounded-lg text-sm font-semibold outline-none focus:border-blue-500 transition-colors">
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" @click="selectAllProducts" class="bg-blue-50 hover:bg-blue-100 text-blue-700 border border-blue-200 px-3 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-1.5 transition-colors">
+                <i class="fas fa-check-double"></i> {{ t('selectAll') }}
+              </button>
+              <button type="button" @click="deselectAllProducts" class="bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200 px-3 py-2 rounded-lg text-xs md:text-sm font-bold flex items-center gap-1.5 transition-colors">
+                <i class="fas fa-times"></i> {{ t('deselectAll') }}
+              </button>
+            </div>
+          </div>
+
+          <!-- Ürün Listesi (Scrollable) -->
+          <div class="p-3 md:p-4 overflow-y-auto flex-grow space-y-2.5 max-h-[60vh] bg-gray-50">
+            <div v-if="filteredModalProducts.length === 0" class="text-center py-12 text-gray-400 font-medium">
+              <i class="fas fa-search text-3xl mb-2 text-gray-300"></i>
+              <p>{{ t('noProducts') }}</p>
+            </div>
+
+            <div v-for="p in filteredModalProducts" :key="p.id" 
+                 @click="toggleProductSelection(p.id)"
+                 class="selection-item-card p-3 md:p-3.5 rounded-xl border-2 cursor-pointer flex items-center justify-between gap-3 md:gap-4 select-none"
+                 :class="selectedProductIds.includes(p.id) ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-white border-gray-200 hover:border-blue-300'">
+              <div class="flex items-center gap-3 overflow-hidden">
+                <!-- Checkbox simgesi -->
+                <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 border-2 transition-colors"
+                     :class="selectedProductIds.includes(p.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-transparent'">
+                  <i class="fas fa-check text-xs"></i>
+                </div>
+
+                <!-- Ürün Küçük Görseli -->
+                <div class="w-12 h-12 md:w-14 md:h-14 bg-white border border-gray-200 rounded-lg p-1 shrink-0 flex items-center justify-center overflow-hidden">
+                  <img v-if="p.images && p.images.length > 0" :src="p.images[0]" class="max-w-full max-h-full object-contain">
+                  <i v-else class="fas fa-cash-register text-gray-300 text-xl md:text-2xl"></i>
+                </div>
+
+                <!-- Ürün Başlık ve Detayları -->
+                <div class="min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="font-black text-gray-900 text-sm md:text-base">{{ p.brand }}</span>
+                    <span class="font-bold text-blue-600 text-xs md:text-sm">{{ p.model }}</span>
+                  </div>
+                  <p v-if="p.translations && p.translations[lang] && p.translations[lang].slogan" class="text-xs text-gray-500 truncate font-medium mt-0.5 max-w-[220px] md:max-w-md">
+                    {{ p.translations[lang].slogan }}
+                  </p>
+                  <div class="flex flex-wrap items-center gap-1 mt-1">
+                    <span v-for="ind in (p.industries || []).slice(0, 3)" :key="ind" class="text-[9px] md:text-[10px] font-semibold bg-gray-200 text-gray-700 px-2 py-0.5 rounded-full">
+                      {{ ind }}
+                    </span>
+                    <span v-if="(p.industries || []).length > 3" class="text-[9px] text-gray-500 font-bold">
+                      +{{ (p.industries || []).length - 3 }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Fiyat & Teklif No Bilgisi -->
+              <div class="text-right shrink-0">
+                <div class="text-sm md:text-base font-black text-gray-800">
+                  {{ filterPriceType === 'aylik' ? (p.price || '-') : filterPriceType === 'satis' ? (p.priceSatis || '-') : (p.priceHibrit || '-') }}
+                </div>
+                <div class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase">
+                  {{ filterPriceType === 'aylik' ? (lang === 'tr' ? 'Aylık' : lang === 'de' ? 'Monatlich' : 'Monthly') : filterPriceType === 'satis' ? (lang === 'tr' ? 'Satış' : lang === 'de' ? 'Kauf' : 'Sale') : (lang === 'tr' ? 'Hibrit' : 'Hybrid') }}
+                </div>
+                <div v-if="getOfferDisplay(p)" class="text-[10px] md:text-[11px] font-mono font-bold text-blue-600 mt-0.5">
+                  {{ getOfferDisplay(p) }}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Alt İşlem Çubuğu -->
+          <div class="p-3 md:p-4 border-t bg-gray-50 flex flex-wrap items-center justify-between gap-2 md:gap-3 shrink-0">
+            <div class="text-xs md:text-sm font-bold text-gray-700">
+              <span class="text-blue-600 font-black text-sm md:text-base">{{ selectedProductIds.length }}</span> / {{ products.length }} {{ t('selectedCount') }}
+            </div>
+            <div class="flex items-center gap-2">
+              <button type="button" @click="isSelectionModalOpen = false" class="px-3 md:px-4 py-2 md:py-2.5 rounded-lg font-bold text-gray-600 hover:bg-gray-200 text-xs md:text-sm transition-colors">
+                {{ t('close') }}
+              </button>
+              <button type="button" @click="applySelectionFilter" :disabled="selectedProductIds.length === 0" 
+                      class="px-3 md:px-4 py-2 md:py-2.5 rounded-lg font-bold text-xs md:text-sm transition-all flex items-center gap-1.5"
+                      :class="selectedProductIds.length > 0 ? 'modal-view-btn-active' : 'modal-view-btn-disabled'">
+                <i class="fas fa-eye"></i> <span>{{ t('showOnlySelected') }}</span>
+              </button>
+              <button type="button" @click="printSelected" :disabled="selectedProductIds.length === 0" 
+                      class="px-4 md:px-5 py-2 md:py-2.5 rounded-lg font-black text-xs md:text-sm transition-all flex items-center gap-1.5 md:gap-2"
+                      :class="selectedProductIds.length > 0 ? 'modal-print-btn-active' : 'modal-print-btn-disabled'">
+                <i class="fas fa-print"></i> <span>{{ t('printSelected') }} ({{ selectedProductIds.length }})</span>
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class="no-print text-center text-gray-500 mb-6 text-xl font-semibold" v-if="filteredProducts.length === 0">
@@ -620,7 +940,7 @@
           </div>
 
           <div class="px-10 w-full z-10 shrink-0 mt-0">
-            <div class="h-[550px] w-full relative flex flex-col items-center justify-center p-4 group cursor-pointer bg-white bg-opacity-50" @click="nextImage(p.id)">
+            <div class="catalog-image-box h-[550px] w-full relative flex flex-col items-center justify-center p-4 group cursor-pointer bg-white bg-opacity-50" @click="nextImage(p.id)">
               <!-- Sketch Border Background -->
               <div class="absolute inset-0 pointer-events-none sketch-border z-0"></div>
 
@@ -650,7 +970,7 @@
           </div>
 
           <div class="px-10 py-2 z-10 flex flex-col items-start justify-start w-full flex-grow">
-            <div class="bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-xl mb-4 w-full text-center transform -rotate-1 border-b-4 border-blue-800">
+            <div class="slogan-card bg-blue-600 text-white px-6 py-3 rounded-2xl shadow-xl mb-4 w-full text-center transform -rotate-1 border-b-4 border-blue-800">
               <h1 class="text-2xl font-black italic tracking-wide leading-tight">
                 "{{ p.translations[lang].slogan }}"
               </h1>
@@ -974,7 +1294,7 @@
   </div>
 
   <script>
-    const { createApp, ref, computed, watch, onMounted, onUnmounted } = Vue;
+    const { createApp, ref, computed, watch, onMounted, onUnmounted, nextTick } = Vue;
 
     const i18nDictionary = {
       tr: {
@@ -995,7 +1315,14 @@
         restoreConfirm: 'Bu yedeği geri yüklemek istediğinize emin misiniz? Mevcut katalog bu yedek ile değiştirilecektir.',
         noBackups: 'Henüz yedek bulunmuyor.',
         offerNoMonthly: 'Aylık Teklif No', offerNoPurchase: 'Satış Teklif No', offerNoHybrid: 'Hibrit Teklif No',
-        offerPrefix: 'Teklif No', offerPlaceholder: 'Örn: ANG-1001'
+        offerPrefix: 'Teklif No', offerPlaceholder: 'Örn: ANG-1001',
+        selectProducts: 'Ürün Seç', selectionTitle: 'Ürün Seçimi & Özel Yazdırma',
+        selectionSubtitle: 'Katalogdan istediğiniz ürünleri seçerek yalnızca seçili sayfaları yazdırabilirsiniz.',
+        selectAll: 'Tümünü Seç', deselectAll: 'Seçimi Kaldır', printSelected: 'Seçilenleri Yazdır',
+        selectedCount: 'ürün seçildi', searchProduct: 'Ürün ara (marka, model, sektör)...',
+        showOnlySelected: 'Sayfada Göster', showAllCatalog: 'Tüm Kataloğu Göster',
+        onlySelectedActive: 'Yalnızca seçili {count} ürün görüntüleniyor',
+        noProductsSelected: 'Henüz ürün seçilmedi. Lütfen listeden en az bir ürün seçin.'
       },
       de: {
         title: 'KASSEN KESKİN KATALOG', catalogView: 'Katalog Ansicht', adminPanel: 'Admin Panel',
@@ -1015,7 +1342,14 @@
         restoreConfirm: 'Sind Sie sicher, dass Sie diese Sicherung wiederherstellen möchten? Der aktuelle Katalog wird ersetzt.',
         noBackups: 'Noch keine Sicherungen vorhanden.',
         offerNoMonthly: 'Monatlich Angebot-Nr.', offerNoPurchase: 'Kauf Angebot-Nr.', offerNoHybrid: 'Hybrid Angebot-Nr.',
-        offerPrefix: 'Angebot-Nr.', offerPlaceholder: 'z.B. ANG-1001'
+        offerPrefix: 'Angebot-Nr.', offerPlaceholder: 'z.B. ANG-1001',
+        selectProducts: 'Produkte Auswählen', selectionTitle: 'Produktauswahl & Drucken',
+        selectionSubtitle: 'Wählen Sie Produkte aus dem Katalog aus, um nur diese ausgewählten Seiten zu drucken.',
+        selectAll: 'Alle auswählen', deselectAll: 'Auswahl aufheben', printSelected: 'Auswahl drucken',
+        selectedCount: 'ausgewählt', searchProduct: 'Produkt suchen (Marke, Modell, Branche)...',
+        showOnlySelected: 'Auf Seite anzeigen', showAllCatalog: 'Gesamten Katalog anzeigen',
+        onlySelectedActive: 'Nur {count} ausgewählte Produkte werden angezeigt',
+        noProductsSelected: 'Noch kein Produkt ausgewählt. Bitte wählen Sie mindestens ein Produkt.'
       },
       en: {
         title: 'KASSEN KESKİN CATALOG', catalogView: 'Catalog View', adminPanel: 'Admin Panel',
@@ -1035,7 +1369,14 @@
         restoreConfirm: 'Are you sure you want to restore this backup? Current catalog will be replaced.',
         noBackups: 'No backups available yet.',
         offerNoMonthly: 'Monthly Quote No', offerNoPurchase: 'Purchase Quote No', offerNoHybrid: 'Hybrid Quote No',
-        offerPrefix: 'Quote No', offerPlaceholder: 'e.g. ANG-1001'
+        offerPrefix: 'Quote No', offerPlaceholder: 'e.g. ANG-1001',
+        selectProducts: 'Select Products', selectionTitle: 'Product Selection & Print',
+        selectionSubtitle: 'Select products from the catalog to print only the selected pages.',
+        selectAll: 'Select All', deselectAll: 'Deselect All', printSelected: 'Print Selected',
+        selectedCount: 'selected', searchProduct: 'Search product (brand, model, industry)...',
+        showOnlySelected: 'Show on Page', showAllCatalog: 'Show Entire Catalog',
+        onlySelectedActive: 'Showing only {count} selected products',
+        noProductsSelected: 'No products selected yet. Please select at least one product.'
       }
     };
 
@@ -1260,7 +1601,16 @@
         const filterIndustry = ref('');
         const filterPriceType = ref('aylik');
 
+        // Selection & Selective Print State
+        const selectedProductIds = ref([]);
+        const isSelectionModalOpen = ref(false);
+        const isSelectionOnlyMode = ref(false);
+        const selectionSearch = ref('');
+
         const filteredProducts = computed(() => {
+          if (isSelectionOnlyMode.value) {
+            return products.value.filter(p => selectedProductIds.value.includes(p.id));
+          }
           return products.value.filter(p => {
             const matchBrand = filterBrand.value === '' || p.brand === filterBrand.value;
             const matchIndustry = filterIndustry.value === '' || (p.industries && p.industries.includes(filterIndustry.value));
@@ -1716,6 +2066,83 @@
           return parts.join(' | ');
         };
 
+        // Selection & Print Actions
+        const openSelectionModal = () => {
+          selectionSearch.value = '';
+          isSelectionModalOpen.value = true;
+        };
+
+        const toggleProductSelection = (id) => {
+          const idx = selectedProductIds.value.indexOf(id);
+          if (idx > -1) {
+            selectedProductIds.value.splice(idx, 1);
+          } else {
+            selectedProductIds.value.push(id);
+          }
+        };
+
+        const selectAllProducts = () => {
+          filteredModalProducts.value.forEach(p => {
+            if (!selectedProductIds.value.includes(p.id)) {
+              selectedProductIds.value.push(p.id);
+            }
+          });
+        };
+
+        const deselectAllProducts = () => {
+          selectedProductIds.value = [];
+          if (isSelectionOnlyMode.value) {
+            isSelectionOnlyMode.value = false;
+          }
+        };
+
+        const filteredModalProducts = computed(() => {
+          const q = (selectionSearch.value || '').trim().toLowerCase();
+          if (!q) return products.value;
+          return products.value.filter(p => {
+            const brand = (p.brand || '').toLowerCase();
+            const model = (p.model || '').toLowerCase();
+            const trSlogan = (p.translations && p.translations[lang.value] && p.translations[lang.value].slogan) ? p.translations[lang.value].slogan.toLowerCase() : '';
+            const inds = (p.industries || []).join(' ').toLowerCase();
+            const offer = (getOfferDisplay(p) || '').toLowerCase();
+            return brand.includes(q) || model.includes(q) || trSlogan.includes(q) || inds.includes(q) || offer.includes(q);
+          });
+        });
+
+        const applySelectionFilter = () => {
+          if (selectedProductIds.value.length === 0) return;
+          isSelectionOnlyMode.value = true;
+          isSelectionModalOpen.value = false;
+        };
+
+        const showAllProductsView = () => {
+          isSelectionOnlyMode.value = false;
+        };
+
+        const printSelected = async () => {
+          if (selectedProductIds.value.length === 0) return;
+          isSelectionModalOpen.value = false;
+          isSelectionOnlyMode.value = true;
+          await nextTick();
+          setTimeout(() => {
+            window.print();
+          }, 150);
+        };
+
+        const printAll = async () => {
+          isSelectionOnlyMode.value = false;
+          await nextTick();
+          setTimeout(() => {
+            window.print();
+          }, 150);
+        };
+
+        watch(selectedProductIds, (val) => {
+          if (val.length === 0 && isSelectionOnlyMode.value) {
+            isSelectionOnlyMode.value = false;
+          }
+        }, { deep: true });
+
         return {
           mode, lang, changeLang, t,
           products, brands, industries,
@@ -1730,7 +2157,11 @@
           isBackupsModalOpen, backupsList, isLoadingBackups, openBackupsModal, restoreBackup,
           newSectorInput, newBrandInput, addNewSector, addNewBrand,
           isUploadingImages, getPreviewFolder,
-          getOfferDisplay, getOfferTooltip
+          getOfferDisplay, getOfferTooltip,
+          selectedProductIds, isSelectionModalOpen, isSelectionOnlyMode, selectionSearch,
+          openSelectionModal, toggleProductSelection, selectAllProducts, deselectAllProducts,
+          filteredModalProducts, applySelectionFilter, showAllProductsView,
+          printSelected, printAll
         };
       }
     }).mount('#app')
