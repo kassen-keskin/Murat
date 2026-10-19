@@ -267,7 +267,7 @@ async function rmaPdfOlustur() {
         }
         // --- END SMART PAGE BREAK ---
 
-        const canvas = await html2canvas(printArea, { scale: 2 });
+        const canvas = await html2canvas(printArea, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
         const imgData = canvas.toDataURL('image/jpeg', 1.0);
         
         const { jsPDF } = window.jspdf;

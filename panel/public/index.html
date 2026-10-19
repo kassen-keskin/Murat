@@ -2211,37 +2211,27 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 </div>
                 
                 <!-- Gizli yazdırma alanı -->
-                <div id="rmaPrintPreview" style="position: absolute; left: -9999px; width: 210mm; background: white; color: black; font-family: 'Times New Roman', serif; padding: 20mm;">
-                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 30px;">
-                        <div style="width: 50%;">
-                            <h2 style="margin: 25px 0 10px 0; font-size: 16pt;">Kassenaufsteller: Kassen Keskin</h2>
-                            <p style="margin: 0; font-size: 12pt; line-height: 1.3;">
-                                Stülpnagelstraße 3 * 14059 Berlin<br>
-                                Tel.: 030/ 23 57 15 27<br>
-                                Mobil: 0176 222 04 117<br>
-                                www.kassen-keskin.de<br>
-                                info@kassen-keskin.de
-                            </p>
-                        </div>
-                        <div style="display: flex; flex-direction: column; align-items: center;">
-                            <img src="/logo.jpg" style="width: 250px; height: auto; margin-bottom: 10px;" onerror="this.style.display='none'">
-                            <p style="margin: 0; font-size: 12pt; text-align: center;">Berlin, <span id="rmaPrintDate"></span></p>
-                        </div>
-                    </div>
-                    
-                    <div style="margin-bottom: 25px;">
-                        <h3 style="margin: 0 0 10px 0; font-size: 14pt; font-weight: bold;">Kunde:</h3>
-                        <p id="rmaPrintCustomer" style="margin: 0; font-size: 12pt; white-space: pre-wrap; line-height: 1.3;"></p>
-                    </div>
+                <div id="rmaPrintPreview" style="position: absolute; left: -9999px; width: 210mm; background: white; color: black; font-family: 'Times New Roman', serif; padding: 0; box-sizing: border-box;">
+                    <!-- Sayfanın en üstüne boşluksuz oturan banner -->
+                    <img src="/a4.ust.siyah.jpg" style="width: 100%; display: block; margin: 0; padding: 0;" alt="Header">
 
-                    <div style="margin-bottom: 25px;">
-                        <p style="margin: 0; font-size: 12pt;"><strong>Marka/Model:</strong> <span id="rmaPrintModel"></span></p>
-                        <p style="margin: 0; font-size: 12pt;"><strong>S/N:</strong> <span id="rmaPrintSernr"></span></p>
-                    </div>
+                    <div style="padding: 15mm 20mm 20mm 20mm;">
+                        <!-- Müşteri (solda) ve Tarih / Marka / Model / S/N (sağda) -->
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 25px;">
+                            <div style="width: 52%;">
+                                <h3 style="margin: 0 0 10px 0; font-size: 14pt; font-weight: bold;">Kunde:</h3>
+                                <p id="rmaPrintCustomer" style="margin: 0; font-size: 12pt; white-space: pre-wrap; line-height: 1.35;"></p>
+                            </div>
+                            <div style="width: 44%; text-align: left;">
+                                <p style="margin: 0 0 10px 0; font-size: 12pt; font-weight: bold; line-height: 1.3;">Berlin, <span id="rmaPrintDate"></span></p>
+                                <p style="margin: 0 0 5px 0; font-size: 12pt; line-height: 1.35;"><strong>Marka/Model:</strong> <span id="rmaPrintModel"></span></p>
+                                <p style="margin: 0; font-size: 12pt; line-height: 1.35;"><strong>S/N:</strong> <span id="rmaPrintSernr"></span></p>
+                            </div>
+                        </div>
 
-                    <div style="margin-bottom: 25px;">
-                        <p style="margin: 0; font-size: 12pt; font-weight: bold;">Betreff: <span id="rmaPrintBetreff"></span></p>
-                    </div>
+                        <div style="margin-bottom: 25px;">
+                            <p style="margin: 0; font-size: 12pt; font-weight: bold;">Betreff: <span id="rmaPrintBetreff"></span></p>
+                        </div>
                     
                     <div style="margin-bottom: 30px;">
                         <p id="rmaPrintDescription" style="margin: 0; font-size: 12pt; white-space: pre-wrap; line-height: 1.25;"></p>
@@ -2262,6 +2252,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                             <div id="rmaPrintSignatureName" style="font-size: 11pt; font-weight: bold;"></div>
                         </div>
                     </div>
+                    </div><!-- /padding wrapper -->
                 </div>
             </div>
         </div>
