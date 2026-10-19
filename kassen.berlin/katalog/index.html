@@ -412,6 +412,11 @@
       font-weight: 800 !important;
       border-radius: 14px !important;
       box-shadow: 0 4px 6px -1px rgba(37, 211, 102, 0.3) !important;
+      padding: 14px 24px !important;
+      display: inline-flex !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-decoration: none !important;
       transition: all 0.2s !important;
     }
     .customer-whatsapp-btn:hover {
@@ -435,15 +440,19 @@
       border: 1px solid rgba(255, 255, 255, 0.3) !important;
     }
     .customer-quote-badge {
-      background: rgba(15, 23, 42, 0.45) !important;
+      background: rgba(15, 23, 42, 0.5) !important;
       color: #ffffff !important;
-      padding: 5px 12px !important;
-      border-radius: 9999px !important;
+      padding: 10px 18px !important;
+      border-radius: 14px !important;
       border: 1px solid rgba(255, 255, 255, 0.25) !important;
-      display: inline-flex !important;
+      display: flex !important;
       align-items: center !important;
-      gap: 6px !important;
-      font-size: 0.8rem !important;
+      justify-content: flex-start !important;
+      width: 100% !important;
+      box-sizing: border-box !important;
+      gap: 8px !important;
+      font-size: 0.85rem !important;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
     }
     .customer-quote-note-box {
       background: #ffffff !important;
@@ -781,24 +790,23 @@
     <div v-else>
       <!-- A. CUSTOMER VIP NAVBAR & BANNER -->
       <div v-if="isCustomerView" class="no-print">
-        <nav class="customer-vip-navbar shadow-lg sticky top-0 z-50 px-4 md:px-8 py-3">
-          <div class="max-w-7xl mx-auto flex items-center justify-between">
-            <div class="flex items-center gap-3">
+        <nav class="customer-vip-navbar shadow-lg sticky top-0 z-50 px-3 sm:px-6 py-2.5">
+          <div class="max-w-7xl mx-auto flex items-center justify-between gap-2 sm:gap-4">
+            <div class="flex items-center shrink-0">
               <img src="logo.jpg" alt="Logo" class="customer-vip-logo" onerror="this.style.display='none'">
-              <span class="font-black text-lg md:text-xl tracking-tight uppercase text-white">Kassen Keskin</span>
             </div>
-            <div class="flex items-center gap-3">
-              <select v-model="lang" @change="changeLang(lang)" class="catalog-lang-select text-xs md:text-sm">
+            <div class="flex items-center gap-1.5 sm:gap-3 flex-1 justify-end max-w-xl">
+              <select v-model="lang" @change="changeLang(lang)" class="catalog-lang-select text-xs md:text-sm shrink-0">
                 <option value="de">DE</option>
                 <option value="tr">TR</option>
                 <option value="en">EN</option>
               </select>
-              <a href="https://wa.me/4917622204117" target="_blank" class="px-3.5 py-2 bg-green-500 hover:bg-green-600 text-white font-bold rounded-lg text-xs md:text-sm shadow flex items-center gap-1.5 transition-colors">
-                <i class="fab fa-whatsapp text-base"></i>
+              <a href="https://wa.me/4917622204117" target="_blank" class="flex-1 sm:flex-initial px-3 sm:px-5 py-2 sm:py-2.5 bg-green-500 hover:bg-green-600 text-white font-extrabold rounded-xl text-sm md:text-base shadow flex items-center justify-center gap-1.5 sm:gap-2 transition-all" title="WhatsApp">
+                <i class="fab fa-whatsapp text-lg sm:text-xl"></i>
                 <span class="hidden sm:inline">WhatsApp</span>
               </a>
-              <a href="tel:+4917622204117" class="px-3.5 py-2 bg-white text-blue-900 hover:bg-blue-50 font-bold rounded-lg text-xs md:text-sm shadow flex items-center gap-1.5 transition-colors">
-                <i class="fas fa-phone"></i>
+              <a href="tel:+4917622204117" class="flex-1 sm:flex-initial px-3 sm:px-5 py-2 sm:py-2.5 bg-white text-blue-900 hover:bg-blue-50 font-extrabold rounded-xl text-sm md:text-base shadow flex items-center justify-center gap-1.5 sm:gap-2 transition-all" title="+49 176 22204117">
+                <i class="fas fa-phone text-sm sm:text-base"></i>
                 <span class="hidden sm:inline">+49 176 22204117</span>
               </a>
             </div>
@@ -806,46 +814,48 @@
         </nav>
 
         <!-- VIP Quote Banner -->
-        <div class="max-w-5xl mx-auto px-4 pt-5 pb-2">
-          <div class="customer-vip-banner p-5 md:p-6 flex flex-col md:flex-row items-center justify-between gap-5">
-            <div class="flex items-start gap-4">
-              <div class="customer-vip-award-icon w-14 h-14 rounded-2xl flex items-center justify-center text-3xl shrink-0 shadow-inner">
-                <i class="fas fa-award text-yellow-300"></i>
-              </div>
-              <div>
+        <div class="max-w-5xl mx-auto px-4 pt-4 pb-2">
+          <div class="customer-vip-banner p-4 sm:p-5 md:p-6 flex flex-col items-stretch gap-3 sm:gap-4">
+            <!-- Top Section: Titles on Left, Award Icon on Right -->
+            <div class="flex items-center justify-between gap-3 w-full">
+              <div class="text-left flex-1 min-w-0">
                 <div class="text-[11px] uppercase tracking-wider font-extrabold text-blue-200 flex items-center gap-1.5">
                   <span class="w-2.5 h-2.5 rounded-full bg-green-400 animate-pulse"></span>
                   {{ t('vipQuoteSubtitle') }}
                 </div>
-                <h1 class="text-xl md:text-2xl font-black mt-0.5 text-white">
+                <h1 class="text-lg sm:text-xl md:text-2xl font-black mt-0.5 text-white break-words">
                   {{ customerQuoteData.n ? (lang === 'de' ? 'Erstellt für ' + customerQuoteData.n : (lang === 'en' ? 'Prepared for ' + customerQuoteData.n : 'Sayın ' + customerQuoteData.n + ' İçin Hazırlandı')) : t('specialQuoteTitle') }}
                 </h1>
-                <div class="flex flex-wrap items-center gap-2.5 text-xs md:text-sm text-blue-100 mt-2 font-medium">
-                  <span class="customer-quote-badge">
-                    <i class="far fa-calendar-check text-yellow-300"></i>
-                    <span>{{ t('quoteValidUntil').replace('{date}', formatExpiryDate(customerQuoteData.exp)) }}</span>
-                    <span class="text-yellow-300 font-bold ml-1">({{ getRemainingDays(customerQuoteData.exp) }} {{ t('daysLeft') }})</span>
-                  </span>
-                  <span v-if="customerQuoteData.pt" class="customer-quote-badge font-bold">
-                    {{ customerQuoteData.pt === 'aylik' ? t('monthlyRent') : (customerQuoteData.pt === 'satis' ? t('salePrice') : t('hybridPrice')) }}
-                  </span>
-                </div>
-                <div v-if="customerQuoteData.note" class="customer-quote-note-box">
-                  <i class="fas fa-comment-dots text-amber-500 shrink-0 text-sm mt-0.5"></i>
-                  <span class="text-xs md:text-sm text-gray-800 font-bold italic">"{{ customerQuoteData.note }}"</span>
-                </div>
+              </div>
+              <div class="customer-vip-award-icon w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center text-2xl sm:text-3xl shrink-0 shadow-inner ml-2">
+                <i class="fas fa-award text-yellow-300"></i>
               </div>
             </div>
 
-            <div class="flex items-center gap-3 shrink-0 w-full md:w-auto">
-              <a :href="getWhatsAppQuoteUrl()" target="_blank" class="customer-whatsapp-btn flex-1 md:flex-initial px-5 py-3 text-sm whitespace-nowrap flex items-center justify-center gap-2">
+            <!-- Full Width Elements: 2 Badges + Note Box stretching completely across like the WhatsApp button -->
+            <div class="flex flex-col gap-2.5 text-xs sm:text-sm text-blue-100 font-medium w-full">
+              <div class="customer-quote-badge">
+                <i class="far fa-calendar-check text-yellow-300 shrink-0 text-sm sm:text-base"></i>
+                <span class="flex-1">{{ t('quoteValidUntil').replace('{date}', formatExpiryDate(customerQuoteData.exp)) }}</span>
+                <span class="text-yellow-300 font-extrabold ml-1 shrink-0">({{ getRemainingDays(customerQuoteData.exp) }} {{ t('daysLeft') }})</span>
+              </div>
+              <div v-if="customerQuoteData.pt" class="customer-quote-badge font-bold">
+                <i class="fas fa-tag text-cyan-300 shrink-0 text-sm sm:text-base"></i>
+                <span>{{ customerQuoteData.pt === 'aylik' ? t('monthlyRent') : (customerQuoteData.pt === 'satis' ? t('salePrice') : t('hybridPrice')) }}</span>
+              </div>
+            </div>
+
+            <div v-if="customerQuoteData.note" class="customer-quote-note-box w-full">
+              <i class="fas fa-comment-dots text-amber-500 shrink-0 text-sm mt-0.5"></i>
+              <span class="text-xs md:text-sm text-gray-800 font-bold italic">"{{ customerQuoteData.note }}"</span>
+            </div>
+
+            <!-- WhatsApp Approve Button: Full Width -->
+            <div class="w-full pt-1">
+              <a :href="getWhatsAppQuoteUrl()" target="_blank" class="customer-whatsapp-btn w-full px-6 py-3.5 text-sm md:text-base whitespace-nowrap flex items-center justify-center gap-2.5">
                 <i class="fab fa-whatsapp text-xl"></i>
                 <span>{{ t('approveQuote') }}</span>
               </a>
-              <button type="button" @click="window.print()" class="customer-print-btn px-4 py-3 text-sm whitespace-nowrap flex items-center justify-center gap-2">
-                <i class="fas fa-print"></i>
-                <span class="hidden sm:inline">{{ t('printQuote') }}</span>
-              </button>
             </div>
           </div>
         </div>
