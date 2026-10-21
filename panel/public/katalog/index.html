@@ -690,6 +690,235 @@
       cursor: not-allowed !important;
       font-weight: 700 !important;
     }
+    .col-span-1 {
+      grid-column: span 1 / span 1;
+    }
+    .price-flip-scene {
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .price-flip-card {
+      display: inline-grid;
+      position: relative;
+      perspective: 900px;
+    }
+    .price-flip-face {
+      grid-area: 1 / 1;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1), opacity 0.01s 0.3s;
+    }
+    .price-flip-front {
+      transform: rotateY(0deg);
+      opacity: 1;
+      z-index: 2;
+    }
+    .price-flip-back {
+      transform: rotateY(-180deg);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .price-flip-card.is-flipped .price-flip-front {
+      transform: rotateY(180deg);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .price-flip-card.is-flipped .price-flip-back {
+      transform: rotateY(0deg);
+      opacity: 1;
+      z-index: 2;
+      pointer-events: auto;
+    }
+    .quote-total-banner-scene {
+      width: var(--catalog-width, 794px);
+      max-width: 100%;
+      margin: 8px auto 28px auto;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .quote-total-banner-card {
+      display: grid;
+      width: 100%;
+      position: relative;
+      perspective: 1200px;
+    }
+    .quote-total-banner {
+      grid-area: 1 / 1;
+      width: 100%;
+      background: linear-gradient(135deg, #0f172a 0%, #1e3a8a 50%, #1d4ed8 100%);
+      border: 4px solid #facc15;
+      border-radius: 20px;
+      box-shadow: 0 25px 50px -12px rgba(30, 58, 138, 0.5);
+      padding: 28px 36px;
+      color: #ffffff;
+      box-sizing: border-box;
+      backface-visibility: hidden;
+      -webkit-backface-visibility: hidden;
+      transition: transform 0.65s cubic-bezier(0.4, 0.2, 0.2, 1), opacity 0.01s 0.32s;
+    }
+    .quote-total-front {
+      transform: rotateY(0deg);
+      opacity: 1;
+      z-index: 2;
+    }
+    .quote-total-back {
+      transform: rotateY(-180deg);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .quote-total-banner-card.is-flipped .quote-total-front {
+      transform: rotateY(180deg);
+      opacity: 0;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .quote-total-banner-card.is-flipped .quote-total-back {
+      transform: rotateY(0deg);
+      opacity: 1;
+      z-index: 2;
+      pointer-events: auto;
+    }
+    .quote-total-vat-line {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #fde047;
+      margin-bottom: 6px;
+      letter-spacing: 0.5px;
+    }
+    .quote-total-banner-inner {
+      display: flex;
+      align-items: center;
+      justify-content: space-around;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .quote-total-box {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      flex: 1 1 200px;
+    }
+    .quote-total-label {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      color: #bfdbfe;
+      margin-bottom: 8px;
+    }
+    .quote-total-value {
+      font-size: 4.5rem;
+      font-weight: 900;
+      line-height: 1.05;
+      letter-spacing: -1px;
+      font-family: 'Poppins', 'Arial Black', sans-serif;
+    }
+    .quote-total-value.main-value {
+      color: #facc15;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+    .quote-total-value.monthly-value {
+      color: #ffffff;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
+    }
+    .quote-total-divider {
+      width: 3px;
+      align-self: stretch;
+      min-height: 85px;
+      background: rgba(255, 255, 255, 0.25);
+      border-radius: 999px;
+    }
+    .quote-total-click-hint {
+      text-align: center;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.72);
+      margin-top: 10px;
+      margin-bottom: -10px;
+      letter-spacing: 0.3px;
+    }
+    @media screen and (max-width: 640px) {
+      .quote-total-banner {
+        padding: 18px 16px;
+      }
+      .quote-total-label {
+        font-size: 0.95rem;
+      }
+      .quote-total-value {
+        font-size: 2.75rem;
+      }
+      .quote-total-divider {
+        min-height: 60px;
+      }
+    }
+    .floating-nav-controls {
+      position: fixed;
+      right: 22px;
+      bottom: 28px;
+      z-index: 900;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .floating-nav-btn {
+      width: 54px;
+      height: 54px;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+      color: #ffffff;
+      border: 2.5px solid rgba(255, 255, 255, 0.9);
+      box-shadow: 0 12px 28px -4px rgba(30, 58, 138, 0.6), 0 4px 10px -2px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.35rem;
+      cursor: pointer;
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .floating-nav-btn:hover {
+      transform: translateY(-3px) scale(1.08);
+      background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+      box-shadow: 0 16px 32px -4px rgba(37, 99, 235, 0.7), 0 6px 12px -2px rgba(0, 0, 0, 0.35);
+    }
+    .floating-nav-btn:active {
+      transform: translateY(0) scale(0.96);
+    }
+    .floating-nav-btn.fast-jump-btn {
+      width: 46px;
+      height: 46px;
+      font-size: 1.1rem;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      box-shadow: 0 10px 24px -4px rgba(217, 119, 6, 0.55), 0 4px 10px -2px rgba(0, 0, 0, 0.25);
+    }
+    .floating-nav-btn.fast-jump-btn:hover {
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    }
+    @media screen and (max-width: 640px) {
+      .floating-nav-controls {
+        right: 12px;
+        bottom: 18px;
+        gap: 9px;
+      }
+      .floating-nav-btn {
+        width: 44px;
+        height: 44px;
+        font-size: 1.1rem;
+      }
+      .floating-nav-btn.fast-jump-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 0.95rem;
+      }
+    }
   </style>
 </head>
 <body>
@@ -886,8 +1115,11 @@
                 <div class="text-sm md:text-base font-black text-gray-800">
                   {{ filterPriceType === 'aylik' ? (p.price || '-') : filterPriceType === 'satis' ? (p.priceSatis || '-') : (p.priceHibrit || '-') }}
                 </div>
+                <div v-if="getMonthlyPriceDisplay(p)" class="text-xs font-bold text-blue-700">
+                  {{ lang === 'tr' ? 'Aylık' : lang === 'de' ? 'Monatlich' : 'Monthly' }}: {{ getMonthlyPriceDisplay(p) }}
+                </div>
                 <div class="text-[9px] md:text-[10px] font-bold text-gray-400 uppercase">
-                  {{ filterPriceType === 'aylik' ? (lang === 'tr' ? 'Aylık' : lang === 'de' ? 'Monatlich' : 'Monthly') : filterPriceType === 'satis' ? (lang === 'tr' ? 'Satış' : lang === 'de' ? 'Kauf' : 'Sale') : (lang === 'tr' ? 'Hibrit' : 'Hybrid') }}
+                  {{ filterPriceType === 'aylik' ? (lang === 'tr' ? 'Kiralık' : lang === 'de' ? 'Miete' : 'Rental') : filterPriceType === 'satis' ? (lang === 'tr' ? 'Satış' : lang === 'de' ? 'Kauf' : 'Sale') : (lang === 'tr' ? 'Hibrit' : 'Hybrid') }}
                 </div>
                 <div v-if="getOfferDisplay(p)" class="text-[10px] md:text-[11px] font-mono font-bold text-blue-600 mt-0.5">
                   {{ getOfferDisplay(p) }}
@@ -940,7 +1172,10 @@
           </div>
 
           <div class="px-10 w-full z-10 shrink-0 mt-0">
-            <div class="catalog-image-box h-[550px] w-full relative flex flex-col items-center justify-center p-4 group cursor-pointer bg-white bg-opacity-50" @click="nextImage(p.id)">
+            <div class="catalog-image-box h-[550px] w-full relative flex flex-col items-center justify-center p-4 group cursor-pointer bg-white bg-opacity-50"
+                 @click="nextImage(p.id)"
+                 @mouseenter="pauseProductSlide(p.id)"
+                 @mouseleave="resumeProductSlide(p.id)">
               <!-- Sketch Border Background -->
               <div class="absolute inset-0 pointer-events-none sketch-border z-0"></div>
 
@@ -987,13 +1222,29 @@
           </div>
 
           <!-- Price Tag -->
-          <div v-if="(filterPriceType === 'aylik' && p.price) || (filterPriceType === 'satis' && p.priceSatis) || (filterPriceType === 'hibrit' && p.priceHibrit)" class="absolute bottom-[198px] right-[7px] transform -rotate-[15deg] z-40 drop-shadow-2xl opacity-90 scale-110 origin-bottom-right">
-            <div class="relative bg-yellow-400 text-red-700 px-6 py-2 rounded-lg border-4 border-red-600 shadow-xl inline-block text-center flex flex-col justify-center min-w-[140px] min-h-[70px]" style="font-family: 'Impact', 'Arial Black', sans-serif;">
-              <span class="uppercase tracking-tighter" :class="(filterPriceType === 'satis' && p.priceSatis && p.priceSatis.length >= 4) || (filterPriceType === 'hibrit' && p.priceHibrit && p.priceHibrit.length >= 4) ? 'text-4xl' : 'text-6xl'">
-                {{ filterPriceType === 'aylik' ? p.price : filterPriceType === 'satis' ? p.priceSatis : p.priceHibrit }}
-              </span>
-              <div class="absolute top-[100%] left-1/2 -translate-x-1/2 -translate-y-[45%] bg-yellow-400 text-red-700 px-2 py-0.5 text-[10px] rounded-full border border-red-600 shadow-sm" style="font-family: 'Poppins', sans-serif; font-weight: 900; white-space: nowrap; line-height: 1;">
-                {{ filterPriceType === 'aylik' ? (lang === 'tr' ? 'AYLIK' : lang === 'de' ? 'MONATLICH' : 'MONTHLY') : filterPriceType === 'satis' ? (lang === 'tr' ? 'NET FİYAT' : lang === 'de' ? 'NETTOPREIS' : 'NET PRICE') : (lang === 'tr' ? 'HİBRİT' : 'HYBRID') }}
+          <div v-if="getPriceTagFrontText(p) || getPriceTagDetailText(p)"
+               @click.stop="togglePriceFlip(p)"
+               :title="getPriceTagDetailText(p) ? 'Detay görmek için tıklayın' : ''"
+               class="price-flip-scene absolute bottom-[198px] right-[7px] transform -rotate-[15deg] z-40 drop-shadow-2xl opacity-90 scale-110 origin-bottom-right"
+               :class="getPriceTagDetailText(p) ? 'cursor-pointer' : ''">
+            <div class="price-flip-card" :class="{ 'is-flipped': isPriceFlipped(p) }">
+              <!-- Ön Yüz: Fiyat / Aylık -->
+              <div class="price-flip-face price-flip-front relative bg-yellow-400 text-red-700 px-6 py-2 rounded-lg border-4 border-red-600 shadow-xl inline-block text-center flex flex-col justify-center min-w-[140px] min-h-[70px]" style="font-family: 'Impact', 'Arial Black', sans-serif;">
+                <span class="uppercase tracking-tighter" :class="getPriceTagFrontText(p).length >= 4 ? 'text-4xl' : 'text-6xl'">
+                  {{ getPriceTagFrontText(p) }}
+                </span>
+                <div class="absolute top-[100%] left-1/2 -translate-x-1/2 -translate-y-[45%] bg-yellow-400 text-red-700 px-2 py-0.5 text-[10px] rounded-full border border-red-600 shadow-sm" style="font-family: 'Poppins', sans-serif; font-weight: 900; white-space: nowrap; line-height: 1;">
+                  {{ filterPriceType === 'aylik' ? (lang === 'tr' ? 'AYLIK' : lang === 'de' ? 'MONATLICH' : 'MONTHLY') : filterPriceType === 'satis' ? (lang === 'tr' ? 'NET FİYAT' : lang === 'de' ? 'NETTOPREIS' : 'NET PRICE') : (lang === 'tr' ? 'HİBRİT' : 'HYBRID') }}
+                </div>
+              </div>
+              <!-- Arka Yüz: Detay -->
+              <div v-if="getPriceTagDetailText(p)" class="price-flip-face price-flip-back relative bg-yellow-400 text-red-700 px-6 py-2 rounded-lg border-4 border-red-600 shadow-xl inline-block text-center flex flex-col justify-center min-w-[140px] min-h-[70px]" style="font-family: 'Impact', 'Arial Black', sans-serif;">
+                <span class="uppercase tracking-tighter text-4xl">
+                  {{ getPriceTagDetailText(p) }}
+                </span>
+                <div class="absolute top-[100%] left-1/2 -translate-x-1/2 -translate-y-[45%] bg-yellow-400 text-red-700 px-2 py-0.5 text-[10px] rounded-full border border-red-600 shadow-sm" style="font-family: 'Poppins', sans-serif; font-weight: 900; white-space: nowrap; line-height: 1;">
+                  {{ lang === 'tr' ? 'DETAY' : 'DETAIL' }}
+                </div>
               </div>
             </div>
           </div>
@@ -1038,6 +1289,96 @@
 
         </div>
         </div>
+
+        <!-- Seçilen Ürünler Toplam Fiyat Bannerı (En Altta - Tıklandığında 3D Kart Gibi Döner) -->
+        <div v-if="isSelectionOnlyMode && filteredProducts.length > 0"
+             @click="isTotalBannerFlipped = !isTotalBannerFlipped"
+             class="no-print quote-total-banner-scene"
+             :title="lang === 'de' ? 'Klicken für 19% MwSt. & Bruttopreis' : (lang === 'en' ? 'Click for 19% VAT & Gross Price' : '%19 KDV ve Brüt Fiyat için tıklayın')">
+          <div class="quote-total-banner-card" :class="{ 'is-flipped': isTotalBannerFlipped }">
+            <!-- Ön Yüz: Net Fiyat ve Aylık -->
+            <div class="quote-total-banner quote-total-front">
+              <div class="quote-total-banner-inner">
+                <div class="quote-total-box main-total-box">
+                  <div class="quote-total-label">
+                    <span>{{ totalBannerMainLabel }}</span>
+                  </div>
+                  <div class="quote-total-value main-value">
+                    {{ selectedTotals.mainDisplay }}
+                  </div>
+                </div>
+                <div class="quote-total-divider"></div>
+                <div class="quote-total-box monthly-total-box">
+                  <div class="quote-total-label">
+                    <span>{{ totalBannerMonthlyLabel }}</span>
+                  </div>
+                  <div class="quote-total-value monthly-value">
+                    {{ selectedTotals.monthlyDisplay }}
+                  </div>
+                </div>
+              </div>
+              <div class="quote-total-click-hint">
+                {{ lang === 'de' ? 'Für Bruttopreis hier klicken.' : (lang === 'en' ? 'Click for gross price.' : 'Brüt fiyat için tıklayın.') }}
+              </div>
+            </div>
+            <!-- Arka Yüz: %19 KDV ve Brüt Fiyatlar -->
+            <div class="quote-total-banner quote-total-back">
+              <div class="quote-total-banner-inner">
+                <div class="quote-total-box main-total-box">
+                  <div class="quote-total-label">
+                    <span>{{ totalBannerGrossMainLabel }}</span>
+                  </div>
+                  <div class="quote-total-vat-line">
+                    {{ totalBannerVatPrefix }}: {{ selectedTotals.mainVatDisplay }}
+                  </div>
+                  <div class="quote-total-value main-value">
+                    {{ selectedTotals.mainGrossDisplay }}
+                  </div>
+                </div>
+                <div class="quote-total-divider"></div>
+                <div class="quote-total-box monthly-total-box">
+                  <div class="quote-total-label">
+                    <span>{{ totalBannerGrossMonthlyLabel }}</span>
+                  </div>
+                  <div class="quote-total-vat-line">
+                    {{ totalBannerVatPrefix }}: {{ selectedTotals.monthlyVatDisplay }}
+                  </div>
+                  <div class="quote-total-value monthly-value">
+                    {{ selectedTotals.monthlyGrossDisplay }}
+                  </div>
+                </div>
+              </div>
+              <div class="quote-total-click-hint">
+                {{ lang === 'de' ? 'Für Nettopreis hier klicken.' : (lang === 'en' ? 'Click for net price.' : 'Net fiyat için tıklayın.') }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sağda Havada Asılı Hızlı Ürün Gezinme Butonları -->
+      <div v-if="filteredProducts.length > 0" class="no-print floating-nav-controls">
+        <!-- En Başta İken En Alta (Fiyatlara) / En Altta İken En Üste Hızlı Geçiş Butonu -->
+        <button type="button"
+                @click="jumpTopOrBottom"
+                class="floating-nav-btn fast-jump-btn"
+                :title="isNearBottom ? (lang === 'de' ? 'Ganz nach oben' : (lang === 'en' ? 'Jump to Top' : 'En Üste Çık')) : (lang === 'de' ? 'Ganz nach unten (Preise)' : (lang === 'en' ? 'Jump to Bottom (Prices)' : 'En Alta / Fiyatlara Git'))">
+          <i class="fas" :class="isNearBottom ? 'fa-angles-up' : 'fa-angles-down'"></i>
+        </button>
+        <!-- Sağ Üst Yuvarlak Buton: Önceki Ürüne Git -->
+        <button type="button"
+                @click="scrollPrevProduct"
+                class="floating-nav-btn"
+                :title="lang === 'de' ? 'Vorheriges Produkt' : (lang === 'en' ? 'Previous Product' : 'Önceki Ürün')">
+          <i class="fas fa-chevron-up"></i>
+        </button>
+        <!-- Sağ Alt Yuvarlak Buton: Sonraki Ürüne Git -->
+        <button type="button"
+                @click="scrollNextProduct"
+                class="floating-nav-btn"
+                :title="lang === 'de' ? 'Nächstes Produkt' : (lang === 'en' ? 'Next Product' : 'Sonraki Ürün')">
+          <i class="fas fa-chevron-down"></i>
+        </button>
       </div>
     </div>
 
@@ -1168,22 +1509,54 @@
                 <input type="text" v-model="editingProduct.model" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none">
               </div>
               <div class="col-span-2 admin-prices-3col grid grid-cols-3 gap-4">
-                <div>
-                  <label class="block text-sm font-bold text-gray-700 mb-2">Aylık Fiyat</label>
-                  <input type="text" v-model="editingProduct.price" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="49€">
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Kiralık Fiyatı</label>
+                    <input type="text" v-model="editingProduct.price" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="49€">
+                  </div>
+                  <div class="col-span-1">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Aylık</label>
+                    <input type="text" v-model="editingProduct.priceAylik" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="20€">
+                  </div>
                 </div>
-                <div>
-                  <label class="block text-sm font-bold text-gray-700 mb-2">Satış Fiyatı</label>
-                  <input type="text" v-model="editingProduct.priceSatis" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="990€">
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Satış Fiyatı</label>
+                    <input type="text" v-model="editingProduct.priceSatis" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="990€">
+                  </div>
+                  <div class="col-span-1">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Aylık</label>
+                    <input type="text" v-model="editingProduct.priceSatisAylik" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="20€">
+                  </div>
                 </div>
-                <div>
-                  <label class="block text-sm font-bold text-gray-700 mb-2">Hibrit Fiyat</label>
-                  <input type="text" v-model="editingProduct.priceHibrit" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="499€ + 29€">
+                <div class="grid grid-cols-3 gap-2">
+                  <div class="col-span-2">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Hibrit Fiyat</label>
+                    <input type="text" v-model="editingProduct.priceHibrit" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="499€ + 29€">
+                  </div>
+                  <div class="col-span-1">
+                    <label class="block text-sm font-bold text-gray-700 mb-2">Aylık</label>
+                    <input type="text" v-model="editingProduct.priceHibritAylik" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-lg outline-none" placeholder="29€">
+                  </div>
                 </div>
               </div>
               <div class="col-span-2 admin-prices-3col grid grid-cols-3 gap-4">
                 <div>
-                  <label class="block text-sm font-bold text-gray-700 mb-2">{{ t('offerNoMonthly') }}</label>
+                  <label class="block text-sm font-bold text-gray-700 mb-2">Detay</label>
+                  <input type="text" v-model="editingProduct.priceDetay" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-base outline-none" placeholder="Örn: 200+90">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2">Detay</label>
+                  <input type="text" v-model="editingProduct.priceSatisDetay" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-base outline-none" placeholder="Örn: 1500+1150">
+                </div>
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2">Detay</label>
+                  <input type="text" v-model="editingProduct.priceHibritDetay" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-base outline-none" placeholder="Örn: 1000+500">
+                </div>
+              </div>
+              <div class="col-span-2 admin-prices-3col grid grid-cols-3 gap-4">
+                <div>
+                  <label class="block text-sm font-bold text-gray-700 mb-2">Kiralık Teklif No</label>
                   <input type="text" v-model="editingProduct.offerNo" class="w-full border-2 border-gray-300 focus:border-blue-500 p-3 rounded-lg font-semibold text-base outline-none" :placeholder="t('offerPlaceholder')">
                 </div>
                 <div>
@@ -1308,13 +1681,13 @@
         feature1: '1. Özellik', feature2: '2. Özellik', feature3: '3. Özellik', feature4: '4. Özellik', industriesFilter: 'Uygun Müşteri Branşları (Filtreleme İçin)',
         cancel: 'İptal Et', save: 'Ürünü Kaydet', selectFromLeft: 'Düzenlemek için sol listeden bir ürün seçin', orUseNew: 'veya "Yeni Ürün Ekle" butonunu kullanın.',
         confirmDelete: 'Bu sayfayı katalogdan silmek istediğinize emin misiniz?', fieldsRequired: 'Marka ve Model alanları zorunludur!', priceLabel: 'Aylık Kiralama Fiyatı', notesDesc: 'Notlar (İsteğe Bağlı İçerik)',
-        priceTypeTitle: 'Fiyat Türü', ptMonthly: 'Aylık Kiralama', ptPurchase: 'Satın Alma (Net Fiyat)', ptHybrid: 'Hibrit',
+        priceTypeTitle: 'Fiyat Türü', ptMonthly: 'Aylık Kiralama', ptPurchase: 'Satın Alma', ptHybrid: 'Hibrit',
         syncSuccess: 'Senkronize', saving: 'Kaydediliyor...', syncError: 'Bağlantı Hatası',
         addSector: 'Sektör Ekle', addBrand: 'Marka Ekle',
         backups: 'Yedekler & Geri Yükle', backupList: 'Sunucu Katalog Yedekleri', restore: 'Geri Yükle', close: 'Kapat',
         restoreConfirm: 'Bu yedeği geri yüklemek istediğinize emin misiniz? Mevcut katalog bu yedek ile değiştirilecektir.',
         noBackups: 'Henüz yedek bulunmuyor.',
-        offerNoMonthly: 'Aylık Teklif No', offerNoPurchase: 'Satış Teklif No', offerNoHybrid: 'Hibrit Teklif No',
+        offerNoMonthly: 'Kiralık Teklif No', offerNoPurchase: 'Satış Teklif No', offerNoHybrid: 'Hibrit Teklif No',
         offerPrefix: 'Teklif No', offerPlaceholder: 'Örn: ANG-1001',
         selectProducts: 'Ürün Seç', selectionTitle: 'Ürün Seçimi & Özel Yazdırma',
         selectionSubtitle: 'Katalogdan istediğiniz ürünleri seçerek yalnızca seçili sayfaları yazdırabilirsiniz.',
@@ -1335,7 +1708,7 @@
         feature1: 'Merkmal 1', feature2: 'Merkmal 2', feature3: 'Merkmal 3', feature4: 'Merkmal 4', industriesFilter: 'Passende Kundenbranchen (Zum Filtern)',
         cancel: 'Abbrechen', save: 'Produkt speichern', selectFromLeft: 'Wählen Sie ein Produkt aus der linken Liste zum Bearbeiten', orUseNew: 'oder verwenden Sie die Schaltfläche "Neues Produkt".',
         confirmDelete: 'Sind Sie sicher, dass Sie diese Seite aus dem Katalog löschen möchten?', fieldsRequired: 'Marke und Modell sind Pflichtfelder!', priceLabel: 'Monatlicher Mietpreis', notesDesc: 'Notizen (Optionaler Inhalt)',
-        priceTypeTitle: 'Preistyp', ptMonthly: 'Monatliche Miete', ptPurchase: 'Kauf (Nettopreis)', ptHybrid: 'Hybrid',
+        priceTypeTitle: 'Preistyp', ptMonthly: 'Monatliche Miete', ptPurchase: 'Kauf', ptHybrid: 'Hybrid',
         syncSuccess: 'Synchronisiert', saving: 'Wird gespeichert...', syncError: 'Verbindungsfehler',
         addSector: 'Branche hinzufügen', addBrand: 'Marke hinzufügen',
         backups: 'Sicherungen & Wiederherstellen', backupList: 'Server-Katalogsicherungen', restore: 'Wiederherstellen', close: 'Schließen',
@@ -1362,7 +1735,7 @@
         feature1: 'Feature 1', feature2: 'Feature 2', feature3: 'Feature 3', feature4: 'Feature 4', industriesFilter: 'Suitable Customer Industries (For Filtering)',
         cancel: 'Cancel', save: 'Save Product', selectFromLeft: 'Select a product from the left list to edit', orUseNew: 'or use the "Add New Product" button.',
         confirmDelete: 'Are you sure you want to delete this page from the catalog?', fieldsRequired: 'Brand and Model fields are required!', priceLabel: 'Monthly Rental Price', notesDesc: 'Notes (Optional Content)',
-        priceTypeTitle: 'Price Type', ptMonthly: 'Monthly Rental', ptPurchase: 'Purchase (Net Price)', ptHybrid: 'Hybrid',
+        priceTypeTitle: 'Price Type', ptMonthly: 'Monthly Rental', ptPurchase: 'Purchase', ptHybrid: 'Hybrid',
         syncSuccess: 'Synchronized', saving: 'Saving...', syncError: 'Connection Error',
         addSector: 'Add Sector', addBrand: 'Add Brand',
         backups: 'Backups & Restore', backupList: 'Server Catalog Backups', restore: 'Restore', close: 'Close',
@@ -1505,8 +1878,14 @@
         const normalizeProduct = (p) => {
           if (!p.images) { p.images = p.image ? [p.image] : []; delete p.image; }
           if (p.price === undefined) p.price = '';
+          if (p.priceAylik === undefined) p.priceAylik = '';
+          if (p.priceDetay === undefined) p.priceDetay = '';
           if (p.priceSatis === undefined) p.priceSatis = '';
+          if (p.priceSatisAylik === undefined) p.priceSatisAylik = '';
+          if (p.priceSatisDetay === undefined) p.priceSatisDetay = '';
           if (p.priceHibrit === undefined) p.priceHibrit = '';
+          if (p.priceHibritAylik === undefined) p.priceHibritAylik = '';
+          if (p.priceHibritDetay === undefined) p.priceHibritDetay = '';
           if (p.offerNo === undefined) p.offerNo = p.teklifNo || '';
           if (p.offerNoSatis === undefined) p.offerNoSatis = p.teklifNoSatis || '';
           if (p.offerNoHibrit === undefined) p.offerNoHibrit = p.teklifNoHibrit || '';
@@ -1620,11 +1999,19 @@
 
         // Image Slider
         const activeIndices = ref({});
+        const hoveredProductIds = ref({});
+        const pauseProductSlide = (id) => {
+          hoveredProductIds.value[id] = true;
+        };
+        const resumeProductSlide = (id) => {
+          delete hoveredProductIds.value[id];
+        };
         let slideInterval = null;
         const startInterval = () => {
           if (slideInterval) clearInterval(slideInterval);
           slideInterval = setInterval(() => {
             products.value.forEach(p => {
+              if (hoveredProductIds.value[p.id]) return;
               if (p.images && p.images.length > 1) {
                 let current = activeIndices.value[p.id] || 0;
                 activeIndices.value[p.id] = (current + 1) % p.images.length;
@@ -1644,6 +2031,85 @@
           startInterval();
         };
 
+        // Product-by-Product & Top/Bottom Quick Scroll Navigation
+        const isNearBottom = ref(false);
+        const updateScrollStatus = () => {
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+          const docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+          const winHeight = window.innerHeight || document.documentElement.clientHeight;
+          isNearBottom.value = (scrollTop + winHeight >= docHeight - 250) || (scrollTop > (docHeight - winHeight) / 2 && scrollTop > 300);
+        };
+
+        const getStickyHeaderOffset = () => {
+          const nav = document.querySelector('.catalog-navbar');
+          return nav ? nav.offsetHeight + 8 : 8;
+        };
+
+        const getScrollTargets = () => {
+          const pages = Array.from(document.querySelectorAll('.catalog-page-container'));
+          const banner = document.querySelector('.quote-total-banner-scene');
+          if (banner) pages.push(banner);
+          return pages;
+        };
+
+        const getTargetScrollTop = (el) => {
+          const rect = el.getBoundingClientRect();
+          const scrollTop = window.pageYOffset || document.documentElement.scrollTop || 0;
+          return Math.max(0, Math.round(rect.top + scrollTop - getStickyHeaderOffset()));
+        };
+
+        const scrollNextProduct = () => {
+          const targets = getScrollTargets();
+          if (targets.length === 0) return;
+          const currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
+          const nextEl = targets.find(el => getTargetScrollTop(el) > currentY + 24);
+          if (nextEl) {
+            window.scrollTo({ top: getTargetScrollTop(nextEl), behavior: 'smooth' });
+          } else {
+            const docHeight = Math.max(document.body.scrollHeight, document.documentElement.scrollHeight);
+            const winHeight = window.innerHeight || document.documentElement.clientHeight;
+            if (currentY + winHeight < docHeight - 40) {
+              window.scrollTo({ top: docHeight, behavior: 'smooth' });
+            } else {
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+          }
+        };
+
+        const scrollPrevProduct = () => {
+          const targets = getScrollTargets();
+          if (targets.length === 0) return;
+          const currentY = window.pageYOffset || document.documentElement.scrollTop || 0;
+          const prevCandidates = targets.filter(el => getTargetScrollTop(el) < currentY - 24);
+          if (prevCandidates.length > 0) {
+            const prevEl = prevCandidates[prevCandidates.length - 1];
+            window.scrollTo({ top: getTargetScrollTop(prevEl), behavior: 'smooth' });
+          } else if (currentY > 15) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            const lastEl = targets[targets.length - 1];
+            window.scrollTo({ top: getTargetScrollTop(lastEl), behavior: 'smooth' });
+          }
+        };
+
+        const jumpTopOrBottom = () => {
+          if (isNearBottom.value) {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            const banner = document.querySelector('.quote-total-banner-scene');
+            if (banner) {
+              window.scrollTo({ top: getTargetScrollTop(banner), behavior: 'smooth' });
+            } else {
+              const targets = getScrollTargets();
+              if (targets.length > 0) {
+                window.scrollTo({ top: getTargetScrollTop(targets[targets.length - 1]), behavior: 'smooth' });
+              } else {
+                window.scrollTo({ top: document.documentElement.scrollHeight, behavior: 'smooth' });
+              }
+            }
+          }
+        };
+
         // EC Image Slider
         const ecActiveIndex = ref(0);
         let ecInterval = null;
@@ -1658,7 +2124,9 @@
           startInterval(); 
           startEcInterval(); 
           updateCatalogScale();
+          updateScrollStatus();
           window.addEventListener('resize', updateCatalogScale);
+          window.addEventListener('scroll', updateScrollStatus, { passive: true });
           window.addEventListener('orientationchange', updateCatalogScale);
           window.addEventListener('focus', checkUpdates);
           document.addEventListener('visibilitychange', () => {
@@ -1672,6 +2140,7 @@
           if (ecInterval) clearInterval(ecInterval);
           if (pollTimer) clearInterval(pollTimer);
           window.removeEventListener('resize', updateCatalogScale);
+          window.removeEventListener('scroll', updateScrollStatus);
           window.removeEventListener('orientationchange', updateCatalogScale);
           window.removeEventListener('focus', checkUpdates);
         });
@@ -1690,8 +2159,14 @@
             model: '',
             imageFolder: '',
             price: '',
+            priceAylik: '',
+            priceDetay: '',
             priceSatis: '',
+            priceSatisAylik: '',
+            priceSatisDetay: '',
             priceHibrit: '',
+            priceHibritAylik: '',
+            priceHibritDetay: '',
             offerNo: '',
             offerNoSatis: '',
             offerNoHibrit: '',
@@ -2066,6 +2541,146 @@
           return parts.join(' | ');
         };
 
+        const getMonthlyPriceDisplay = (p) => {
+          if (!p) return '';
+          if (filterPriceType.value === 'satis') return p.priceSatisAylik || '';
+          if (filterPriceType.value === 'hibrit') return p.priceHibritAylik || '';
+          return p.priceAylik || '';
+        };
+
+        const flippedPrices = ref({});
+
+        watch(filterPriceType, () => {
+          flippedPrices.value = {};
+        });
+
+        const getPriceTagFrontText = (p) => {
+          if (!p) return '';
+          let main = '';
+          let sub = '';
+          if (filterPriceType.value === 'satis') {
+            main = String(p.priceSatis || '').trim();
+            sub = String(p.priceSatisAylik || '').trim();
+          } else if (filterPriceType.value === 'hibrit') {
+            main = String(p.priceHibrit || '').trim();
+            sub = String(p.priceHibritAylik || '').trim();
+          } else {
+            main = String(p.price || '').trim();
+            sub = String(p.priceAylik || '').trim();
+          }
+          if (main && sub) return `${main}/${sub}`;
+          return main || sub || '';
+        };
+
+        const getPriceTagDetailText = (p) => {
+          if (!p) return '';
+          if (filterPriceType.value === 'satis') return String(p.priceSatisDetay || '').trim();
+          if (filterPriceType.value === 'hibrit') return String(p.priceHibritDetay || '').trim();
+          return String(p.priceDetay || '').trim();
+        };
+
+        const togglePriceFlip = (p) => {
+          if (!p || !getPriceTagDetailText(p)) return;
+          flippedPrices.value[p.id] = !flippedPrices.value[p.id];
+        };
+
+        const isPriceFlipped = (p) => {
+          if (!p || !getPriceTagDetailText(p)) return false;
+          return !!flippedPrices.value[p.id];
+        };
+
+        const parseNumericPrice = (raw) => {
+          if (raw === null || raw === undefined) return 0;
+          let s = String(raw).trim();
+          if (!s) return 0;
+          if (s.includes('=')) {
+            s = s.split('=').pop().trim();
+          } else if (s.includes('/')) {
+            s = s.split('/')[0].trim();
+          }
+          let cleaned = s.replace(/[^0-9.,-]/g, '');
+          if (!cleaned) return 0;
+          if (cleaned.includes('.') && cleaned.includes(',')) {
+            if (cleaned.lastIndexOf(',') > cleaned.lastIndexOf('.')) {
+              cleaned = cleaned.replace(/\./g, '').replace(',', '.');
+            } else {
+              cleaned = cleaned.replace(/,/g, '');
+            }
+          } else if (cleaned.includes(',')) {
+            cleaned = cleaned.replace(',', '.');
+          } else if (/^\d{1,3}(\.\d{3})+$/.test(cleaned)) {
+            cleaned = cleaned.replace(/\./g, '');
+          }
+          const num = parseFloat(cleaned);
+          return isNaN(num) ? 0 : num;
+        };
+
+        const formatSummedPrice = (sum) => {
+          const rounded = Math.round(sum * 100) / 100;
+          const formatted = Number.isInteger(rounded) ? String(rounded) : rounded.toFixed(2).replace('.', ',');
+          return `${formatted} €`;
+        };
+
+        const selectedTotals = computed(() => {
+          let mainSum = 0;
+          let monthlySum = 0;
+
+          filteredProducts.value.forEach(p => {
+            let mainRaw = '';
+            let monthlyRaw = '';
+            if (filterPriceType.value === 'satis') {
+              mainRaw = p.priceSatis || '';
+              monthlyRaw = p.priceSatisAylik || '';
+            } else if (filterPriceType.value === 'hibrit') {
+              mainRaw = p.priceHibrit || '';
+              monthlyRaw = p.priceHibritAylik || '';
+            } else {
+              mainRaw = p.price || '';
+              monthlyRaw = p.priceAylik || '';
+            }
+            mainSum += parseNumericPrice(mainRaw);
+            monthlySum += parseNumericPrice(monthlyRaw);
+          });
+
+          const mainVat = mainSum * 0.19;
+          const mainGross = mainSum * 1.19;
+          const monthlyVat = monthlySum * 0.19;
+          const monthlyGross = monthlySum * 1.19;
+
+          return {
+            mainSum,
+            monthlySum,
+            mainDisplay: formatSummedPrice(mainSum),
+            monthlyDisplay: formatSummedPrice(monthlySum),
+            mainVatDisplay: formatSummedPrice(mainVat),
+            mainGrossDisplay: formatSummedPrice(mainGross),
+            monthlyVatDisplay: formatSummedPrice(monthlyVat),
+            monthlyGrossDisplay: formatSummedPrice(monthlyGross)
+          };
+        });
+
+        const isTotalBannerFlipped = ref(false);
+
+        const totalBannerMainLabel = computed(() => {
+          return lang.value === 'de' ? 'Nettopreis' : (lang.value === 'en' ? 'Net Price' : 'Net Fiyat');
+        });
+
+        const totalBannerMonthlyLabel = computed(() => {
+          return lang.value === 'de' ? 'Monatlich' : (lang.value === 'en' ? 'Monthly' : 'Aylık');
+        });
+
+        const totalBannerVatPrefix = computed(() => {
+          return lang.value === 'de' ? '+19% MwSt.' : (lang.value === 'en' ? '+19% VAT' : '%19 KDV');
+        });
+
+        const totalBannerGrossMainLabel = computed(() => {
+          return lang.value === 'de' ? 'Bruttopreis (inkl. 19% MwSt.)' : (lang.value === 'en' ? 'Gross Price (incl. 19% VAT)' : 'Brüt Fiyat (%19 KDV Dahil)');
+        });
+
+        const totalBannerGrossMonthlyLabel = computed(() => {
+          return lang.value === 'de' ? 'Monatlich Brutto' : (lang.value === 'en' ? 'Monthly Gross' : 'Aylık Brüt');
+        });
+
         // Selection & Print Actions
         const openSelectionModal = () => {
           selectionSearch.value = '';
@@ -2147,7 +2762,8 @@
           mode, lang, changeLang, t,
           products, brands, industries,
           filterBrand, filterIndustry, filterPriceType, filteredProducts,
-          activeIndices, nextImage, setImage,
+          activeIndices, nextImage, setImage, pauseProductSlide, resumeProductSlide,
+          isNearBottom, scrollNextProduct, scrollPrevProduct, jumpTopOrBottom,
           ecActiveIndex,
           editingProduct, isNew, editLang, isSaving,
           addNewProduct, editProduct, saveProduct, deleteProduct,
@@ -2158,6 +2774,9 @@
           newSectorInput, newBrandInput, addNewSector, addNewBrand,
           isUploadingImages, getPreviewFolder,
           getOfferDisplay, getOfferTooltip,
+          getMonthlyPriceDisplay, selectedTotals, totalBannerMainLabel, totalBannerMonthlyLabel,
+          isTotalBannerFlipped, totalBannerVatPrefix, totalBannerGrossMainLabel, totalBannerGrossMonthlyLabel,
+          getPriceTagFrontText, getPriceTagDetailText, togglePriceFlip, isPriceFlipped,
           selectedProductIds, isSelectionModalOpen, isSelectionOnlyMode, selectionSearch,
           openSelectionModal, toggleProductSelection, selectAllProducts, deselectAllProducts,
           filteredModalProducts, applySelectionFilter, showAllProductsView,

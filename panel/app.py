@@ -1569,6 +1569,17 @@ def save_catalog_data(catalog_obj, create_backup=True):
                 print(f"Catalog backup failed: {e}")
         
         save_json_file(CATALOG_DATA_FILE, catalog_obj)
+        try:
+            web_katalog_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'kassen.berlin', 'katalog')
+            if os.path.isdir(web_katalog_dir):
+                web_json_path = os.path.join(web_katalog_dir, 'catalog_data.json')
+                web_js_path = os.path.join(web_katalog_dir, 'catalog_data.js')
+                with open(web_json_path, 'w', encoding='utf-8') as wf:
+                    json.dump(catalog_obj, wf, ensure_ascii=False, indent=4)
+                with open(web_js_path, 'w', encoding='utf-8') as wjsf:
+                    wjsf.write('window.KATALOG_DATA = ' + json.dumps(catalog_obj, ensure_ascii=False, indent=4) + ';')
+        except Exception as e:
+            print(f"Web catalog sync warning: {e}")
         return catalog_obj
 
 @app.route('/api/catalog', methods=['GET', 'POST'])
@@ -1684,6 +1695,22 @@ def save_single_product():
         product['images'] = [product['image']] if product.get('image') else []
     if 'price' not in product:
         product['price'] = ''
+    if 'priceAylik' not in product:
+        product['priceAylik'] = ''
+    if 'priceDetay' not in product:
+        product['priceDetay'] = ''
+    if 'priceSatis' not in product:
+        product['priceSatis'] = ''
+    if 'priceSatisAylik' not in product:
+        product['priceSatisAylik'] = ''
+    if 'priceSatisDetay' not in product:
+        product['priceSatisDetay'] = ''
+    if 'priceHibrit' not in product:
+        product['priceHibrit'] = ''
+    if 'priceHibritAylik' not in product:
+        product['priceHibritAylik'] = ''
+    if 'priceHibritDetay' not in product:
+        product['priceHibritDetay'] = ''
     if 'industries' not in product or not isinstance(product['industries'], list):
         product['industries'] = []
 
