@@ -1,0 +1,1236 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JTL-Wawi Aylık Sabit Sipariş / Fatura Oluşturma</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #263449;
+            --surface-alt: #162032;
+            --border: #334155;
+            --text: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-hover: #2563eb;
+            --success: #10b981;
+            --success-bg: rgba(16, 185, 129, 0.12);
+            --warning: #f59e0b;
+            --warning-bg: rgba(245, 158, 11, 0.15);
+            --danger: #ef4444;
+            --danger-bg: rgba(239, 68, 68, 0.15);
+            --info: #06b6d4;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Inter, sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            padding-bottom: 60px;
+        }
+
+        /* Header & Sticky Control Bar */
+        .top-header {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 18px;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.35);
+        }
+
+        .brand-title h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: -0.01em;
+        }
+
+        .brand-title p {
+            font-size: 12px;
+            color: var(--text-muted);
+        }
+
+        .db-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: rgba(59, 130, 246, 0.15);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #93c5fd;
+            padding: 6px 12px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* Control Panel */
+        .control-bar {
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            background: rgba(30, 41, 59, 0.95);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--border);
+            padding: 14px 24px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            align-items: flex-end;
+            justify-content: space-between;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .controls-left, .controls-right {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .form-group label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            font-weight: 600;
+        }
+
+        input[type="text"],
+        input[type="date"],
+        input[type="number"],
+        select {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            outline: none;
+            transition: border-color 0.15s;
+        }
+
+        input:focus, select:focus {
+            border-color: var(--primary);
+        }
+
+        .period-pill {
+            background: var(--success-bg);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: #34d399;
+            padding: 7px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            height: 35px;
+        }
+
+        .btn {
+            cursor: pointer;
+            border: 1px solid transparent;
+            padding: 8px 14px;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.15s;
+            height: 35px;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: #fff;
+        }
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-success {
+            background: var(--success);
+            color: #052e16;
+            font-weight: 700;
+        }
+        .btn-success:hover {
+            filter: brightness(1.1);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border-color: var(--border);
+            color: var(--text);
+        }
+        .btn-outline:hover {
+            background: var(--surface-hover);
+        }
+
+        .btn-danger-ghost {
+            background: transparent;
+            color: #f87171;
+            padding: 4px 8px;
+            height: auto;
+            font-size: 12px;
+        }
+        .btn-danger-ghost:hover {
+            background: var(--danger-bg);
+        }
+
+        /* Summary Strip */
+        .summary-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+            gap: 12px;
+            padding: 16px 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 12px 16px;
+        }
+
+        .stat-card .label {
+            font-size: 11px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .stat-card .value {
+            font-size: 20px;
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .stat-card .sub {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        /* Table Container */
+        .main-container {
+            padding: 0 24px;
+        }
+
+        .table-wrapper {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+        }
+
+        thead th {
+            background: #0f172a;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-align: left;
+            padding: 12px 14px;
+            border-bottom: 1px solid var(--border);
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        tbody tr.customer-row {
+            border-bottom: 1px solid var(--border);
+            transition: background 0.12s;
+        }
+
+        tbody tr.customer-row:hover {
+            background: var(--surface-hover);
+        }
+
+        tbody tr.customer-row.unselected {
+            opacity: 0.42;
+            background: #121a29;
+        }
+
+        tbody tr.customer-row.has-warning {
+            border-left: 4px solid var(--warning);
+        }
+
+        tbody tr.customer-row.custom-added {
+            border-left: 4px solid var(--info);
+        }
+
+        td {
+            padding: 10px 14px;
+            vertical-align: top;
+        }
+
+        .auftragsnr-badge {
+            display: inline-block;
+            font-family: "JetBrains Mono", Consolas, monospace;
+            font-weight: 700;
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 5px;
+            background: rgba(59, 130, 246, 0.15);
+            color: #60a5fa;
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .auftragsnr-skip {
+            display: inline-block;
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 5px;
+            background: var(--danger-bg);
+            color: #fca5a5;
+        }
+
+        .positions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .pos-item {
+            display: grid;
+            grid-template-columns: 75px 1fr 110px 30px;
+            gap: 8px;
+            align-items: center;
+            background: var(--surface-alt);
+            padding: 5px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .pos-item.period-row {
+            border-color: rgba(16, 185, 129, 0.35);
+            background: rgba(16, 185, 129, 0.06);
+        }
+
+        .pos-item input {
+            padding: 5px 8px;
+            font-size: 12px;
+            width: 100%;
+        }
+
+        .pos-item input.brutto-input {
+            text-align: right;
+            font-family: monospace;
+            font-weight: 600;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .badge-bank {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+        }
+
+        .badge-rechnung {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+        }
+
+        .badge-warning {
+            background: var(--warning-bg);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            margin-top: 4px;
+        }
+
+        /* Modal */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 20px;
+        }
+
+        .modal-backdrop.active {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 680px;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        .modal-footer {
+            padding: 14px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            background: #0f172a;
+        }
+
+        .customer-search-results {
+            max-height: 220px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+        }
+
+        .customer-search-item {
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .customer-search-item:hover, .customer-search-item.selected {
+            background: rgba(59, 130, 246, 0.2);
+        }
+
+        .checkbox-lg {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <header class="top-header">
+        <div class="brand">
+            <div class="brand-icon">JTL</div>
+            <div class="brand-title">
+                <h1>Aylık Sabit Sipariş & Fatura Hazırlama Paneli</h1>
+                <p>Kaynak View: <code>[Custom].[MieteKundenSonFaturaDetay]</code> &bull; Doğrudan SQL Sipariş Aktarımı (Tavsiye 1)</p>
+            </div>
+        </div>
+        <div>
+            <span class="db-badge" id="dbBadge">Veritabanı Bağlanıyor...</span>
+        </div>
+    </header>
+
+    <div class="control-bar">
+        <div class="controls-left">
+            <div class="form-group">
+                <label for="orderDateInput">Sipariş Tarihi (Auftragsdatum)</label>
+                <input type="date" id="orderDateInput">
+            </div>
+
+            <div class="form-group">
+                <label>Otomatik Ay / Yıl Metni</label>
+                <div class="period-pill" id="periodPreviewPill">Kassenmiete ...</div>
+            </div>
+
+            <div class="form-group">
+                <label for="startNrInput">İlk Sipariş No Sayacı</label>
+                <input type="number" id="startNrInput" style="width: 110px; font-family: monospace; font-weight: 700;">
+            </div>
+
+            <div class="form-group">
+                <label for="searchInput">Müşteri / Firma / Artikel Ara</label>
+                <input type="text" id="searchInput" placeholder="KundenNr, Firma, Açıklama..." style="width: 220px;">
+            </div>
+
+            <div class="form-group">
+                <label for="filterSelect">Filtre</label>
+                <select id="filterSelect">
+                    <option value="all">Tümü</option>
+                    <option value="selected">Sadece Seçililer (Dahil)</option>
+                    <option value="unselected">Çıkarılanlar (Hariç)</option>
+                    <option value="warnings">Kontrol Edilmesi Gerekenler (>3 Kalem)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="controls-right">
+            <button class="btn btn-outline" onclick="openAddCustomerModal()">+ Listeye Yeni Müşteri Ekle</button>
+            <button class="btn btn-outline" onclick="exportCsvPreview()">CSV İndir (Yedek/Kontrol)</button>
+            <button class="btn btn-success" onclick="submitCreateOrders()">Seçili Siparişleri JTL'de Oluştur</button>
+        </div>
+    </div>
+
+    <div class="summary-strip">
+        <div class="stat-card">
+            <div class="label">Toplam Müşteri (View)</div>
+            <div class="value" id="statTotalCustomers">0</div>
+            <div class="sub" id="statExcludedCustomers">0 müşteri çıkarıldı</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Oluşturulacak Sipariş</div>
+            <div class="value" id="statSelectedOrders" style="color: #60a5fa;">0</div>
+            <div class="sub" id="statTotalPositions">0 toplam kalem (Position)</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Sipariş Numara Aralığı</div>
+            <div class="value" id="statNrRange" style="font-size: 15px; font-family: monospace; margin-top: 6px;">-</div>
+            <div class="sub">Çıkarılanlar atlanarak sıralı gider</div>
+        </div>
+        <div class="stat-card">
+            <div class="label">Toplam Brüt Tutar</div>
+            <div class="value" id="statTotalBrutto" style="color: #34d399;">0,00 €</div>
+            <div class="sub" id="statPaymentSplit">Bank: 0 | Rechnung: 0</div>
+        </div>
+    </div>
+
+    <div class="main-container">
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th style="width: 42px; text-align: center;">
+                            <input type="checkbox" id="selectAllCheckbox" class="checkbox-lg" checked onchange="toggleSelectAll(this.checked)" title="Tümünü Seç / Kaldır">
+                        </th>
+                        <th style="width: 50px;">#</th>
+                        <th style="width: 155px;">Yeni Sipariş No</th>
+                        <th style="width: 95px;">KundenNr</th>
+                        <th style="width: 240px;">Firma & Ödeme</th>
+                        <th style="width: 110px;">Sipariş Tarihi</th>
+                        <th>Sipariş Kalemleri (ArtikelNr &bull; Bezeichnung &bull; Brutto €)</th>
+                        <th style="width: 110px; text-align: right;">Toplam Brüt</th>
+                    </tr>
+                </thead>
+                <tbody id="customersTableBody">
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 40px; color: var(--text-muted);">
+                            Veriler <code>[Custom].[MieteKundenSonFaturaDetay]</code> üzerinden yükleniyor...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Yeni Müşteri Ekle Modal -->
+    <div class="modal-backdrop" id="addCustomerModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Listeye Yeni Müşteri Ekle</h3>
+                <button class="btn btn-outline" style="height:28px; padding: 2px 8px;" onclick="closeAddCustomerModal()">✕</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Müşteri Ara (Kundennummer veya Firma Adı)</label>
+                    <input type="text" id="modalCustomerSearch" placeholder="Örn: 1018 veya Cafe..." oninput="renderModalCustomerList()">
+                </div>
+
+                <div class="customer-search-results" id="modalCustomerResults"></div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                    <div class="form-group">
+                        <label>Seçilen Müşteri</label>
+                        <input type="text" id="modalSelectedCustomerInfo" readonly placeholder="Yukarıdan müşteri seçin...">
+                    </div>
+                    <div class="form-group">
+                        <label>Ödeme Yöntemi (Zahlungsart)</label>
+                        <select id="modalZahlungsart">
+                            <option value="Bank">Bank (KassenKunde = 1)</option>
+                            <option value="Rechnung">Rechnung (KassenKunde = 0)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Kira Kalemi (Artikel) Seçin</label>
+                    <select id="modalArticleSelect" onchange="onModalArticleChange()">
+                        <option value="">-- Hazır Kira Kalemi Seçin veya Aşağıdan Elle Girin --</option>
+                    </select>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 110px 1fr 130px; gap: 10px;">
+                    <div class="form-group">
+                        <label>Artikelnummer</label>
+                        <input type="text" id="modalArtNr" value="215">
+                    </div>
+                    <div class="form-group">
+                        <label>Bezeichnung (1. Kalem Açıklaması)</label>
+                        <input type="text" id="modalArtName" value="85 Kassenmiete 101,15">
+                    </div>
+                    <div class="form-group">
+                        <label>Brutto-VK (€)</label>
+                        <input type="number" step="0.01" id="modalArtBrutto" value="101.15">
+                    </div>
+                </div>
+                <p style="font-size: 12px; color: var(--text-muted);">
+                    Not: 2. kalem olan <strong><span id="modalPeriodTextPreview">Kassenmiete ...</span> (0,00 €)</strong> ve 3. kalem olan <strong>Ohne Versand (0,00 €)</strong> otomatik eklenecektir.
+                </p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeAddCustomerModal()">İptal</button>
+                <button class="btn btn-primary" onclick="confirmAddCustomer()">Listeye Ekle ve Numaraları Güncelle</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GERMAN_MONTHS = [
+            "Januar", "Februar", "März", "April", "Mai", "Juni",
+            "Juli", "August", "September", "Oktober", "November", "Dezember"
+        ];
+
+        // Regex matching German month names + 2 or 4 digit year (e.g. "Oktober 26", "Oktober 2026", "August 26")
+        const MONTH_YEAR_REGEX = /\b(Januar|Februar|März|Maerz|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s+\d{2,4}\b/i;
+
+        let state = {
+            nrPrefix: "AU-2026-",
+            startNr: 13601,
+            orderDate: "", // YYYY-MM-DD
+            customers: [],
+            allCustomers: [],
+            rentalArticles: [],
+            modalSelectedCustomer: null
+        };
+
+        // Initialize default date to 1st of next month (or today)
+        function getDefaultOrderDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            const mm = String(today.getMonth() + 1).padStart(2, '0');
+            const dd = String(today.getDate()).padStart(2, '0');
+            return `${yyyy}-${mm}-${dd}`;
+        }
+
+        function formatDateGerman(isoDate) {
+            if (!isoDate) return "";
+            const [y, m, d] = isoDate.split("-");
+            return `${d}.${m}.${y}`;
+        }
+
+        function getTargetMonthYearShort(isoDate) {
+            if (!isoDate) return "";
+            const [y, m] = isoDate.split("-");
+            const monthIdx = parseInt(m, 10) - 1;
+            const monthName = GERMAN_MONTHS[monthIdx] || "Oktober";
+            const shortYear = y.slice(-2);
+            return `${monthName} ${shortYear}`;
+        }
+
+        function isPeriodPosition(bezeichnung, originalBezeichnung) {
+            const src = originalBezeichnung || bezeichnung || "";
+            return MONTH_YEAR_REGEX.test(src);
+        }
+
+        function updatePositionsForSelectedDate() {
+            const targetMonthYear = getTargetMonthYearShort(state.orderDate);
+            const [y] = state.orderDate.split("-");
+            if (y) {
+                state.nrPrefix = `AU-${y}-`;
+            }
+
+            document.getElementById("periodPreviewPill").textContent = `Kassenmiete ${targetMonthYear}`;
+            const modalPrev = document.getElementById("modalPeriodTextPreview");
+            if (modalPrev) modalPrev.textContent = `Kassenmiete ${targetMonthYear}`;
+
+            state.customers.forEach(c => {
+                c.positions.forEach(pos => {
+                    const baseText = pos.originalBezeichnung || pos.bezeichnung;
+                    if (MONTH_YEAR_REGEX.test(baseText)) {
+                        pos.bezeichnung = baseText.replace(MONTH_YEAR_REGEX, targetMonthYear).trim();
+                    }
+                });
+            });
+        }
+
+        function recalculateOrderNumbers() {
+            let currentNr = parseInt(document.getElementById("startNrInput").value, 10) || state.startNr;
+            state.startNr = currentNr;
+
+            // Sort by integer Kundennummer just like DENSE_RANK() OVER (ORDER BY K.cKundenNr)
+            state.customers.sort((a, b) => {
+                const na = parseInt(a.kundennummer, 10);
+                const nb = parseInt(b.kundennummer, 10);
+                if (!isNaN(na) && !isNaN(nb) && na !== nb) return na - nb;
+                return String(a.kundennummer).localeCompare(String(b.kundennummer));
+            });
+
+            let rank = 0;
+            state.customers.forEach(c => {
+                if (c.selected) {
+                    c.rank = ++rank;
+                    c.computedAuftragsnummer = `${state.nrPrefix}${currentNr++}`;
+                } else {
+                    c.rank = null;
+                    c.computedAuftragsnummer = null;
+                }
+            });
+        }
+
+        async function loadInitData() {
+            state.orderDate = getDefaultOrderDate();
+            document.getElementById("orderDateInput").value = state.orderDate;
+
+            try {
+                const res = await fetch("/api/init-data");
+                const data = await res.json();
+                if (!data.success) {
+                    alert("Veritabanı hatası: " + data.error);
+                    return;
+                }
+
+                state.nrPrefix = data.nrPrefix || "AU-2026-";
+                state.startNr = data.startNr || 13601;
+                state.customers = data.customers || [];
+                state.allCustomers = data.allCustomers || [];
+                state.rentalArticles = data.rentalArticles || [];
+
+                document.getElementById("startNrInput").value = state.startNr;
+                document.getElementById("dbBadge").textContent = `${data.server} • ${data.database}`;
+
+                populateRentalArticlesDropdown();
+                updatePositionsForSelectedDate();
+                recalculateOrderNumbers();
+                renderTable();
+            } catch (err) {
+                alert("Sunucu bağlantı hatası: " + err.message);
+            }
+        }
+
+        function populateRentalArticlesDropdown() {
+            const sel = document.getElementById("modalArticleSelect");
+            sel.innerHTML = `<option value="">-- Hazır Kira Kalemi Seçin (${state.rentalArticles.length} kayıt) --</option>`;
+            state.rentalArticles.forEach((a, idx) => {
+                const opt = document.createElement("option");
+                opt.value = idx;
+                opt.textContent = `[#${a.artikelnummer}] ${a.bezeichnung} (${a.brutto.toFixed(2).replace('.', ',')} €)`;
+                sel.appendChild(opt);
+            });
+        }
+
+        function onModalArticleChange() {
+            const idx = document.getElementById("modalArticleSelect").value;
+            if (idx === "") return;
+            const art = state.rentalArticles[parseInt(idx, 10)];
+            if (art) {
+                document.getElementById("modalArtNr").value = art.artikelnummer;
+                document.getElementById("modalArtName").value = art.bezeichnung;
+                document.getElementById("modalArtBrutto").value = art.brutto.toFixed(2);
+            }
+        }
+
+        function renderTable() {
+            recalculateOrderNumbers();
+
+            const tbody = document.getElementById("customersTableBody");
+            const search = (document.getElementById("searchInput").value || "").toLowerCase().trim();
+            const filter = document.getElementById("filterSelect").value;
+            const formattedDate = formatDateGerman(state.orderDate);
+
+            let html = "";
+
+            state.customers.forEach((c, cIdx) => {
+                const hasWarning = c.positions.length > 3;
+
+                if (filter === "selected" && !c.selected) return;
+                if (filter === "unselected" && c.selected) return;
+                if (filter === "warnings" && !hasWarning) return;
+
+                if (search) {
+                    const matchKnr = c.kundennummer.toLowerCase().includes(search);
+                    const matchFirma = c.firma.toLowerCase().includes(search);
+                    const matchPos = c.positions.some(p =>
+                        p.bezeichnung.toLowerCase().includes(search) ||
+                        p.artikelnummer.toLowerCase().includes(search)
+                    );
+                    if (!matchKnr && !matchFirma && !matchPos) return;
+                }
+
+                const totalBrutto = c.positions.reduce((acc, p) => acc + (parseFloat(p.brutto) || 0) * (parseFloat(p.menge) || 1), 0);
+
+                const rowClasses = [
+                    "customer-row",
+                    !c.selected ? "unselected" : "",
+                    hasWarning ? "has-warning" : "",
+                    c.isCustomAdded ? "custom-added" : ""
+                ].filter(Boolean).join(" ");
+
+                const posHtml = c.positions.map((pos, pIdx) => {
+                    const isPeriod = isPeriodPosition(pos.bezeichnung, pos.originalBezeichnung);
+                    return `
+                        <div class="pos-item ${isPeriod ? 'period-row' : ''}">
+                            <input type="text" value="${escapeHtml(pos.artikelnummer)}" placeholder="Art.Nr"
+                                onchange="updatePositionField(${cIdx}, ${pIdx}, 'artikelnummer', this.value)"
+                                title="Artikelnummer (Boş ise serbest metin kalemi)">
+                            <input type="text" value="${escapeHtml(pos.bezeichnung)}" placeholder="Kalem Açıklaması (Bezeichnung)"
+                                onchange="updatePositionField(${cIdx}, ${pIdx}, 'bezeichnung', this.value)">
+                            <input type="number" step="0.01" class="brutto-input" value="${Number(pos.brutto).toFixed(2)}"
+                                onchange="updatePositionField(${cIdx}, ${pIdx}, 'brutto', this.value)"
+                                title="Brutto-VK (€)">
+                            <button class="btn btn-danger-ghost" onclick="removePosition(${cIdx}, ${pIdx})" title="Bu kalemi sil">✕</button>
+                        </div>
+                    `;
+                }).join("");
+
+                html += `
+                    <tr class="${rowClasses}">
+                        <td style="text-align: center; padding-top: 14px;">
+                            <input type="checkbox" class="checkbox-lg" ${c.selected ? "checked" : ""}
+                                onchange="toggleCustomer(${cIdx}, this.checked)">
+                        </td>
+                        <td style="padding-top: 14px; color: var(--text-muted); font-family: monospace;">
+                            ${c.selected ? c.rank : "—"}
+                        </td>
+                        <td style="padding-top: 12px;">
+                            ${c.selected
+                                ? `<span class="auftragsnr-badge">${c.computedAuftragsnummer}</span>`
+                                : `<span class="auftragsnr-skip">Hariç Tutuldu</span>`
+                            }
+                        </td>
+                        <td style="padding-top: 14px; font-weight: 700; font-family: monospace;">
+                            ${escapeHtml(c.kundennummer)}
+                        </td>
+                        <td style="padding-top: 12px;">
+                            <div style="font-weight: 600;">${escapeHtml(c.firma)}</div>
+                            <div style="margin-top: 4px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                <select style="padding: 2px 6px; font-size: 11px;" onchange="updateCustomerZahlungsart(${cIdx}, this.value)">
+                                    <option value="Bank" ${c.zahlungsart === 'Bank' ? 'selected' : ''}>Bank</option>
+                                    <option value="Rechnung" ${c.zahlungsart === 'Rechnung' ? 'selected' : ''}>Rechnung</option>
+                                </select>
+                                ${c.isCustomAdded ? `<span class="badge" style="background:rgba(6,182,212,0.2);color:#22d3ee;">Manuel Eklendi</span>` : ""}
+                            </div>
+                            ${hasWarning ? `<div class="badge badge-warning">⚠ ${c.positions.length} kalem var (Son faturada ek ürünler olabilir)</div>` : ""}
+                        </td>
+                        <td style="padding-top: 14px; font-family: monospace; color: #cbd5e1;">
+                            ${formattedDate}
+                        </td>
+                        <td>
+                            <div class="positions-list">
+                                ${posHtml}
+                            </div>
+                            <div style="margin-top: 6px;">
+                                <button class="btn btn-outline" style="height: 24px; padding: 2px 8px; font-size: 11px;" onclick="addEmptyPosition(${cIdx})">+ Kalem Ekle</button>
+                            </div>
+                        </td>
+                        <td style="padding-top: 14px; text-align: right; font-family: monospace; font-weight: 700; font-size: 14px; color: #34d399;">
+                            ${totalBrutto.toFixed(2).replace('.', ',')} €
+                        </td>
+                    </tr>
+                `;
+            });
+
+            tbody.innerHTML = html || `
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 30px; color: var(--text-muted);">
+                        Filtreye uygun müşteri bulunamadı.
+                    </td>
+                </tr>
+            `;
+
+            updateSummaryStats();
+        }
+
+        function updateSummaryStats() {
+            const total = state.customers.length;
+            const selectedList = state.customers.filter(c => c.selected);
+            const selectedCount = selectedList.length;
+            const excludedCount = total - selectedCount;
+
+            let totalPositions = 0;
+            let totalBrutto = 0;
+            let bankCount = 0;
+            let rechnungCount = 0;
+
+            selectedList.forEach(c => {
+                totalPositions += c.positions.length;
+                if (c.zahlungsart === "Bank") bankCount++;
+                else rechnungCount++;
+                c.positions.forEach(p => {
+                    totalBrutto += (parseFloat(p.brutto) || 0) * (parseFloat(p.menge) || 1);
+                });
+            });
+
+            document.getElementById("statTotalCustomers").textContent = total;
+            document.getElementById("statExcludedCustomers").textContent = `${excludedCount} müşteri hariç tutuldu`;
+            document.getElementById("statSelectedOrders").textContent = selectedCount;
+            document.getElementById("statTotalPositions").textContent = `${totalPositions} toplam kalem (Position)`;
+
+            if (selectedCount > 0) {
+                const firstNr = selectedList[0].computedAuftragsnummer;
+                const lastNr = selectedList[selectedCount - 1].computedAuftragsnummer;
+                document.getElementById("statNrRange").textContent = firstNr === lastNr ? firstNr : `${firstNr} → ${lastNr}`;
+            } else {
+                document.getElementById("statNrRange").textContent = "-";
+            }
+
+            document.getElementById("statTotalBrutto").textContent =
+                totalBrutto.toLocaleString("de-DE", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
+            document.getElementById("statPaymentSplit").textContent = `Bank: ${bankCount} | Rechnung: ${rechnungCount}`;
+        }
+
+        function toggleCustomer(cIdx, checked) {
+            state.customers[cIdx].selected = checked;
+            renderTable();
+        }
+
+        function toggleSelectAll(checked) {
+            state.customers.forEach(c => c.selected = checked);
+            renderTable();
+        }
+
+        function updateCustomerZahlungsart(cIdx, val) {
+            state.customers[cIdx].zahlungsart = val;
+            updateSummaryStats();
+        }
+
+        function updatePositionField(cIdx, pIdx, field, val) {
+            const pos = state.customers[cIdx].positions[pIdx];
+            if (field === "brutto") {
+                pos.brutto = parseFloat(val) || 0;
+            } else if (field === "bezeichnung") {
+                pos.bezeichnung = val;
+                pos.originalBezeichnung = val;
+            } else {
+                pos[field] = val;
+            }
+            renderTable();
+        }
+
+        function removePosition(cIdx, pIdx) {
+            if (state.customers[cIdx].positions.length <= 1) {
+                if (!confirm("Bu müşterinin son kalemini silmek yerine müşteriyi listeden çıkarmak ister misiniz?")) return;
+                state.customers[cIdx].selected = false;
+                renderTable();
+                return;
+            }
+            state.customers[cIdx].positions.splice(pIdx, 1);
+            renderTable();
+        }
+
+        function addEmptyPosition(cIdx) {
+            state.customers[cIdx].positions.push({
+                artikelnummer: "",
+                bezeichnung: "Ek Açıklama",
+                originalBezeichnung: "Ek Açıklama",
+                menge: 1,
+                ust: 19,
+                brutto: 0
+            });
+            renderTable();
+        }
+
+        // Modal Functions
+        function openAddCustomerModal() {
+            state.modalSelectedCustomer = null;
+            document.getElementById("modalCustomerSearch").value = "";
+            document.getElementById("modalSelectedCustomerInfo").value = "";
+            renderModalCustomerList();
+            document.getElementById("addCustomerModal").classList.add("active");
+        }
+
+        function closeAddCustomerModal() {
+            document.getElementById("addCustomerModal").classList.remove("active");
+        }
+
+        function renderModalCustomerList() {
+            const q = (document.getElementById("modalCustomerSearch").value || "").toLowerCase().trim();
+            const container = document.getElementById("modalCustomerResults");
+            const existingKnrs = new Set(state.customers.map(c => c.kundennummer));
+
+            const filtered = state.allCustomers.filter(c => {
+                if (!q) return true;
+                return c.kundennummer.toLowerCase().includes(q) ||
+                       c.firma.toLowerCase().includes(q) ||
+                       c.inhaber.toLowerCase().includes(q);
+            }).slice(0, 60);
+
+            container.innerHTML = filtered.map(c => {
+                const alreadyInList = existingKnrs.has(c.kundennummer);
+                return `
+                    <div class="customer-search-item" onclick="selectModalCustomer('${escapeHtml(c.kundennummer)}')">
+                        <div>
+                            <strong>#${escapeHtml(c.kundennummer)}</strong> — ${escapeHtml(c.firma || c.inhaber)}
+                            <span style="color: var(--text-muted); font-size: 11px;">(${escapeHtml(c.ort)})</span>
+                        </div>
+                        <div>
+                            ${alreadyInList
+                                ? `<span class="badge badge-rechnung">Listede Var</span>`
+                                : `<span class="badge badge-bank">${c.zahlungsart}</span>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join("");
+        }
+
+        function selectModalCustomer(knr) {
+            const c = state.allCustomers.find(x => x.kundennummer === knr);
+            if (!c) return;
+            state.modalSelectedCustomer = c;
+            document.getElementById("modalSelectedCustomerInfo").value = `${c.kundennummer} - ${c.firma || c.inhaber}`;
+            document.getElementById("modalZahlungsart").value = c.zahlungsart;
+        }
+
+        function confirmAddCustomer() {
+            if (!state.modalSelectedCustomer) {
+                alert("Lütfen önce listeden bir müşteri seçin.");
+                return;
+            }
+
+            const knr = state.modalSelectedCustomer.kundennummer;
+            const existing = state.customers.find(c => c.kundennummer === knr);
+            if (existing) {
+                existing.selected = true;
+                closeAddCustomerModal();
+                renderTable();
+                alert(`Müşteri #${knr} zaten listedeydi, seçili hale getirildi.`);
+                return;
+            }
+
+            const artNr = document.getElementById("modalArtNr").value.trim();
+            const artName = document.getElementById("modalArtName").value.trim() || "Kassenmiete";
+            const artBrutto = parseFloat(document.getElementById("modalArtBrutto").value) || 0;
+            const zahlungsart = document.getElementById("modalZahlungsart").value;
+            const periodText = `Kassenmiete ${getTargetMonthYearShort(state.orderDate)}`;
+
+            state.customers.push({
+                kundennummer: knr,
+                kassenKunde: zahlungsart === "Bank",
+                firma: state.modalSelectedCustomer.firma || state.modalSelectedCustomer.inhaber,
+                zahlungsart: zahlungsart,
+                originalAuftragsnummer: "",
+                selected: true,
+                isCustomAdded: true,
+                positions: [
+                    {
+                        artikelnummer: artNr,
+                        bezeichnung: artName,
+                        originalBezeichnung: artName,
+                        menge: 1,
+                        ust: 19,
+                        brutto: artBrutto
+                    },
+                    {
+                        artikelnummer: "",
+                        bezeichnung: periodText,
+                        originalBezeichnung: periodText,
+                        menge: 1,
+                        ust: 19,
+                        brutto: 0
+                    },
+                    {
+                        artikelnummer: "",
+                        bezeichnung: "Ohne Versand",
+                        originalBezeichnung: "Ohne Versand",
+                        menge: 1,
+                        ust: 19,
+                        brutto: 0
+                    }
+                ]
+            });
+
+            closeAddCustomerModal();
+            renderTable();
+        }
+
+        function exportCsvPreview() {
+            const selected = state.customers.filter(c => c.selected);
+            if (selected.length === 0) {
+                alert("Dışa aktarılacak seçili müşteri yok.");
+                return;
+            }
+
+            const dateStr = formatDateGerman(state.orderDate);
+            const lines = ["Kundennummer,K_Firma,Auftragsnummer,Zahlungsart Auftrag,Auftragsdatum,Artikelnummer,Bezeichnung (Position),Menge,USt. in %,Brutto-VK"];
+
+            selected.forEach(c => {
+                c.positions.forEach(p => {
+                    const bruttoStr = Number(p.brutto).toFixed(2).replace(".", ",");
+                    const row = [
+                        c.kundennummer,
+                        csvEscape(c.firma),
+                        c.computedAuftragsnummer,
+                        c.zahlungsart,
+                        dateStr,
+                        p.artikelnummer,
+                        csvEscape(p.bezeichnung),
+                        p.menge,
+                        p.ust,
+                        `"${bruttoStr}"`
+                    ];
+                    lines.push(row.join(","));
+                });
+            });
+
+            const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = `AylikSiparis_${state.orderDate}.csv`;
+            a.click();
+        }
+
+        async function submitCreateOrders() {
+            const selected = state.customers.filter(c => c.selected);
+            if (selected.length === 0) {
+                alert("Lütfen en az 1 müşteri seçin.");
+                return;
+            }
+
+            const firstNr = selected[0].computedAuftragsnummer;
+            const lastNr = selected[selected.length - 1].computedAuftragsnummer;
+            const dateStr = formatDateGerman(state.orderDate);
+            const periodText = getTargetMonthYearShort(state.orderDate);
+
+            const confirmMsg =
+                `JTL-Wawi veritabanına doğrudan sipariş oluşturulacak:\n\n` +
+                `• Seçili Müşteri / Sipariş Sayısı: ${selected.length}\n` +
+                `• Sipariş Tarihi: ${dateStr}\n` +
+                `• Dönem Açıklaması: Kassenmiete ${periodText}\n` +
+                `• Sipariş No Aralığı: ${firstNr} → ${lastNr}\n\n` +
+                `Onaylıyor musunuz?`;
+
+            if (!confirm(confirmMsg)) return;
+
+            const payload = {
+                orderDate: state.orderDate,
+                orders: selected.map(c => ({
+                    kundennummer: c.kundennummer,
+                    auftragsnummer: c.computedAuftragsnummer,
+                    zahlungsart: c.zahlungsart,
+                    positions: c.positions
+                }))
+            };
+
+            try {
+                const res = await fetch("/api/create-orders", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+                const result = await res.json();
+                if (!result.success) {
+                    alert("Hata oluştu: " + result.error);
+                    return;
+                }
+
+                let msg = `✅ Başarıyla ${result.createdCount} adet sipariş JTL-Wawi'de oluşturuldu!`;
+                if (result.skippedCount > 0) {
+                    msg += `\n⚠️ Atlanan sipariş sayısı: ${result.skippedCount}`;
+                }
+                alert(msg);
+                await loadInitData();
+            } catch (err) {
+                alert("İstek hatası: " + err.message);
+            }
+        }
+
+        function csvEscape(str) {
+            if (!str) return "";
+            if (str.includes(",") || str.includes('"')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        }
+
+        function escapeHtml(str) {
+            return String(str || "")
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
+        }
+
+        // Event Listeners
+        document.getElementById("orderDateInput").addEventListener("change", (e) => {
+            state.orderDate = e.target.value;
+            updatePositionsForSelectedDate();
+            renderTable();
+        });
+
+        document.getElementById("startNrInput").addEventListener("input", () => {
+            renderTable();
+        });
+
+        document.getElementById("searchInput").addEventListener("input", () => {
+            renderTable();
+        });
+
+        document.getElementById("filterSelect").addEventListener("change", () => {
+            renderTable();
+        });
+
+        window.addEventListener("DOMContentLoaded", loadInitData);
+    </script>
+</body>
+</html>
