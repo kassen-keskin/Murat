@@ -4,3 +4,4 @@
 *.bak
 *.tmp
 /panel/catalog_backups/
+/panel/__pycache__
