@@ -1969,6 +1969,31 @@ def manage_lotus_tickets():
         save_json_file(LOTUS_RECORDS_FILE, records)
         return jsonify({"success": True})
 
+KARGO_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kargo_config.json')
+KARGO_DEFAULT_CONFIG = POS_DEFAULT_CONFIG
+
+@app.route('/api/kargo-config', methods=['GET', 'POST'])
+def manage_kargo_config():
+    if request.method == 'GET':
+        return jsonify(load_json_file(KARGO_CONFIG_FILE, KARGO_DEFAULT_CONFIG))
+    if request.method == 'POST':
+        data = request.get_json()
+        save_json_file(KARGO_CONFIG_FILE, data)
+        return jsonify({"success": True})
+
+KARGO_RECORDS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kargo_records.json')
+
+@app.route('/api/kargo-tickets', methods=['GET', 'POST'])
+def manage_kargo_tickets():
+    if request.method == 'GET':
+        return jsonify(load_json_file(KARGO_RECORDS_FILE, {}))
+    if request.method == 'POST':
+        data = request.get_json() # expects { ticket_id: status_id }
+        records = load_json_file(KARGO_RECORDS_FILE, {})
+        records.update(data)
+        save_json_file(KARGO_RECORDS_FILE, records)
+        return jsonify({"success": True})
+
 @app.route('/api/tse/scan', methods=['GET'])
 def scan_tse():
     exe_path = os.path.join(app.static_folder, 'TseInfoReader', 'TseInfoReader.exe')

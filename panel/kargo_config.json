@@ -1,0 +1,71 @@
+{
+    "models": [
+        {
+            "id": 1,
+            "name": "GO Europe GmbH"
+        },
+        {
+            "id": 2,
+            "name": "Quorion"
+        },
+        {
+            "id": 3,
+            "name": "RCH"
+        },
+        {
+            "id": 4,
+            "name": "Prox"
+        }
+    ],
+    "pos_user_id": 8,
+    "statuses": [
+        {
+            "id": 100,
+            "name": "Gönderilen Kasa",
+            "color": "#4caf50",
+            "order": 1
+        },
+        {
+            "id": 101,
+            "name": "Beklenen Kasa",
+            "color": "#ffb300",
+            "order": 2
+        },
+        {
+            "id": 102,
+            "name": "Gönderilen Parca",
+            "color": "#8fadbc",
+            "order": 3
+        },
+        {
+            "id": 103,
+            "name": "Beklenen Parca",
+            "color": "#ff5c5c",
+            "order": 4
+        },
+        {
+            "id": 104,
+            "name": "Tamamlandi",
+            "color": "#00aaff",
+            "order": 5
+        }
+    ],
+    "suppliers": [
+        {
+            "id": 1,
+            "name": "Amazon"
+        },
+        {
+            "id": 2,
+            "name": "Hermes"
+        },
+        {
+            "id": 3,
+            "name": "DHL"
+        },
+        {
+            "id": 4,
+            "name": "UPS"
+        }
+    ]
+}
