@@ -1246,7 +1246,7 @@
                     {{ getPriceTagFrontText(p) }}
                   </span>
                   <div class="absolute top-[100%] left-1/2 -translate-x-1/2 -translate-y-[45%] bg-yellow-400 text-red-700 px-2 py-0.5 text-[10px] rounded-full border border-red-600 shadow-sm" style="font-family: 'Poppins', sans-serif; font-weight: 900; white-space: nowrap; line-height: 1;">
-                    {{ filterPriceType === 'aylik' ? (lang === 'tr' ? 'AYLIK' : lang === 'de' ? 'MONATLICH' : 'MONTHLY') : filterPriceType === 'satis' ? (lang === 'tr' ? 'NET FİYAT' : lang === 'de' ? 'NETTOPREIS' : 'NET PRICE') : (lang === 'tr' ? 'HİBRİT' : 'HYBRID') }}
+                    {{ filterPriceType === 'aylik' ? (lang === 'tr' ? 'AYLIK' : lang === 'de' ? 'MONATLICH' : 'MONTHLY') : filterPriceType === 'satis' ? (lang === 'tr' ? 'NET FİYAT' : lang === 'de' ? 'NETTOPREIS' : 'NET PRICE') : (lang === 'tr' ? 'HİBRİT/LEASING' : 'HYBRID/LEASING') }}
                   </div>
                 </div>
                 <!-- Arka Yüz: Detay -->
@@ -1687,7 +1687,7 @@
         brand: 'Marka', allBrands: 'Tüm Markalar',
         industry: 'Sektör', allIndustries: 'Tüm Sektörler',
         priceTypeTitle: 'Fiyat Türü',
-        monthlyRent: 'Aylık Kiralama', salePrice: 'Satın Alma', hybridPrice: 'Hibrit Teklif',
+        monthlyRent: 'Aylık Kiralama', salePrice: 'Satın Alma', hybridPrice: 'Hibrit/Leasing',
         selectProducts: 'Ürün Seç / Link Oluştur',
         selectionTitle: 'Ürün Seçimi & Müşteri Linki',
         selectionSubtitle: 'İstediğiniz ürünleri seçerek müşteriye özel 5 gün geçerli web bağlantısı oluşturabilirsiniz.',
@@ -1747,7 +1747,7 @@
         brand: 'Marke', allBrands: 'Alle Marken',
         industry: 'Branche', allIndustries: 'Alle Branchen',
         priceTypeTitle: 'Preistyp',
-        monthlyRent: 'Monatliche Miete', salePrice: 'Kaufpreis', hybridPrice: 'Hybrid-Angebot',
+        monthlyRent: 'Monatliche Miete', salePrice: 'Kaufpreis', hybridPrice: 'Hybrid/Leasing',
         selectProducts: 'Produkte Auswählen',
         selectionTitle: 'Produktauswahl & Kundenlink',
         selectionSubtitle: 'Wählen Sie Produkte aus, um einen exklusiven Kundenlink mit 5 Tagen Gültigkeit zu erstellen.',
@@ -1807,7 +1807,7 @@
         brand: 'Brand', allBrands: 'All Brands',
         industry: 'Industry', allIndustries: 'All Industries',
         priceTypeTitle: 'Price Type',
-        monthlyRent: 'Monthly Rental', salePrice: 'Purchase Price', hybridPrice: 'Hybrid Offer',
+        monthlyRent: 'Monthly Rental', salePrice: 'Purchase Price', hybridPrice: 'Hybrid/Leasing',
         selectProducts: 'Select Products',
         selectionTitle: 'Product Selection & Customer Link',
         selectionSubtitle: 'Select products to generate an exclusive web quote link valid for 5 days.',
@@ -2489,7 +2489,7 @@ ${generatedShareUrl.value}
           const parts = [];
           if (p.offerNo) parts.push(`Kiralık: ${p.offerNo}`);
           if (p.offerNoSatis) parts.push(`Satış: ${p.offerNoSatis}`);
-          if (p.offerNoHibrit) parts.push(`Hibrit: ${p.offerNoHibrit}`);
+          if (p.offerNoHibrit) parts.push(`Hibrit/Leasing: ${p.offerNoHibrit}`);
           return parts.join(' | ');
         };
 
