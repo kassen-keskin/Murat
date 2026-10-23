@@ -1276,12 +1276,22 @@ def get_ticket_report_list():
                 params.append(int(kStatus))
 
         if date_from:
-            where_clauses.append("COALESCE(t.[dAenderung], fm.[dErstellung], t.[dLoesung]) >= ?")
-            params.append(date_from + " 00:00:00")
+            try:
+                df = datetime.datetime.strptime(date_from, "%Y-%m-%d")
+                dt_from = datetime.datetime(df.year, df.month, df.day, 0, 0, 0)
+                where_clauses.append("COALESCE(lm.[dErstellung], t.[dAenderung], fm.[dErstellung], t.[dLoesung]) >= ?")
+                params.append(dt_from)
+            except Exception as e:
+                print(f"date_from parse error: {e}")
 
         if date_to:
-            where_clauses.append("COALESCE(t.[dAenderung], fm.[dErstellung], t.[dLoesung]) <= ?")
-            params.append(date_to + " 23:59:59")
+            try:
+                dt = datetime.datetime.strptime(date_to, "%Y-%m-%d")
+                dt_to = datetime.datetime(dt.year, dt.month, dt.day, 23, 59, 59)
+                where_clauses.append("COALESCE(lm.[dErstellung], t.[dAenderung], fm.[dErstellung], t.[dLoesung]) <= ?")
+                params.append(dt_to)
+            except Exception as e:
+                print(f"date_to parse error: {e}")
 
         if search_query:
             term = f"%{search_query}%"
