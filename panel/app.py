@@ -281,6 +281,7 @@ def get_customers():
               ,K.[EcCihazi]
               ,M.[Servis]
               ,K.[Ort]
+              ,K.[KassenNo]
           FROM [Custom].[MieteKundenMaster] M WITH (NOLOCK)
           LEFT JOIN [Custom].[Kunde] K WITH (NOLOCK) ON K.kKunde = M.kKunde
           ORDER BY M.[KundenNr]
@@ -335,6 +336,7 @@ def get_customers_custom():
               ,K.[FirmaAdress] AS [Strasse]
               ,K.[PLZ]
               ,K.[Ort]
+              ,K.[KassenNo]
           FROM [Custom].[KundenMaster] M WITH (NOLOCK)
           LEFT JOIN [Custom].[Kunde] K WITH (NOLOCK) ON K.kKunde = M.kKunde
           ORDER BY M.[KundenNr]
@@ -2123,6 +2125,106 @@ def save_tse():
         return jsonify({"error": str(e)}), 500
     finally:
         conn.close()
+
+
+@app.route('/api/rma/save-pdf', methods=['POST'])
+def save_rma_pdf():
+    try:
+        data = request.get_json() or {}
+        kunden_nr = str(data.get('kundenNr') or '').strip()
+        filename = str(data.get('filename') or '').strip()
+        pdf_base64 = data.get('pdfBase64') or ''
+        
+        if not kunden_nr:
+            return jsonify({"error": "Müşteri numarası gereklidir."}), 400
+        if not pdf_base64:
+            return jsonify({"error": "PDF verisi eksik."}), 400
+            
+        # Linux mount path requested (/mnt/Ortak_Alan/2026/kunden/Nolular)
+        # with fallback to Windows network share (\\fileserver\Ortak_Alan\2026\kunden\Nolular) in Windows dev environment
+        candidate_paths = [
+            '/mnt/Ortak_Alan/2026/kunden/Nolular',
+            r'\mnt\Ortak_Alan\2026\kunden\Nolular',
+            r'\\fileserver\Ortak_Alan\2026\kunden\Nolular'
+        ]
+        base_path = None
+        for p in candidate_paths:
+            if os.path.exists(p):
+                base_path = p
+                break
+                
+        if not base_path:
+            base_path = '/mnt/Ortak_Alan/2026/kunden/Nolular'
+            if not os.path.exists(base_path):
+                return jsonify({"error": f"Ağ klasörüne erişilemedi: {base_path}"}), 500
+            
+        num_match = re.search(r'\d+', kunden_nr)
+        pure_num = num_match.group(0) if num_match else kunden_nr
+        
+        target_folder_name = None
+        entries = [d for d in os.listdir(base_path) if os.path.isdir(os.path.join(base_path, d))]
+        
+        patterns = []
+        if kunden_nr != pure_num:
+            patterns.append(re.compile(rf'^{re.escape(kunden_nr)}(?:[^\d].*)?$', re.IGNORECASE))
+        patterns.extend([
+            re.compile(rf'^{re.escape(pure_num)}(?:[^\d].*)?$', re.IGNORECASE),
+            re.compile(rf'^S-{re.escape(pure_num)}(?:[^\d].*)?$', re.IGNORECASE),
+            re.compile(rf'^M-{re.escape(pure_num)}(?:[^\d].*)?$', re.IGNORECASE),
+            re.compile(rf'^[A-Za-z]+-{re.escape(pure_num)}(?:[^\d].*)?$', re.IGNORECASE),
+            re.compile(rf'\b{re.escape(pure_num)}\b', re.IGNORECASE)
+        ])
+        
+        for idx, pat in enumerate(patterns):
+            for d in entries:
+                if (pat.search(d) if idx == len(patterns)-1 else pat.match(d)):
+                    target_folder_name = d
+                    break
+            if target_folder_name:
+                break
+                
+        if not target_folder_name:
+            target_folder_name = kunden_nr
+            full_cust_path = os.path.join(base_path, target_folder_name)
+            os.makedirs(full_cust_path, exist_ok=True)
+        else:
+            full_cust_path = os.path.join(base_path, target_folder_name)
+            
+        rma_path = os.path.join(full_cust_path, "RMA")
+        os.makedirs(rma_path, exist_ok=True)
+        
+        safe_name = re.sub(r'[\\/:*?"<>|]', '_', filename).strip()
+        if not safe_name.lower().endswith('.pdf'):
+            safe_name += '.pdf'
+            
+        final_file_path = os.path.join(rma_path, safe_name)
+        
+        if ',' in pdf_base64:
+            pdf_base64 = pdf_base64.split(',', 1)[1]
+        pdf_bytes = base64.b64decode(pdf_base64)
+        
+        with open(final_file_path, 'wb') as f:
+            f.write(pdf_bytes)
+            
+        # Convert to Windows network share path for Windows users
+        win_file_path = final_file_path.replace('/', '\\')
+        if win_file_path.startswith('\\mnt\\Ortak_Alan'):
+            win_file_path = '\\\\fileserver\\Ortak_Alan' + win_file_path[len('\\mnt\\Ortak_Alan'):]
+        elif win_file_path.startswith('mnt\\Ortak_Alan'):
+            win_file_path = '\\\\fileserver\\Ortak_Alan' + win_file_path[len('mnt\\Ortak_Alan'):]
+        elif 'Ortak_Alan' in win_file_path and not win_file_path.startswith('\\\\fileserver\\Ortak_Alan'):
+            idx = win_file_path.find('Ortak_Alan')
+            win_file_path = '\\\\fileserver\\' + win_file_path[idx:]
+
+        return jsonify({
+            "success": True,
+            "filePath": win_file_path,
+            "folderPath": rma_path,
+            "customerFolder": target_folder_name
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=False, port=3000)
