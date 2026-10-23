@@ -1,4 +1,4 @@
-// rma.js
+﻿// rma.js
 async function initRmaTab() {
     // Populate Customer Dropdown
     if (typeof ensureTicketCustomersLoaded === 'function') {
@@ -89,13 +89,26 @@ function addRmaCustomItem() {
     }
 }
 
-async function rmaPdfOlustur() {
+async function generateRmaPdfDoc() {
     const select = document.getElementById('rmaCustomerSelect');
-    const opt = select.options[select.selectedIndex];
+    const opt = select ? select.options[select.selectedIndex] : null;
     
     if (!opt || !opt.value) {
         alert("Lütfen bir müşteri seçin.");
-        return;
+        if (select) select.focus();
+        return null;
+    }
+
+    const betreffInput = document.getElementById('rmaBetreff');
+    const betreffVal = (betreffInput ? betreffInput.value : '').trim();
+    if (!betreffVal) {
+        alert("Lütfen RMA Konu (Betreff) alanını doldurun. Bu alan boş bırakılamaz.");
+        if (betreffInput) {
+            betreffInput.focus();
+            betreffInput.style.borderColor = '#ef5350';
+            setTimeout(() => { if (betreffInput) betreffInput.style.borderColor = ''; }, 3000);
+        }
+        return null;
     }
     
     // Set Date
@@ -110,7 +123,6 @@ async function rmaPdfOlustur() {
     
     // Set inputs
     const modelVal = document.getElementById('rmaModel').value.trim();
-    const betreffVal = document.getElementById('rmaBetreff').value.trim();
     
     document.getElementById('rmaPrintModel').textContent = modelVal || '-';
     document.getElementById('rmaPrintSernr').textContent = document.getElementById('rmaSernr').value || '-';
@@ -135,7 +147,7 @@ async function rmaPdfOlustur() {
             let modelHistory = JSON.parse(localStorage.getItem('rmaModelHistory')) || [];
             if (!modelHistory.includes(modelVal)) {
                 modelHistory.unshift(modelVal);
-                if (modelHistory.length > 20) modelHistory.pop(); // Keep last 20
+                if (modelHistory.length > 20) modelHistory.pop();
                 localStorage.setItem('rmaModelHistory', JSON.stringify(modelHistory));
             }
         }
@@ -143,7 +155,7 @@ async function rmaPdfOlustur() {
             let betreffHistory = JSON.parse(localStorage.getItem('rmaBetreffHistory')) || [];
             if (!betreffHistory.includes(betreffVal)) {
                 betreffHistory.unshift(betreffVal);
-                if (betreffHistory.length > 20) betreffHistory.pop(); // Keep last 20
+                if (betreffHistory.length > 20) betreffHistory.pop();
                 localStorage.setItem('rmaBetreffHistory', JSON.stringify(betreffHistory));
             }
         }
@@ -193,7 +205,6 @@ async function rmaPdfOlustur() {
 
     // Make visible briefly for html2canvas
     const printArea = document.getElementById('rmaPrintPreview');
-    // Ensure it acts as A4 dimensions approximately for canvas capturing
     printArea.style.width = '210mm';
     printArea.style.minHeight = '297mm';
     printArea.style.left = '0';
@@ -204,35 +215,29 @@ async function rmaPdfOlustur() {
 
     try {
         // --- SMART PAGE BREAK LOGIC ---
-        // Calculate approximate page height and 20mm top margin in pixels (printArea has padding 20mm)
         const pageHeightPx = printArea.offsetWidth * (297 / 210);
-        const topMarginPx = printArea.offsetWidth * (20 / 210); // 20mm margin at the top of subsequent pages
+        const topMarginPx = printArea.offsetWidth * (20 / 210);
         
-        // Find all description line divs
         const descDivs = document.getElementById('rmaPrintDescription').children;
         
         for (let i = 0; i < descDivs.length; i++) {
             const div = descDivs[i];
-            div.style.marginTop = '0'; // reset first
+            div.style.marginTop = '0';
             
-            // Get position relative to the printArea
             const rect = div.getBoundingClientRect();
             const parentRect = printArea.getBoundingClientRect();
             const topPx = rect.top - parentRect.top;
             const bottomPx = topPx + rect.height;
             
-            // If this element crosses a page boundary or touches the bottom buffer
             const pageNumTop = Math.floor(topPx / pageHeightPx);
             const pageNumBottom = Math.floor((bottomPx + 15) / pageHeightPx);
             
             if (pageNumTop !== pageNumBottom) {
-                // Push it down to the next page + 20mm top margin
                 const pushAmount = (pageHeightPx * pageNumBottom) - topPx + topMarginPx;
                 div.style.marginTop = pushAmount + 'px';
             }
         }
         
-        // Also check if the Materials Block crosses the boundary
         if (materialsBlock && materialsBlock.style.display !== 'none') {
             materialsBlock.style.marginTop = '0';
             const rect = materialsBlock.getBoundingClientRect();
@@ -249,9 +254,8 @@ async function rmaPdfOlustur() {
             }
         }
 
-        // Also check if Signature Block crosses the boundary
         if (signatureBlock && signatureBlock.style.display !== 'none') {
-            signatureBlock.style.marginTop = '30px'; // default
+            signatureBlock.style.marginTop = '30px';
             const rect = signatureBlock.getBoundingClientRect();
             const parentRect = printArea.getBoundingClientRect();
             const topPx = rect.top - parentRect.top;
@@ -295,11 +299,22 @@ async function rmaPdfOlustur() {
         
         const firmaAdi = opt.dataset.firma || opt.dataset.inhabe || 'Bilinmiyor';
         const safeFirmaAdi = firmaAdi.replace(/[\\/:*?"<>|]/g, '').trim();
-        const filename = `${opt.dataset.nr} - ${safeFirmaAdi} - ${dateStr}.pdf`;
-        pdf.save(filename);
-    } catch (e) {
-        console.error("PDF generation error:", e);
-        alert("PDF oluşturulurken bir hata oluştu.");
+        const safeBetreff = (betreffVal || '').replace(/[\\/:*?"<>|]/g, '').trim();
+        
+        const hours = String(today.getHours()).padStart(2, '0');
+        const minutes = String(today.getMinutes()).padStart(2, '0');
+        const seconds = String(today.getSeconds()).padStart(2, '0');
+        const timeStr = `${hours}.${minutes}.${seconds}`;
+        const dateTimeStr = `${dateStr} ${timeStr}`;
+        
+        let filename = '';
+        if (safeBetreff) {
+            filename = `${opt.dataset.nr} - ${safeFirmaAdi} - ${safeBetreff} - ${dateTimeStr}.pdf`;
+        } else {
+            filename = `${opt.dataset.nr} - ${safeFirmaAdi} - ${dateTimeStr}.pdf`;
+        }
+        
+        return { pdf, filename, opt, dateStr, dateTimeStr };
     } finally {
         printArea.style.left = '-9999px';
         printArea.style.top = 'auto';
@@ -307,11 +322,113 @@ async function rmaPdfOlustur() {
     }
 }
 
+async function rmaPdfOlustur() {
+    try {
+        const docInfo = await generateRmaPdfDoc();
+        if (!docInfo) return;
+        docInfo.pdf.save(docInfo.filename);
+    } catch (e) {
+        console.error("PDF generation error:", e);
+        alert("PDF oluşturulurken bir hata oluştu: " + (e.message || e));
+    }
+}
+
+async function rmaKlasoruneKaydet() {
+    const btn = document.getElementById('btnRmaSaveServer');
+    const pathContainer = document.getElementById('rmaSavedPathContainer');
+    
+    const originalText = btn ? btn.innerHTML : '';
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = '⏳ Kaydediliyor...';
+    }
+    
+    try {
+        const docInfo = await generateRmaPdfDoc();
+        if (!docInfo) {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+            return;
+        }
+        
+        const pdfBase64 = docInfo.pdf.output('datauristring');
+        const kundenNr = docInfo.opt.dataset.nr || '';
+        
+        const res = await fetch('/api/rma/save-pdf', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                kundenNr: kundenNr,
+                filename: docInfo.filename,
+                pdfBase64: pdfBase64
+            })
+        });
+        
+        const result = await res.json();
+        if (!res.ok || result.error) {
+            throw new Error(result.error || 'Sunucu hatası oluştu');
+        }
+        
+        if (pathContainer) {
+            pathContainer.style.display = 'block';
+            let winPath = result.filePath || '';
+            winPath = winPath.replace(/\//g, '\\');
+            if (winPath.startsWith('\\mnt\\Ortak_Alan')) {
+                winPath = '\\\\fileserver\\Ortak_Alan' + winPath.substring('\\mnt\\Ortak_Alan'.length);
+            } else if (winPath.startsWith('mnt\\Ortak_Alan')) {
+                winPath = '\\\\fileserver\\Ortak_Alan' + winPath.substring('mnt\\Ortak_Alan'.length);
+            } else if (winPath.includes('Ortak_Alan') && !winPath.startsWith('\\\\fileserver\\Ortak_Alan')) {
+                const idx = winPath.indexOf('Ortak_Alan');
+                winPath = '\\\\fileserver\\' + winPath.substring(idx);
+            }
+            const escapedPath = winPath.replace(/"/g, '&quot;');
+            pathContainer.innerHTML = `
+                <div style="font-weight: bold; color: #2e7d32; margin-bottom: 8px; display:flex; align-items:center; gap:6px; user-select: none;">
+                    <span>✅</span> <span>RMA PDF başarıyla ağ klasörüne kaydedildi!</span>
+                </div>
+                <div style="user-select: none; margin-bottom: 4px; font-weight: 600; font-size: 12px; color: var(--text-muted, #555);">
+                    📁 Kayıt Dosyası Yolu:
+                </div>
+                <div style="display: flex; gap: 8px; align-items: center;">
+                    <input type="text" id="rmaSavedFilePathInput" readonly value="${escapedPath}" 
+                           style="flex: 1; padding: 7px 10px; font-family: Consolas, monospace; font-size: 12px; border: 1px solid rgba(0,150,136,0.5); border-radius: 4px; background: #ffffff; color: #111111; user-select: text; cursor: text;" 
+                           onclick="this.select()">
+                    <button type="button" id="btnRmaKopyala" class="btn-s teal" onclick="rmaKopyalaYol()" style="white-space: nowrap; padding: 7px 14px; font-size: 12px; cursor: pointer;">
+                        📋 Kopyala
+                    </button>
+                </div>
+                <div style="margin-top: 6px; font-size: 11px; color: var(--text-muted, #666); user-select: none;">
+                    💡 Yolu kopyalamak için <strong>"📋 Kopyala"</strong> butonuna basabilir veya kutuya tıklayarak farenizle sadece yolu seçebilirsiniz.
+                </div>
+            `;
+        }
+    } catch (e) {
+        console.error("RMA Klasörüne kaydetme hatası:", e);
+        alert("RMA PDF kaydedilirken hata oluştu: " + (e.message || e));
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
+    }
+}
+
 function updateRmaCustomerOptions() {
-    const filter = document.getElementById('rmaCustomerSearch')?.value || '';
+    const filterInput = document.getElementById('rmaCustomerSearch');
+    const filter = filterInput ? filterInput.value : '';
     const select = document.getElementById('rmaCustomerSelect');
     const countLabel = document.getElementById('rmaCustomerCount');
     if (!select) return;
+
+    // Önce marka/model ve seri numarasını kesinlikle sıfırla
+    const modelInput = document.getElementById('rmaModel');
+    const sernrInput = document.getElementById('rmaSernr');
+    if (modelInput) modelInput.value = '';
+    if (sernrInput) sernrInput.value = '';
+
+    const searchValue = String(filter || '').trim().toLowerCase();
 
     let customers = [];
     if (typeof getTicketCustomers === 'function') {
@@ -321,7 +438,6 @@ function updateRmaCustomerOptions() {
         const rentalCustomers = Array.isArray(datasets?.rental) ? datasets.rental : [];
         const allCustomers = customCustomers.length > 0 ? customCustomers : rentalCustomers;
         
-        const searchValue = filter.trim().toLowerCase();
         if (!searchValue) {
             customers = allCustomers;
         } else {
@@ -335,26 +451,97 @@ function updateRmaCustomerOptions() {
 
     let customerOptions = '<option value="">-- Müşteri Seçin --</option>';
 
-    if (customers.length === 0) {
+    if (!customers || customers.length === 0) {
         customerOptions += '<option value="" disabled>Sonuç bulunamadı</option>';
-    } else {
-        customers.forEach((c, idx) => {
-            const label = `${c.KundenNr || ''} - ${c.Firma || c.InhabeName || 'Bilinmeyen'}`;
-            const selected = idx === 0 ? ' selected' : '';
-            customerOptions += `<option value="${c.kKunde}" data-firma="${c.Firma || ''}" data-inhabe="${c.InhabeName || ''}" data-nr="${c.KundenNr || ''}" data-strasse="${c.Strasse || ''}" data-plz="${c.PLZ || ''}" data-ort="${c.Ort || ''}"${selected}>${label}</option>`;
-        });
+        select.innerHTML = customerOptions;
+        select.value = '';
+        if (countLabel) countLabel.textContent = '0';
+        return;
     }
+
+    customers.forEach((c) => {
+        const label = `${c.KundenNr || ''} - ${c.Firma || c.InhabeName || 'Bilinmeyen'}`;
+        const kat = String(c.KundenKategorie || c.kundenKategorie || '').replace(/"/g, '&quot;');
+        const serino = String(c.KassenNo || '').replace(/"/g, '&quot;');
+        customerOptions += `<option value="${c.kKunde}" data-firma="${c.Firma || ''}" data-inhabe="${c.InhabeName || ''}" data-nr="${c.KundenNr || ''}" data-strasse="${c.Strasse || ''}" data-plz="${c.PLZ || ''}" data-ort="${c.Ort || ''}" data-kategorie="${kat}" data-serinummer="${serino}">${label}</option>`;
+    });
 
     select.innerHTML = customerOptions;
 
-    if (customers.length > 0) {
-        select.value = String(customers[0].kKunde);
-    } else {
-        select.value = '';
-    }
-
     if (countLabel) {
         countLabel.textContent = customers.length;
+    }
+
+    // Arama boş ise hiçbir müşteri otomatik seçilmemeli, marka ve serino boş kalmalı
+    if (!searchValue) {
+        select.value = '';
+        if (modelInput) modelInput.value = '';
+        if (sernrInput) sernrInput.value = '';
+    } else {
+        // Arama kutusuna text girildiğinde ve müşteri bulunduğunda ilk müşteriyi seç ve bilgilerini yükle
+        select.value = String(customers[0].kKunde);
+        onRmaCustomerChange();
+    }
+}
+
+function rmaKopyalaYol() {
+    const input = document.getElementById('rmaSavedFilePathInput');
+    if (!input || !input.value) return;
+    
+    const textToCopy = input.value;
+    const btn = document.getElementById('btnRmaKopyala');
+    
+    const setSuccess = () => {
+        if (btn) {
+            const orig = btn.innerHTML;
+            btn.innerHTML = '✅ Kopyalandı!';
+            btn.style.background = '#2e7d32';
+            setTimeout(() => { 
+                btn.innerHTML = orig; 
+                btn.style.background = '';
+            }, 2000);
+        }
+    };
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(textToCopy).then(setSuccess).catch(() => {
+            input.select();
+            document.execCommand('copy');
+            setSuccess();
+        });
+    } else {
+        input.select();
+        document.execCommand('copy');
+        setSuccess();
+    }
+}
+
+function onRmaCustomerChange() {
+    const modelInput = document.getElementById('rmaModel');
+    const sernrInput = document.getElementById('rmaSernr');
+
+    // rmaCustomerSelect değiştiğinde önce marka model ve serino mutlaka boş olmalı
+    if (modelInput) modelInput.value = '';
+    if (sernrInput) sernrInput.value = '';
+
+    const select = document.getElementById('rmaCustomerSelect');
+    if (!select) return;
+    const opt = select.options[select.selectedIndex];
+
+    // Müşteri seçili değilse veya boş seçenek ise boş kalmaya devam etsin
+    if (!opt || !opt.value) {
+        return;
+    }
+
+    // rmaCustomerSelect'te bir müşteri seçili ise onun kategori (marka/model) ve serino bilgisi gelsin
+    const kat = opt.dataset.kategorie || '';
+    const serino = opt.dataset.serinummer || '';
+
+    if (modelInput) {
+        modelInput.value = kat;
+    }
+    if (sernrInput) {
+        sernrInput.value = serino;
     }
 }
 

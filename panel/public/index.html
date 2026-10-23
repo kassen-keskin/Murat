@@ -2147,7 +2147,7 @@
                     </div>
                     <div class="form-grp" style="margin-top: 15px;">
                         <label>Müşteri Seçin (Ticket Tabındaki Gibi)</label>
-                        <select id="rmaCustomerSelect" class="form-ctrl"></select>
+                        <select id="rmaCustomerSelect" class="form-ctrl" onchange="onRmaCustomerChange()"></select>
                     </div>
                     
                     <div class="form-grp" style="margin-top: 15px;">
@@ -2162,8 +2162,8 @@
                     </div>
 
                     <div class="form-grp" style="margin-top: 15px;">
-                        <label>Konu (Betreff)</label>
-                        <input type="text" id="rmaBetreff" class="form-ctrl" list="rmaBetreffList" placeholder="Örn: Auf Display kein Bild">
+                        <label>Konu (Betreff) <span style="color: #ef5350; font-weight: bold;">*</span></label>
+                        <input type="text" id="rmaBetreff" class="form-ctrl" list="rmaBetreffList" placeholder="Örn: Auf Display kein Bild" required>
                         <datalist id="rmaBetreffList"></datalist>
                     </div>
 
@@ -2213,8 +2213,12 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                     </div>
                 </div>
 
-                <div class="pdf-row" style="margin-top: 25px; display: flex; justify-content: center;">
+                <div class="pdf-row" style="margin-top: 25px; display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
                     <button class="btn-s teal lg" onclick="rmaPdfOlustur()">📄 PDF Oluştur ve İndir</button>
+                    <button class="btn-s secondary lg" id="btnRmaSaveServer" onclick="rmaKlasoruneKaydet()">📁 RMA Klasörüne Kaydet</button>
+                </div>
+                
+                <div id="rmaSavedPathContainer" style="display:none; margin-top: 15px; padding: 12px 18px; border-radius: 8px; background: rgba(0, 150, 136, 0.08); border: 1px solid rgba(0, 150, 136, 0.35); text-align: left; font-size: 13px; line-height: 1.5; color: var(--text-color, #222); word-break: break-all;">
                 </div>
                 
                 <!-- Gizli yazdırma alanı -->
@@ -2237,7 +2241,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                         </div>
 
                         <div style="margin-bottom: 25px;">
-                            <p style="margin: 0; font-size: 12pt; font-weight: bold;">Betreff: <span id="rmaPrintBetreff"></span></p>
+                            <p id="rmaPrintBetreff" style="margin: 0; font-size: 12pt; font-weight: bold;"></p>
                         </div>
                     
                     <div style="margin-bottom: 30px;">
