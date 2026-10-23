@@ -1884,7 +1884,6 @@
         "RCH",
         "Lotus Pecas",
         "Lacash",
-        "TestMarka",
         "Sunmi",
         "POS",
         "Honeywell",
@@ -1899,8 +1898,7 @@
         "Spätikauf",
         "Berber",
         "Market",
-        "Cafe",
-        "TestSektor"
+        "Cafe"
     ],
     "version": 1792606757669,
     "lastModified": "2026-10-21T18:19:17.669784"

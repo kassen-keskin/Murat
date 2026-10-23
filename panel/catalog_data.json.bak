@@ -7,12 +7,7 @@
             "images": [
                 "image/noris_s-43/img_0_1791990058905.webp"
             ],
-            "industries": [
-                "Kiosk",
-                "Spätikauf",
-                "Berber",
-                "Cafe"
-            ],
+            "industries": [],
             "model": "S-43",
             "offerNo": "",
             "offerNoHibrit": "",
@@ -1902,6 +1897,6 @@
         "Cafe",
         "TestSektor"
     ],
-    "version": 1792606757669,
-    "lastModified": "2026-10-21T18:19:17.669784"
+    "version": 1792672551518,
+    "lastModified": "2026-10-22T12:35:51.518558"
 }

@@ -636,6 +636,23 @@
     .selection-item-card:hover {
       transform: translateY(-1px);
     }
+    .selection-order-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 24px;
+      height: 24px;
+      padding: 0 6px;
+      border-radius: 9999px;
+      background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+      color: #ffffff;
+      font-size: 0.78rem;
+      font-weight: 900;
+      line-height: 1;
+      box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+      border: 1.5px solid #fef3c7;
+      flex-shrink: 0;
+    }
     .print-selected-btn {
       background-color: #059669 !important;
       color: #ffffff !important;
@@ -1078,10 +1095,15 @@
                  class="selection-item-card p-3 md:p-3.5 rounded-xl border-2 cursor-pointer flex items-center justify-between gap-3 md:gap-4 select-none"
                  :class="selectedProductIds.includes(p.id) ? 'bg-blue-50 border-blue-500 shadow-sm' : 'bg-white border-gray-200 hover:border-blue-300'">
               <div class="flex items-center gap-3 overflow-hidden">
-                <!-- Checkbox simgesi -->
-                <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 border-2 transition-colors"
-                     :class="selectedProductIds.includes(p.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-transparent'">
-                  <i class="fas fa-check text-xs"></i>
+                <!-- Checkbox simgesi ve Seçim Sıra Numarası -->
+                <div class="flex items-center gap-1.5 shrink-0">
+                  <div class="w-6 h-6 rounded-md flex items-center justify-center shrink-0 border-2 transition-colors"
+                       :class="selectedProductIds.includes(p.id) ? 'bg-blue-600 border-blue-600 text-white' : 'bg-white border-gray-300 text-transparent'">
+                    <i class="fas fa-check text-xs"></i>
+                  </div>
+                  <span v-if="selectedProductIds.includes(p.id)" class="selection-order-badge">
+                    {{ selectedProductIds.indexOf(p.id) + 1 }}
+                  </span>
                 </div>
 
                 <!-- Ürün Küçük Görseli -->
@@ -1988,7 +2010,9 @@
 
         const filteredProducts = computed(() => {
           if (isSelectionOnlyMode.value) {
-            return products.value.filter(p => selectedProductIds.value.includes(p.id));
+            return selectedProductIds.value
+              .map(id => products.value.find(p => String(p.id) === String(id)))
+              .filter(Boolean);
           }
           return products.value.filter(p => {
             const matchBrand = filterBrand.value === '' || p.brand === filterBrand.value;
