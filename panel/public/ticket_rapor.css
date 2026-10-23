@@ -248,3 +248,50 @@
         padding: 10px 12px;
     }
 }
+/* Table Column Sorting and Filtering */
+.tr-sort-th {
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tr-sort-th:hover {
+    background: var(--hover-color) !important;
+    color: var(--primary-color) !important;
+}
+
+.tr-sort-icon {
+    font-size: 0.8rem;
+    opacity: 0.4;
+    margin-left: 4px;
+    display: inline-block;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tr-sort-th.active-sort .tr-sort-icon {
+    opacity: 1;
+    color: var(--primary-color);
+}
+
+.tr-col-filter-row th {
+    background: var(--card-bg) !important;
+    padding: 6px 8px !important;
+    border-bottom: 2px solid var(--border-color) !important;
+}
+
+.tr-col-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 4px 6px;
+    font-size: 0.78rem;
+    border-radius: 4px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-color);
+    color: var(--text-color);
+    outline: none;
+    transition: border-color 0.2s ease;
+}
+
+.tr-col-input:focus {
+    border-color: var(--primary-color);
+}

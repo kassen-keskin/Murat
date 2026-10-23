@@ -2086,10 +2086,10 @@
                     </div>
                 </div>
                 <div class="tr-kpi-card">
-                    <div class="tr-kpi-icon">⭐</div>
+                    <div class="tr-kpi-icon">⏳</div>
                     <div>
-                        <div class="tr-kpi-val" id="trTopPerson" style="font-size:1.05rem;">-</div>
-                        <div class="tr-kpi-lbl">En Aktif Personel</div>
+                        <div class="tr-kpi-val" id="trTotalDuration">-</div>
+                        <div class="tr-kpi-lbl">Toplam Çalışma Süresi</div>
                     </div>
                 </div>
             </div>
@@ -2150,15 +2150,52 @@
             <div class="tr-table-wrap">
                 <table class="tr-table">
                     <thead>
-                        <tr>
-                            <th style="width:110px;">Bilet No</th>
-                            <th>Konu & Son Not</th>
-                            <th>Müşteri</th>
-                            <th>İlgilenen</th>
-                            <th>Açılış</th>
-                            <th>Son Hareket</th>
-                            <th style="width:180px;">Süre & Kıyaslama</th>
-                            <th style="width:90px; text-align:center;">Durum</th>
+                        <tr class="tr-head-row">
+                            <th class="tr-sort-th" onclick="sortTicketRapor('cEindeutigeId')" style="width:120px;" title="Sıralamak için tıklayın">
+                                Bilet No <span class="tr-sort-icon" id="sortIcon_cEindeutigeId">⇅</span>
+                            </th>
+                            <th class="tr-sort-th" onclick="sortTicketRapor('cTitelErsteNachricht')" title="Sıralamak için tıklayın">
+                                Konu & Son Not <span class="tr-sort-icon" id="sortIcon_cTitelErsteNachricht">⇅</span>
+                            </th>
+                            <th class="tr-sort-th" onclick="sortTicketRapor('Firma')" title="Sıralamak için tıklayın">
+                                Müşteri <span class="tr-sort-icon" id="sortIcon_Firma">⇅</span>
+                            </th>
+                            <th class="tr-sort-th" onclick="sortTicketRapor('personName')" title="Sıralamak için tıklayın">
+                                İlgilenen <span class="tr-sort-icon" id="sortIcon_personName">⇅</span>
+                            </th>
+                            <th class="tr-sort-th" onclick="sortTicketRapor('dErstellung')" style="width:130px;" title="Sıralamak için tıklayın">
+                                Açılış <span class="tr-sort-icon" id="sortIcon_dErstellung">⇅</span>
+                            </th>
+                            <th class="tr-sort-th" onclick="sortTicketRapor('lastActionDate')" style="width:130px;" title="Sıralamak için tıklayın">
+                                Son Hareket <span class="tr-sort-icon" id="sortIcon_lastActionDate">⇅</span>
+                            </th>
+                            <th class="tr-sort-th" onclick="sortTicketRapor('durationMinutes')" style="width:180px;" title="Sıralamak için tıklayın">
+                                Süre & Kıyaslama <span class="tr-sort-icon" id="sortIcon_durationMinutes">⇅</span>
+                            </th>
+                            <th class="tr-sort-th" onclick="sortTicketRapor('kStatus')" style="width:110px; text-align:center;" title="Sıralamak için tıklayın">
+                                Durum <span class="tr-sort-icon" id="sortIcon_kStatus">⇅</span>
+                            </th>
+                        </tr>
+                        <tr class="tr-col-filter-row">
+                            <th><input type="text" class="tr-col-input" placeholder="No ara..." oninput="onTicketRaporColFilter('cEindeutigeId', this.value)"></th>
+                            <th><input type="text" class="tr-col-input" placeholder="Konu/not ara..." oninput="onTicketRaporColFilter('cTitelErsteNachricht', this.value)"></th>
+                            <th><input type="text" class="tr-col-input" placeholder="Müşteri ara..." oninput="onTicketRaporColFilter('Firma', this.value)"></th>
+                            <th>
+                                <select class="tr-col-input" onchange="onTicketRaporColFilter('personName', this.value)" id="trColFilterUser">
+                                    <option value="">Tümü</option>
+                                </select>
+                            </th>
+                            <th></th>
+                            <th></th>
+                            <th></th>
+                            <th>
+                                <select class="tr-col-input" onchange="onTicketRaporColFilter('statusText', this.value)">
+                                    <option value="">Tümü</option>
+                                    <option value="Açık">Açık</option>
+                                    <option value="Beklemede">Beklemede</option>
+                                    <option value="Çözüldü">Çözüldü</option>
+                                </select>
+                            </th>
                         </tr>
                     </thead>
                     <tbody id="ticketRaporTableBody">
