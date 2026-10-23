@@ -2176,27 +2176,6 @@
                                 Durum <span class="tr-sort-icon" id="sortIcon_kStatus">⇅</span>
                             </th>
                         </tr>
-                        <tr class="tr-col-filter-row">
-                            <th><input type="text" class="tr-col-input" placeholder="No ara..." oninput="onTicketRaporColFilter('cEindeutigeId', this.value)"></th>
-                            <th><input type="text" class="tr-col-input" placeholder="Konu/not ara..." oninput="onTicketRaporColFilter('cTitelErsteNachricht', this.value)"></th>
-                            <th><input type="text" class="tr-col-input" placeholder="Müşteri ara..." oninput="onTicketRaporColFilter('Firma', this.value)"></th>
-                            <th>
-                                <select class="tr-col-input" onchange="onTicketRaporColFilter('personName', this.value)" id="trColFilterUser">
-                                    <option value="">Tümü</option>
-                                </select>
-                            </th>
-                            <th></th>
-                            <th></th>
-                            <th></th>
-                            <th>
-                                <select class="tr-col-input" onchange="onTicketRaporColFilter('statusText', this.value)">
-                                    <option value="">Tümü</option>
-                                    <option value="Açık">Açık</option>
-                                    <option value="Beklemede">Beklemede</option>
-                                    <option value="Çözüldü">Çözüldü</option>
-                                </select>
-                            </th>
-                        </tr>
                     </thead>
                     <tbody id="ticketRaporTableBody">
                         <!-- Loaded dynamically -->

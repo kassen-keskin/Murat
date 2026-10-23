@@ -3,16 +3,9 @@ let ticketRaporData = [];
 let ticketRaporUsers = [];
 let ticketRaporPeriod = 'all';
 
-// Sorting & Column Filtering state
+// Sorting state
 let trSortField = 'lastActionDate';
 let trSortOrder = 'desc'; // 'asc' or 'desc'
-const trColFilters = {
-    cEindeutigeId: '',
-    cTitelErsteNachricht: '',
-    Firma: '',
-    personName: '',
-    statusText: ''
-};
 
 function getShortName(user) {
     if (!user) return 'Bilinmeyen';
@@ -43,20 +36,16 @@ async function fetchTicketRaporUsers() {
 
 function populateTicketRaporUserSelect() {
     const sel = document.getElementById('trUserFilter');
-    const colSel = document.getElementById('trColFilterUser');
+    if (!sel) return;
 
     let html = '<option value="">👥 Tüm Ekip (Tüm Kullanıcılar)</option>';
-    let colHtml = '<option value="">Tümü</option>';
-
     ticketRaporUsers.forEach(u => {
         const dName = getShortName(u);
         const fullName = u.cName ? `${dName} (${u.cName})` : dName;
         html += `<option value="${u.kBenutzer}">${fullName}</option>`;
-        colHtml += `<option value="${dName}">${dName}</option>`;
     });
 
-    if (sel) sel.innerHTML = html;
-    if (colSel) colSel.innerHTML = colHtml;
+    sel.innerHTML = html;
 }
 
 function setupTicketRaporDateDefaults() {
@@ -191,12 +180,6 @@ function formatReportDateTime(iso) {
            d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
 }
 
-// Column Filter Handler
-function onTicketRaporColFilter(colKey, value) {
-    trColFilters[colKey] = (value || '').trim().toLowerCase();
-    renderTicketRaporTable();
-}
-
 // Column Sort Handler
 function sortTicketRapor(field) {
     if (trSortField === field) {
@@ -258,7 +241,7 @@ function renderTicketRaporTable() {
         return;
     }
 
-    // Precompute enriched properties for sorting and column filtering
+    // Precompute enriched properties for sorting and metrics
     const enrichedList = ticketRaporData.map(t => {
         const isResolved = (t.kStatus == 3 || t.kStatus == 4);
         const isPending = (t.kStatus == 2);
@@ -284,39 +267,16 @@ function renderTicketRaporTable() {
             durationMinutes: dur.minutes,
             personName,
             statusText,
-            lastActionDate: lastActionDateIso,
-            titleAndNote: ((t.cTitelErsteNachricht || '') + ' ' + (t.cLetzteNachrichtInhalt || '')).toLowerCase(),
-            firmaCombined: ((t.Firma || '') + ' ' + (t.KundenNr || '')).toLowerCase()
+            lastActionDate: lastActionDateIso
         };
     });
 
-    // Apply Column Filters
-    const filteredList = enrichedList.filter(item => {
-        if (trColFilters.cEindeutigeId) {
-            const ticketIdStr = String(item.cEindeutigeId || ('TKT-' + item.kTicket)).toLowerCase();
-            if (!ticketIdStr.includes(trColFilters.cEindeutigeId)) return false;
-        }
-        if (trColFilters.cTitelErsteNachricht) {
-            if (!item.titleAndNote.includes(trColFilters.cTitelErsteNachricht)) return false;
-        }
-        if (trColFilters.Firma) {
-            if (!item.firmaCombined.includes(trColFilters.Firma)) return false;
-        }
-        if (trColFilters.personName) {
-            if (item.personName.toLowerCase() !== trColFilters.personName) return false;
-        }
-        if (trColFilters.statusText) {
-            if (item.statusText.toLowerCase() !== trColFilters.statusText) return false;
-        }
-        return true;
-    });
-
-    // KPI Metrics calculation based on filteredList
+    // KPI Metrics calculation
     let resolvedCount = 0;
     let resolvedMinutesSum = 0;
     let totalAllMinutesSum = 0;
 
-    filteredList.forEach(item => {
+    enrichedList.forEach(item => {
         totalAllMinutesSum += (item.durationMinutes || 0);
         if (item.isResolved) {
             resolvedCount++;
@@ -324,8 +284,8 @@ function renderTicketRaporTable() {
         }
     });
 
-    if (countBadge) countBadge.textContent = filteredList.length;
-    if (totalCountEl) totalCountEl.textContent = filteredList.length;
+    if (countBadge) countBadge.textContent = enrichedList.length;
+    if (totalCountEl) totalCountEl.textContent = enrichedList.length;
     if (resolvedCountEl) resolvedCountEl.textContent = resolvedCount;
 
     if (avgDurationEl) {
@@ -342,7 +302,7 @@ function renderTicketRaporTable() {
     }
 
     // Apply Sorting
-    filteredList.sort((a, b) => {
+    enrichedList.sort((a, b) => {
         let valA = a[trSortField];
         let valB = b[trSortField];
 
@@ -359,19 +319,14 @@ function renderTicketRaporTable() {
         return (trSortOrder === 'asc') ? cmp : -cmp;
     });
 
-    if (filteredList.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--text-muted); font-size:1.05rem;">🔍 Sütun filtrelerine uygun bilet bulunamadı.</td></tr>`;
-        return;
-    }
-
-    // Find max duration in current view for relative progress comparison bars
+    // Find max duration for relative progress comparison bars
     let maxMinutes = 60;
-    filteredList.forEach(item => {
+    enrichedList.forEach(item => {
         if (item.durationMinutes > maxMinutes) maxMinutes = item.durationMinutes;
     });
 
     let html = '';
-    filteredList.forEach(t => {
+    enrichedList.forEach(t => {
         const dur = t.durationObj;
 
         // Status badge
