@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kassen.Berlin | Katalog & Web Yayın Merkezi</title>
+  <link rel="icon" type="image/bmp" href="/site/assets/k.bmp">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --muted: #94a3b8;
+      --primary: #3b82f6;
+      --primary-hover: #2563eb;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      padding-bottom: 60px;
+    }
+    .topbar {
+      background: rgba(30, 41, 59, 0.95);
+      border-bottom: 1px solid var(--card-border);
+      padding: 16px 28px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      backdrop-filter: blur(10px);
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.2rem;
+      font-weight: 700;
+    }
+    .brand i { color: var(--primary); font-size: 1.4rem; }
+    .preview-links {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border: 1px solid transparent;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      color: #fff;
+      background: var(--primary);
+    }
+    .btn:hover:not(:disabled) { background: var(--primary-hover); transform: translateY(-1px); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-outline {
+      background: #0f172a;
+      border-color: var(--card-border);
+      color: var(--text);
+    }
+    .btn-outline:hover:not(:disabled) { background: #334155; }
+    .btn-success { background: var(--success); }
+    .btn-success:hover:not(:disabled) { background: #059669; }
+    .btn-warning { background: var(--warning); color: #0f172a; }
+    .btn-warning:hover:not(:disabled) { background: #d97706; color: #fff; }
+    .btn-danger { background: var(--danger); }
+
+    .container {
+      max-width: 1240px;
+      margin: 24px auto;
+      padding: 0 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 22px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+    }
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 16px 20px;
+    }
+    .stat-label { font-size: 0.82rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-value { font-size: 1.65rem; font-weight: 700; margin-top: 4px; }
+    .stat-sub { font-size: 0.82rem; color: var(--muted); margin-top: 4px; }
+
+    .step-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 22px 24px;
+    }
+    .step-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 14px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--card-border);
+    }
+    .step-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.15rem;
+      font-weight: 700;
+    }
+    .step-badge {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.95rem;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.78rem;
+      font-weight: 600;
+    }
+    .badge-ok { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .badge-warn { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .badge-err { background: rgba(239, 68, 68, 0.15); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.3); }
+    .badge-info { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); }
+
+    .result-box {
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+      margin-top: 14px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.88rem;
+      margin-top: 10px;
+    }
+    th, td {
+      text-align: left;
+      padding: 9px 12px;
+      border-bottom: 1px solid #1e293b;
+    }
+    th { color: var(--muted); font-weight: 600; background: rgba(30, 41, 59, 0.5); }
+    .alert {
+      padding: 12px 16px;
+      border-radius: 8px;
+      margin-top: 12px;
+      font-size: 0.9rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .alert-err { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; }
+    .alert-ok { background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #6ee7b7; }
+    .alert-warn { background: rgba(245, 158, 11, 0.15); border: 1px solid rgba(245, 158, 11, 0.4); color: #fde68a; }
+    .checkbox-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .scroll-box { max-height: 280px; overflow-y: auto; }
+    .muted { color: var(--muted); font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+
+  <header class="topbar">
+    <div class="brand">
+      <i class="fa-solid fa-rocket"></i>
+      <span>Kassen.Berlin · Katalog & Web Yayın Merkezi</span>
+    </div>
+    <div class="preview-links">
+      <a href="/site/katalog/index.html" target="_blank" class="btn btn-outline">
+        <i class="fa-solid fa-book-open"></i> Lokal Katalog Önizle
+      </a>
+      <a href="/site/index.html" target="_blank" class="btn btn-outline">
+        <i class="fa-solid fa-desktop"></i> Lokal Ana Sayfa Önizle
+      </a>
+      <a href="https://kassen.berlin/katalog/" target="_blank" class="btn btn-outline">
+        <i class="fa-solid fa-globe"></i> Canlı Katalog (kassen.berlin)
+      </a>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- ÜST DURUM KARTLARI -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-label">Lokal Katalog Ürün Sayısı</div>
+        <div class="stat-value" id="statProductCount">-</div>
+        <div class="stat-sub" id="statLastModified">Son Güncelleme: -</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Görsel & JSON Bütünlüğü</div>
+        <div class="stat-value" id="statValidationStatus">Kontrol Ediliyor...</div>
+        <div class="stat-sub" id="statValidationSub">-</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Toplam Katalog Görseli</div>
+        <div class="stat-value" id="statImagesCount">-</div>
+        <div class="stat-sub" id="statImagesSize">Toplam Boyut: - MB</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Optimize Edilebilir Görsel</div>
+        <div class="stat-value" id="statLargeImages">-</div>
+        <div class="stat-sub">250 KB üzeri sıkıştırılabilir resim</div>
+      </div>
+    </div>
+
+    <!-- ADIM 1: İÇ AĞ SUNUCUSUNDAN (192.168.178.170) KONTROL VE ÇEKME -->
+    <section class="step-card">
+      <div class="step-header">
+        <div class="step-title">
+          <span class="step-badge">1</span>
+          <div>
+            <div>İç Ağ Dashboard Sunucusu (192.168.178.170) Kontrolü & Lokale Çekme</div>
+            <div class="muted">Ekip arkadaşınızın lokal dashboard'da eklediği/düzenlediği ürünleri ve resimleri karşılaştırın.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+          <button class="btn" id="btnCheckLocal" onclick="checkLocalServer()">
+            <i class="fa-solid fa-magnifying-glass-chart"></i> İç Ağdaki Değişiklikleri Tara
+          </button>
+          <button class="btn btn-success" id="btnPullLocal" onclick="pullFromLocalServer()">
+            <i class="fa-solid fa-cloud-arrow-down"></i> İç Ağdan Lokale Çek & Eşitle
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+        <label class="checkbox-label">
+          <input type="checkbox" id="chkAutoOptimize" checked>
+          <span>İç ağdan yeni indirilen resimleri otomatik olarak küçült (kaliteyi bozmadan)</span>
+        </label>
+      </div>
+
+      <div id="localServerResult"></div>
+    </section>
+
+    <!-- ADIM 2: GÖRSEL DOĞRULAMA & BOYUT KÜÇÜLTME (IMAGE OPTIMIZER) -->
+    <section class="step-card">
+      <div class="step-header">
+        <div class="step-title">
+          <span class="step-badge">2</span>
+          <div>
+            <div>Görsel Bütünlük Kontrolü & Boyut Küçültme (Image Optimizer)</div>
+            <div class="muted">Eksik görselleri tespit edin ve büyük boyutlu PNG/JPG/WebP görsellerini görüntü kalitesini bozmadan küçültün.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn btn-warning" id="btnOptimizeUsed" onclick="optimizeImages(true)">
+            <i class="fa-solid fa-compress"></i> Aktif Ürün Görsellerini Küçült
+          </button>
+          <button class="btn btn-outline" id="btnOptimizeAll" onclick="optimizeImages(false)">
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Klasördeki Tüm Görselleri Küçült
+          </button>
+        </div>
+      </div>
+
+      <div id="validationAlertBox"></div>
+      <div id="optimizeResultBox"></div>
+    </section>
+
+    <!-- ADIM 3: LOKAL TEST VE ÖNİZLEME -->
+    <section class="step-card">
+      <div class="step-header">
+        <div class="step-title">
+          <span class="step-badge">3</span>
+          <div>
+            <div>Lokal Test & Önizleme (Canlıya Almadan Önce Kontrol)</div>
+            <div class="muted">HTML/CSS değişikliklerinizi ve yeni çekilen katalog ürünlerini kendi bilgisayarınızda test edin.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <a href="/site/katalog/index.html" target="_blank" class="btn">
+            <i class="fa-solid fa-up-right-from-square"></i> Katalog Sayfasını Test Et
+          </a>
+          <a href="/site/index.html" target="_blank" class="btn btn-outline">
+            <i class="fa-solid fa-up-right-from-square"></i> Ana Sayfayı Test Et
+          </a>
+        </div>
+      </div>
+      <p class="muted">
+        <i class="fa-solid fa-circle-info"></i> İpucu: Bu önizleme bağlantıları önbellek (cache) tutmaz; yaptığınız her HTML/CSS veya ürün değişikliği sayfayı yenilediğiniz anda görünür.
+      </p>
+    </section>
+
+    <!-- ADIM 4: CANLI SUNUCUYA (STRATO - kassen.berlin) KONTROLLÜ YAYINLAMA -->
+    <section class="step-card">
+      <div class="step-header">
+        <div class="step-title">
+          <span class="step-badge">4</span>
+          <div>
+            <div>Canlı Sunucuya (kassen.berlin - Strato SFTP) Kontrollü Yayınlama</div>
+            <div class="muted">Lokaliniz ile canlı sunucu arasındaki farkları görün ve tek tıkla hatasız olarak canlıya gönderin.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px; flex-wrap:wrap;">
+          <button class="btn" id="btnCheckLive" onclick="checkLiveServer()">
+            <i class="fa-solid fa-code-compare"></i> Canlı Sunucu ile Farkları Kontrol Et
+          </button>
+          <button class="btn btn-success" id="btnDeployLive" onclick="deployToLive()">
+            <i class="fa-solid fa-cloud-arrow-up"></i> Canlıya Gönder (kassen.berlin)
+          </button>
+        </div>
+      </div>
+
+      <div style="display:flex; gap:20px; align-items:center; flex-wrap:wrap;">
+        <label class="checkbox-label">
+          <input type="checkbox" id="chkIncludeWebFiles" checked>
+          <span>Değişen HTML / CSS / İkon dosyalarını da gönder (index.html, style.css, katalog/index.html vb.)</span>
+        </label>
+        <label class="checkbox-label">
+          <input type="checkbox" id="chkIncludeOptImages" checked>
+          <span>Boyutu küçültülen (optimize edilen) görselleri de canlıda güncelle</span>
+        </label>
+      </div>
+
+      <div id="liveServerResult"></div>
+    </section>
+
+    <!-- ADIM 5: OTOMATİK YEDEKLER & GERİ ALMA (ROLLBACK) -->
+    <section class="step-card">
+      <div class="step-header">
+        <div class="step-title">
+          <span class="step-badge">5</span>
+          <div>
+            <div>Yedekler & Tek Tıkla Geri Dönüş (Rollback)</div>
+            <div class="muted">Canlıya almadan veya iç ağdan çekmeden önce alınan otomatik katalog yedekleri.</div>
+          </div>
+        </div>
+        <button class="btn btn-outline" onclick="loadBackups()">
+          <i class="fa-solid fa-rotate"></i> Yedekleri Yenile
+        </button>
+      </div>
+      <div id="backupsBox" class="muted">Yükleniyor...</div>
+    </section>
+  </main>
+
+  <script>
+    async function apiCall(url, method = 'GET', body = null) {
+      const opts = { method, headers: { 'Content-Type': 'application/json' } };
+      if (body) opts.body = JSON.stringify(body);
+      const res = await fetch(url, opts);
+      return await res.json();
+    }
+
+    async function refreshStatus() {
+      const data = await apiCall('/api/status');
+      if (!data.ok) return;
+      const v = data.validation;
+      document.getElementById('statProductCount').textContent = v.product_count + ' Ürün';
+      document.getElementById('statLastModified').textContent = 'Son Kayıt: ' + (v.last_modified || '-').replace('T', ' ').slice(0, 19);
+      document.getElementById('statImagesCount').textContent = v.total_images_count + ' Görsel';
+      document.getElementById('statImagesSize').textContent = `Toplam Boyut: ${v.total_images_mb} MB (${v.referenced_images_count} aktif)`;
+      document.getElementById('statLargeImages').textContent = v.large_images.length + ' Adet';
+
+      const statusEl = document.getElementById('statValidationStatus');
+      const subEl = document.getElementById('statValidationSub');
+      const alertBox = document.getElementById('validationAlertBox');
+
+      if (v.missing_images.length === 0 && v.js_synced) {
+        statusEl.innerHTML = '<span style="color:#10b981;"><i class="fa-solid fa-circle-check"></i> Tam & Hatasız</span>';
+        subEl.textContent = 'Tüm ürün görselleri ve JS verisi eksiksiz.';
+        alertBox.innerHTML = `
+          <div class="alert alert-ok">
+            <i class="fa-solid fa-circle-check" style="margin-top:3px;"></i>
+            <div><strong>Bütünlük Doğrulandı:</strong> Katalogdaki ${v.product_count} ürünün tüm görselleri klasörde mevcut ve <code>catalog_data.js</code> senkronize durumda.</div>
+          </div>`;
+      } else {
+        statusEl.innerHTML = `<span style="color:#ef4444;"><i class="fa-solid fa-triangle-exclamation"></i> ${v.missing_images.length} Eksik!</span>`;
+        subEl.textContent = 'Lütfen canlıya almadan önce aşağıdan kontrol edin.';
+        let html = '';
+        if (v.missing_images.length > 0) {
+          html += `<div class="alert alert-err"><i class="fa-solid fa-circle-xmark" style="margin-top:3px;"></i><div><strong>Dikkat! Eksik Ürün Görselleri Tespit Edildi (${v.missing_images.length} adet):</strong><ul style="margin-top:6px; padding-left:18px;">`;
+          v.missing_images.forEach(m => {
+            html += `<li>Ürün #${m.product_id} (<strong>${m.brand} ${m.model}</strong>) &rarr; <code>${m.image}</code> bulunamadı!</li>`;
+          });
+          html += `</ul></div></div>`;
+        }
+        if (!v.js_synced) {
+          html += `<div class="alert alert-warn"><i class="fa-solid fa-rotate"></i><div><code>catalog_data.js</code> güncel değil. <button class="btn btn-outline" style="padding:4px 10px; margin-left:10px;" onclick="syncJsNow()">Şimdi Eşitle</button></div></div>`;
+        }
+        alertBox.innerHTML = html;
+      }
+
+      if (v.large_images.length > 0 && !document.getElementById('optimizeResultBox').innerHTML) {
+        let rows = v.large_images.slice(0, 12).map(img => `
+          <tr>
+            <td><code>${img.path}</code></td>
+            <td><strong>${img.size_kb} KB</strong></td>
+            <td>${img.used ? '<span class="badge badge-ok">Katalogda Aktif</span>' : '<span class="badge badge-warn">Kullanılmıyor</span>'}</td>
+          </tr>`).join('');
+        document.getElementById('optimizeResultBox').innerHTML = `
+          <div class="result-box">
+            <div style="font-weight:600; margin-bottom:6px;">Boyutu Büyük Görseller (İlk ${Math.min(12, v.large_images.length)} / Toplam ${v.large_images.length} adet):</div>
+            <div class="scroll-box">
+              <table>
+                <thead><tr><th>Görsel Yolu</th><th>Mevcut Boyut</th><th>Durum</th></tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>
+          </div>`;
+      }
+    }
+
+    async function syncJsNow() {
+      await apiCall('/api/sync-js', 'POST');
+      await refreshStatus();
+    }
+
+    function renderDiffHtml(diff, titlePrefix = '') {
+      const noChanges = diff.added.length === 0 && diff.modified.length === 0 && diff.removed.length === 0;
+      let html = `
+        <div style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:10px;">
+          <span class="badge badge-ok"><i class="fa-solid fa-plus"></i> ${diff.added.length} Yeni Ürün</span>
+          <span class="badge badge-warn"><i class="fa-solid fa-pen"></i> ${diff.modified.length} Güncellenen Ürün</span>
+          <span class="badge badge-err"><i class="fa-solid fa-trash"></i> ${diff.removed.length} Silinen Ürün</span>
+          <span class="badge badge-info">Toplam Ürün: ${diff.old_count} &rarr; ${diff.new_count}</span>
+        </div>`;
+
+      if (noChanges) {
+        html += `<div class="muted"><i class="fa-solid fa-check"></i> ${titlePrefix} Ürün verileri birebir aynı, fark bulunmadı.</div>`;
+        return html;
+      }
+
+      if (diff.added.length > 0) {
+        html += `<div style="margin-top:10px; font-weight:600; color:#34d399;">🟢 Yeni Eklenen Ürünler:</div>
+          <table><thead><tr><th>ID</th><th>Marka & Model</th><th>Satış / Kira Fiyatı</th><th>Görsel Sayısı</th></tr></thead><tbody>`;
+        diff.added.forEach(p => {
+          html += `<tr><td>#${p.id}</td><td><strong>${p.brand} ${p.model}</strong></td><td>${p.priceSatis || '-'} € / ${p.priceAylik || '-'} €</td><td>${(p.images || []).length} adet</td></tr>`;
+        });
+        html += `</tbody></table>`;
+      }
+
+      if (diff.modified.length > 0) {
+        html += `<div style="margin-top:12px; font-weight:600; color:#fbbf24;">🟡 Güncellenen Ürünler:</div>
+          <table><thead><tr><th>ID</th><th>Marka & Model</th><th>Değişen Alanlar</th></tr></thead><tbody>`;
+        diff.modified.forEach(p => {
+          const chg = p.changes.map(c => `<div>• <strong>${c.field}:</strong> <code>${JSON.stringify(c.old)}</code> &rarr; <code>${JSON.stringify(c.new)}</code></div>`).join('');
+          html += `<tr><td>#${p.id}</td><td><strong>${p.brand} ${p.model}</strong></td><td>${chg}</td></tr>`;
+        });
+        html += `</tbody></table>`;
+      }
+
+      if (diff.removed.length > 0) {
+        html += `<div style="margin-top:12px; font-weight:600; color:#f87171;">🔴 Silinen Ürünler:</div>
+          <table><thead><tr><th>ID</th><th>Marka & Model</th></tr></thead><tbody>`;
+        diff.removed.forEach(p => {
+          html += `<tr><td>#${p.id}</td><td><strong>${p.brand} ${p.model}</strong></td></tr>`;
+        });
+        html += `</tbody></table>`;
+      }
+
+      return html;
+    }
+
+    async function checkLocalServer() {
+      const btn = document.getElementById('btnCheckLocal');
+      const box = document.getElementById('localServerResult');
+      btn.disabled = true;
+      box.innerHTML = `<div class="result-box"><i class="fa-solid fa-spinner fa-spin"></i> İç ağ sunucusuna (192.168.178.170) bağlanılıyor ve katalog karşılaştırılıyor...</div>`;
+      try {
+        const res = await apiCall('/api/check-local-server', 'POST');
+        if (!res.ok) {
+          box.innerHTML = `<div class="alert alert-err"><i class="fa-solid fa-circle-xmark"></i> <div>${res.error}</div></div>`;
+          return;
+        }
+        let html = `<div class="result-box">`;
+        html += renderDiffHtml(res.diff, 'İç ağ sunucusu ile lokalinizdeki');
+        html += `<div style="margin-top:12px; padding-top:10px; border-top:1px solid #1e293b; display:flex; gap:12px; flex-wrap:wrap;">
+          <span class="badge badge-info"><i class="fa-regular fa-images"></i> Yeni Görsel: ${res.new_images.length} adet</span>
+          <span class="badge badge-warn"><i class="fa-solid fa-file-Image"></i> Değişen Görsel: ${res.updated_images.length} adet</span>
+        </div>`;
+
+        if (res.missing_on_remote && res.missing_on_remote.length > 0) {
+          html += `<div class="alert alert-err" style="margin-top:10px;"><i class="fa-solid fa-triangle-exclamation"></i><div><strong>Uyarı:</strong> İç ağdaki katalogda tanımlı olup sunucuda dosyası bulunamayan ${res.missing_on_remote.length} görsel var!</div></div>`;
+        }
+        html += `</div>`;
+        box.innerHTML = html;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function pullFromLocalServer() {
+      const btn = document.getElementById('btnPullLocal');
+      const box = document.getElementById('localServerResult');
+      const autoOpt = document.getElementById('chkAutoOptimize').checked;
+      btn.disabled = true;
+      box.innerHTML = `<div class="result-box"><i class="fa-solid fa-spinner fa-spin"></i> İç ağdan katalog verisi ve yeni görseller indiriliyor, lütfen bekleyin...</div>`;
+      try {
+        const res = await apiCall('/api/pull-local-server', 'POST', { auto_optimize: autoOpt });
+        if (!res.ok) {
+          box.innerHTML = `<div class="alert alert-err"><i class="fa-solid fa-circle-xmark"></i> <div>${res.error}</div></div>`;
+          return;
+        }
+        box.innerHTML = `
+          <div class="alert alert-ok">
+            <i class="fa-solid fa-circle-check"></i>
+            <div>
+              <strong>İç Ağdan Lokale Eşitleme Tamamlandı!</strong><br>
+              • İndirilen yeni/güncel görsel sayısı: <strong>${res.downloaded_count} adet</strong><br>
+              • Otomatik küçültülen görsel sayısı: <strong>${res.optimized_results.length} adet</strong><br>
+              • <code>catalog_data.json</code> ve <code>catalog_data.js</code> başarıyla güncellendi. Şimdi 3. Adımdan lokal önizleme yapabilirsiniz.
+            </div>
+          </div>`;
+        await refreshStatus();
+        await loadBackups();
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function optimizeImages(onlyUsed) {
+      const btn1 = document.getElementById('btnOptimizeUsed');
+      const btn2 = document.getElementById('btnOptimizeAll');
+      const box = document.getElementById('optimizeResultBox');
+      btn1.disabled = true;
+      btn2.disabled = true;
+      box.innerHTML = `<div class="result-box"><i class="fa-solid fa-spinner fa-spin"></i> Görseller görüntü kalitesi korunarak sıkıştırılıyor, lütfen bekleyin...</div>`;
+      try {
+        const res = await apiCall('/api/optimize-images', 'POST', { only_used: onlyUsed });
+        if (!res.ok) {
+          box.innerHTML = `<div class="alert alert-err">${res.error || 'Hata oluştu'}</div>`;
+          return;
+        }
+        if (res.optimized_count === 0) {
+          box.innerHTML = `<div class="alert alert-ok"><i class="fa-solid fa-check"></i> Tüm görseller zaten optimum boyutta! Daha fazla küçültülecek görsel bulunmadı.</div>`;
+        } else {
+          let rows = res.results.map(r => `
+            <tr>
+              <td><code>${r.path}</code></td>
+              <td>${r.old_kb} KB</td>
+              <td><strong>${r.new_kb} KB</strong></td>
+              <td><span class="badge badge-ok">-%${r.percent} (${r.saved_kb} KB kazanç)</span></td>
+            </tr>`).join('');
+          box.innerHTML = `
+            <div class="alert alert-ok">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+              <div><strong>Harika! ${res.optimized_count} adet görsel optimize edildi ve toplam <u>${res.total_saved_mb} MB</u> alan kazanıldı!</strong></div>
+            </div>
+            <div class="result-box scroll-box">
+              <table>
+                <thead><tr><th>Görsel</th><th>Eski Boyut</th><th>Yeni Boyut</th><th>Kazanç</th></tr></thead>
+                <tbody>${rows}</tbody>
+              </table>
+            </div>`;
+        }
+        await refreshStatus();
+      } finally {
+        btn1.disabled = false;
+        btn2.disabled = false;
+      }
+    }
+
+    async function checkLiveServer() {
+      const btn = document.getElementById('btnCheckLive');
+      const box = document.getElementById('liveServerResult');
+      btn.disabled = true;
+      box.innerHTML = `<div class="result-box"><i class="fa-solid fa-spinner fa-spin"></i> Canlı sunucuya (51573974.ssh.w1.strato.hosting) bağlanılıyor ve dosyalar karşılaştırılıyor...</div>`;
+      try {
+        const res = await apiCall('/api/check-live-server', 'POST');
+        if (!res.ok) {
+          box.innerHTML = `<div class="alert alert-err"><i class="fa-solid fa-circle-xmark"></i> <div>${res.error}</div></div>`;
+          return;
+        }
+        let html = `<div class="result-box">`;
+        html += `<div style="font-weight:700; margin-bottom:8px;">1) Canlıya Gönderilecek Katalog Ürün Farkları (Canlı vs Lokal):</div>`;
+        html += renderDiffHtml(res.catalog_diff, 'Canlı sunucu ile lokalinizdeki');
+
+        html += `<div style="margin-top:16px; padding-top:12px; border-top:1px solid #1e293b; font-weight:700;">2) Değişen Web & Görsel Dosyaları Özeti:</div>`;
+        html += `<div style="display:flex; gap:10px; flex-wrap:wrap; margin-top:8px;">
+          <span class="badge badge-info"><i class="fa-solid fa-file-code"></i> Değişen HTML/CSS/JS: ${res.changed_web_files.length} dosya</span>
+          <span class="badge badge-warn"><i class="fa-solid fa-cloud-arrow-up"></i> Canlıda Eksik Görsel: ${res.missing_live_images.length} adet</span>
+          <span class="badge badge-ok"><i class="fa-solid fa-compress"></i> Boyutu Güncellenen Görsel: ${res.changed_live_images.length} adet</span>
+        </div>`;
+
+        if (res.changed_web_files.length > 0) {
+          let wrows = res.changed_web_files.map(f => `
+            <tr>
+              <td><code>${f.path}</code></td>
+              <td>${f.local_kb} KB (Canlı: ${f.remote_kb} KB)</td>
+              <td><span class="badge badge-info">${f.status}</span></td>
+            </tr>`).join('');
+          html += `<div class="scroll-box" style="margin-top:10px;"><table><thead><tr><th>Dosya</th><th>Boyut</th><th>Durum</th></tr></thead><tbody>${wrows}</tbody></table></div>`;
+        }
+        html += `</div>`;
+        box.innerHTML = html;
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function deployToLive() {
+      if (!confirm('Lokaldeki katalog verileri, görseller ve seçili web dosyaları canlı kassen.berlin sunucusuna yüklenecek. Onaylıyor musunuz?')) {
+        return;
+      }
+      const btn = document.getElementById('btnDeployLive');
+      const box = document.getElementById('liveServerResult');
+      const incWeb = document.getElementById('chkIncludeWebFiles').checked;
+      const incOpt = document.getElementById('chkIncludeOptImages').checked;
+
+      btn.disabled = true;
+      box.innerHTML = `<div class="result-box"><i class="fa-solid fa-spinner fa-spin"></i> Canlı sunucu yedeği alınıyor ve dosyalar Strato SFTP sunucusuna yükleniyor... Lütfen bekleyin.</div>`;
+      try {
+        const res = await apiCall('/api/deploy-live', 'POST', {
+          include_web_files: incWeb,
+          include_optimized_images: incOpt
+        });
+        if (!res.ok) {
+          box.innerHTML = `<div class="alert alert-err"><i class="fa-solid fa-circle-xmark"></i> <div>${res.error}</div></div>`;
+          return;
+        }
+        let fileList = res.uploaded_files.slice(0, 30).map(f => `<li><code>${f}</code></li>`).join('');
+        if (res.uploaded_files.length > 30) {
+          fileList += `<li>... ve ${res.uploaded_files.length - 30} dosya daha</li>`;
+        }
+        box.innerHTML = `
+          <div class="alert alert-ok">
+            <i class="fa-solid fa-circle-check"></i>
+            <div>
+              <strong>Canlıya Yayınlama Başarıyla Tamamlandı! (${res.uploaded_count} dosya gönderildi)</strong><br>
+              ${res.backup_file ? `• Canlı yedek alındı: <code>${res.backup_file}</code><br>` : ''}
+              <ul style="margin-top:6px; padding-left:18px; max-height:160px; overflow-y:auto;">${fileList}</ul>
+            </div>
+          </div>`;
+        await loadBackups();
+      } finally {
+        btn.disabled = false;
+      }
+    }
+
+    async function loadBackups() {
+      const box = document.getElementById('backupsBox');
+      const res = await apiCall('/api/backups');
+      if (!res.ok) return;
+      const all = [...res.live_backups, ...res.local_backups];
+      if (all.length === 0) {
+        box.innerHTML = '<div class="muted">Henüz alınmış yedek bulunmuyor. İlk senkronizasyon veya canlıya alma işleminde otomatik oluşturulur.</div>';
+        return;
+      }
+      let rows = all.map(b => `
+        <tr>
+          <td><code>${b.filename}</code></td>
+          <td>${b.type === 'live' ? '<span class="badge badge-info">Canlı Sunucu Yedeği</span>' : '<span class="badge badge-ok">Lokal Yedek</span>'}</td>
+          <td>${b.date}</td>
+          <td>${b.product_count} Ürün</td>
+          <td>
+            <button class="btn btn-outline" style="padding:4px 10px; font-size:0.8rem;" onclick="rollbackBackup('${b.filename}', '${b.type}')">
+              <i class="fa-solid fa-clock-rotate-left"></i> Bu Yedeğe Dön
+            </button>
+          </td>
+        </tr>`).join('');
+      box.innerHTML = `<table><thead><tr><th>Yedek Dosyası</th><th>Tür</th><th>Tarih</th><th>Ürün Sayısı</th><th>İşlem</th></tr></thead><tbody>${rows}</tbody></table>`;
+    }
+
+    async function rollbackBackup(filename, type) {
+      if (!confirm(`${filename} yedeği lokal katalog verinize geri yüklenecek. Onaylıyor musunuz?`)) return;
+      const res = await apiCall('/api/rollback', 'POST', { filename, type });
+      if (res.ok) {
+        alert(res.message);
+        await refreshStatus();
+      } else {
+        alert(res.error || 'Hata oluştu');
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      refreshStatus();
+      loadBackups();
+    });
+  </script>
+</body>
+</html>

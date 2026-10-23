@@ -1,0 +1,25 @@
+{
+    "local_server": {
+        "host": "192.168.178.170",
+        "port": 22,
+        "username": "root",
+        "password": "kassenberlin",
+        "remote_panel_dir": "/opt/panel",
+        "remote_catalog_json": "/opt/panel/catalog_data.json",
+        "remote_image_dir": "/opt/panel/public/katalog/image"
+    },
+    "live_server": {
+        "host": "51573974.ssh.w1.strato.hosting",
+        "port": 22,
+        "username": "stu576571111",
+        "password": "!$?erk13585SPD",
+        "remote_web_root": "/STRATO-apps/kassen.berlin"
+    },
+    "image_optimization": {
+        "max_dimension": 1600,
+        "jpeg_quality": 85,
+        "webp_quality": 85,
+        "png_quantize_threshold_kb": 250,
+        "auto_optimize_on_pull": true
+    }
+}

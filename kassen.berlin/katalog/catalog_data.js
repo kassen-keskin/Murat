@@ -1,4 +1,4 @@
-﻿window.KATALOG_DATA = {
+window.KATALOG_DATA = {
     "products": [
         {
             "brand": "Noris",

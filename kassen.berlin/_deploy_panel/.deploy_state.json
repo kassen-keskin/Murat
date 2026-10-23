@@ -1,0 +1,66 @@
+{
+    "index.html": {
+        "sha256": "754e8893722c19cbfbafd7ef485a85bd50a1dd8799d61333725868b69a4a7c72",
+        "size": 31613
+    },
+    "style.css": {
+        "sha256": "9dbd82512af7ebe55ddfd3a8f82fee9f9786457f7915b77a41683da934cc6283",
+        "size": 34218
+    },
+    "script.js": {
+        "sha256": "219e64f1ed87784faf8d645934e7ec63a7bbb2a5e66b94d2632570ebb76ca8f5",
+        "size": 53719
+    },
+    "catalog_auth_config.js": {
+        "sha256": "3b1d46b77fa88af722cf4312f9c1aea38d66f8f4404d9d43adc104df9dec924d",
+        "size": 5480
+    },
+    "og_image.jpg": {
+        "sha256": "a848d6b6b4776dbc20d56f15d1e369431919e37e062b6b719352376f32dbd153",
+        "size": 48952
+    },
+    "assets/k.bmp": {
+        "sha256": "4f37d297d70364e3258e85b6dd96116832d6028cd22c377cbfc631218dc50719",
+        "size": 1260068
+    },
+    "assets/logo.png": {
+        "sha256": "a55cc8aed8e716571fa2644ac3f82b186cdda1ca358c46ec9fdcf0c8bfa0f951",
+        "size": 379822
+    },
+    "katalog/index.html": {
+        "sha256": "28d419b48ffc36513ece84d2c872efa05f2b4021e5def9c0aed920a52e0e57c7",
+        "size": 122002
+    },
+    "katalog/tailwind.css": {
+        "sha256": "244d510a8995f2f78fc345919ae04a043919c5fc36d7197bbaa9096707849555",
+        "size": 20228
+    },
+    "katalog/catalog_auth_config.js": {
+        "sha256": "3b1d46b77fa88af722cf4312f9c1aea38d66f8f4404d9d43adc104df9dec924d",
+        "size": 5480
+    },
+    "katalog/logo.jpg": {
+        "sha256": "ecc4d947928da80d8b249708a9f0cad53af8d0f84b6d04f0fc060ecb8378eaf1",
+        "size": 31177
+    },
+    "katalog/og_image.jpg": {
+        "sha256": "a848d6b6b4776dbc20d56f15d1e369431919e37e062b6b719352376f32dbd153",
+        "size": 48952
+    },
+    "katalog/whatsapp.bmp": {
+        "sha256": "0d30a6b577e7646fb7f73df3e778ede234a60f907143ee0ce321cabd07fbe362",
+        "size": 2079404
+    },
+    "katalog/vue.global.prod.js": {
+        "sha256": "e0a2a0866a8de8887542e24f3c218aad3d907b88f30966068792ba992296dc9f",
+        "size": 170605
+    },
+    "katalog/catalog_data.json": {
+        "sha256": "909d0e8e9c085a2e3dedd305cc00ea742ab66fa3999d188f6988262b51423ca4",
+        "size": 69842
+    },
+    "katalog/catalog_data.js": {
+        "sha256": "c3adb2aec2d0e8c0b38861458fb7207c4bb0a8f86d4195dff8102f4654d16586",
+        "size": 71769
+    }
+}
