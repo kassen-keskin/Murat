@@ -1,0 +1,250 @@
+﻿/* Ticket Rapor Paneli Stilleri */
+.ticket-rapor-panel {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+    background: var(--bg-color);
+}
+
+.tr-top-bar {
+    padding: 14px 20px;
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.tr-top-bar h2 {
+    margin: 0;
+    font-size: 1.25rem;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.tr-kpi-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    padding: 12px 20px;
+    background: rgba(255, 255, 255, 0.015);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.tr-kpi-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.tr-kpi-icon {
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    background: rgba(187, 134, 252, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tr-kpi-val {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+.tr-kpi-lbl {
+    font-size: 0.78rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.tr-filter-bar {
+    padding: 12px 20px;
+    background: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.tr-filter-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.tr-period-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    padding: 6px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.tr-period-btn:hover {
+    background: var(--hover-color);
+    color: var(--text-color);
+}
+
+.tr-period-btn.active {
+    background: var(--primary-color);
+    color: #fff;
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 6px rgba(187, 134, 252, 0.3);
+}
+
+.tr-table-wrap {
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0;
+}
+
+.tr-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+    text-align: left;
+}
+
+.tr-table th {
+    position: sticky;
+    top: 0;
+    background: var(--surface-color);
+    color: var(--text-muted);
+    padding: 12px 14px;
+    border-bottom: 2px solid var(--border-color);
+    font-weight: 600;
+    z-index: 2;
+    white-space: nowrap;
+}
+
+.tr-table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: middle;
+}
+
+.tr-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.tr-row:hover {
+    background: var(--hover-color);
+}
+
+.tr-ticket-id {
+    font-weight: 700;
+    color: var(--secondary-color);
+    font-size: 0.92rem;
+}
+
+.tr-avatar {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(3, 218, 198, 0.15);
+    color: var(--secondary-color);
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.78rem;
+}
+
+.tr-badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.tr-badge.open {
+    background: rgba(239, 83, 80, 0.15);
+    color: #ef5350;
+    border: 1px solid rgba(239, 83, 80, 0.3);
+}
+
+.tr-badge.pending {
+    background: rgba(255, 167, 38, 0.15);
+    color: #ffa726;
+    border: 1px solid rgba(255, 167, 38, 0.3);
+}
+
+.tr-badge.resolved {
+    background: rgba(102, 187, 106, 0.15);
+    color: #66bb6a;
+    border: 1px solid rgba(102, 187, 106, 0.3);
+}
+
+.tr-dur-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.tr-dur-badge.dur-resolved {
+    color: #66bb6a;
+    background: rgba(102, 187, 106, 0.1);
+}
+
+.tr-dur-badge.dur-open {
+    color: #ffa726;
+    background: rgba(255, 167, 38, 0.1);
+}
+
+.tr-dur-badge.dur-overdue {
+    color: #ef5350;
+    background: rgba(239, 83, 80, 0.1);
+}
+
+.tr-bar-bg {
+    width: 100%;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.08);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.tr-bar-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .tr-kpi-row {
+        grid-template-columns: 1fr 1fr;
+        padding: 8px 12px;
+        gap: 8px;
+    }
+    .tr-filter-bar {
+        padding: 10px 12px;
+    }
+    .tr-top-bar {
+        padding: 10px 12px;
+    }
+}

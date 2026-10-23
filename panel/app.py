@@ -1244,6 +1244,122 @@ def update_ticket_due_date(id):
     finally:
         conn.close()
 
+@app.route('/api/ticket-reports/list', methods=['GET'])
+def get_ticket_report_list():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        kBenutzer = request.args.get('kBenutzer', type=int)
+        kStatus = request.args.get('kStatus', type=str)
+        search_query = request.args.get('q', default='', type=str).strip()
+        date_from = request.args.get('dateFrom', default='', type=str).strip()
+        date_to = request.args.get('dateTo', default='', type=str).strip()
+        limit = request.args.get('limit', default=100, type=int)
+        if limit <= 0 or limit > 500:
+            limit = 100
+
+        where_clauses = ["t.[nIstInPapierkorb] = 0"]
+        params = []
+
+        if kBenutzer:
+            where_clauses.append("(t.[kBenutzer_Ersteller] = ? OR t.[kBenutzer_Bearbeiter] = ? OR lm.[kBenutzer_Ersteller] = ?)")
+            params.extend([kBenutzer, kBenutzer, kBenutzer])
+
+        if kStatus:
+            if kStatus == '1_2':
+                where_clauses.append("t.[kStatus] IN (1, 2)")
+            elif kStatus.isdigit():
+                where_clauses.append("t.[kStatus] = ?")
+                params.append(int(kStatus))
+
+        if date_from:
+            where_clauses.append("COALESCE(t.[dAenderung], fm.[dErstellung], t.[dLoesung]) >= ?")
+            params.append(date_from + " 00:00:00")
+
+        if date_to:
+            where_clauses.append("COALESCE(t.[dAenderung], fm.[dErstellung], t.[dLoesung]) <= ?")
+            params.append(date_to + " 23:59:59")
+
+        if search_query:
+            term = f"%{search_query}%"
+            where_clauses.append("""(
+                t.[cEindeutigeId] LIKE ? OR
+                e.[cTitelErsteNachricht] LIKE ? OR
+                e.[cInhaltErsteNachricht] LIKE ? OR
+                c.[Firma] LIKE ? OR
+                c.[KundenNr] LIKE ? OR
+                EXISTS (
+                    SELECT 1 FROM [Ticketsystem].[tNachricht] sn WITH (NOLOCK)
+                    WHERE sn.[kTicket] = t.[kTicket] AND (sn.[cInhalt] LIKE ? OR sn.[cBeschreibung] LIKE ?)
+                )
+            )""")
+            params.extend([term, term, term, term, term, term, term])
+
+        where_sql = " AND ".join(where_clauses)
+        if where_sql:
+            where_sql = "WHERE " + where_sql
+
+        query = f"""
+        SELECT TOP (?)
+               t.[kTicket],
+               t.[cEindeutigeId],
+               t.[kStatus],
+               t.[nPrioritaet],
+               t.[dAenderung],
+               t.[dLoesung],
+               t.[dFaelligAm],
+               t.[kBenutzer_Ersteller],
+               t.[kBenutzer_Bearbeiter],
+               t.[kKunde],
+               c.[KundenNr],
+               c.[Firma],
+               e.[cTitelErsteNachricht],
+               e.[nAnzahlNachrichten],
+               fm.[dErstellung] AS [dErstellung],
+               lm.[kBenutzer_Ersteller] AS [kBenutzer_Letzter],
+               lm.[dErstellung] AS [dLetzteNachricht],
+               lm.[cInhalt] AS [cLetzteNachrichtInhalt],
+               lm.[cBeschreibung] AS [cLetzteNachrichtTitel]
+        FROM [Ticketsystem].[tTicket] t WITH (NOLOCK)
+        LEFT JOIN [Custom].[KundenMaster] c WITH (NOLOCK) ON t.[kKunde] = c.[kKunde]
+        LEFT JOIN [Ticketsystem].[tTicketEckdaten] e WITH (NOLOCK) ON t.[kTicket] = e.[kTicket]
+        OUTER APPLY (
+            SELECT TOP 1 [dErstellung]
+            FROM [Ticketsystem].[tNachricht] n1 WITH (NOLOCK)
+            WHERE n1.[kTicket] = t.[kTicket]
+            ORDER BY n1.[dErstellung] ASC
+        ) fm
+        OUTER APPLY (
+            SELECT TOP 1 [kBenutzer_Ersteller], [dErstellung], [cInhalt], [cBeschreibung]
+            FROM [Ticketsystem].[tNachricht] n2 WITH (NOLOCK)
+            WHERE n2.[kTicket] = t.[kTicket]
+            ORDER BY n2.[dErstellung] DESC
+        ) lm
+        {where_sql}
+        ORDER BY COALESCE(lm.[dErstellung], t.[dAenderung], fm.[dErstellung]) DESC
+        """
+
+        cursor.execute(query, [limit] + params)
+        columns = [column[0] for column in cursor.description]
+        results = []
+        for row in cursor.fetchall():
+            row_dict = dict(zip(columns, row))
+            for key, value in row_dict.items():
+                if isinstance(value, datetime.datetime):
+                    row_dict[key] = value.isoformat()
+            results.append(row_dict)
+
+        return jsonify(results)
+    except Exception as e:
+        print(f"Report query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+
 @app.route('/api/elster-statuses', methods=['GET', 'POST'])
 def manage_elster_statuses():
     statuses = load_json_file(ELSTER_STATUS_FILE, ELSTER_DEFAULT_STATUSES)

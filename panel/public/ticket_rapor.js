@@ -1,0 +1,356 @@
+﻿// Ticket Rapor (Ekip Hareket & Süre Analizi) Script
+let ticketRaporData = [];
+let ticketRaporUsers = [];
+let ticketRaporPeriod = 'all';
+
+function getShortName(user) {
+    if (!user) return 'Bilinmeyen';
+    const source = user.cName || user.cLogin || '';
+    const trimmed = String(source).trim();
+    if (!trimmed) return 'Kullanıcı #' + (user.kBenutzer || '');
+    return trimmed.split(/\s+/)[0] || trimmed;
+}
+
+async function initTicketRaporTab() {
+    await fetchTicketRaporUsers();
+    setupTicketRaporDateDefaults();
+    await loadTicketRaporData();
+}
+
+async function fetchTicketRaporUsers() {
+    if (ticketRaporUsers.length > 0) return;
+    try {
+        const res = await fetch('/api/ticket-users');
+        if (res.ok) {
+            ticketRaporUsers = await res.json();
+            populateTicketRaporUserSelect();
+        }
+    } catch (e) {
+        console.warn('Ticket users could not be loaded for report:', e);
+    }
+}
+
+function populateTicketRaporUserSelect() {
+    const sel = document.getElementById('trUserFilter');
+    if (!sel) return;
+    let html = '<option value="">👥 Tüm Ekip (Tüm Kullanıcılar)</option>';
+    ticketRaporUsers.forEach(u => {
+        const dName = getShortName(u);
+        const fullName = u.cName ? `${dName} (${u.cName})` : dName;
+        html += `<option value="${u.kBenutzer}">${fullName}</option>`;
+    });
+    sel.innerHTML = html;
+}
+
+function setupTicketRaporDateDefaults() {
+    // Default: period = 'all'
+    setTicketRaporPeriod('all');
+}
+
+function setTicketRaporPeriod(period) {
+    ticketRaporPeriod = period;
+    document.querySelectorAll('.tr-period-btn').forEach(b => {
+        b.classList.toggle('active', b.getAttribute('data-period') === period);
+    });
+
+    const customWrap = document.getElementById('trCustomDateWrap');
+    if (customWrap) {
+        customWrap.style.display = (period === 'custom') ? 'flex' : 'none';
+    }
+
+    const fromInp = document.getElementById('trDateFrom');
+    const toInp = document.getElementById('trDateTo');
+    const today = new Date();
+
+    const formatDate = (d) => {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    };
+
+    if (period === 'today') {
+        const s = formatDate(today);
+        if (fromInp) fromInp.value = s;
+        if (toInp) toInp.value = s;
+    } else if (period === 'week') {
+        const d = new Date(today);
+        const dayOfWeek = d.getDay() === 0 ? 6 : d.getDay() - 1; // Mon = 0
+        d.setDate(d.getDate() - dayOfWeek);
+        if (fromInp) fromInp.value = formatDate(d);
+        if (toInp) toInp.value = formatDate(today);
+    } else if (period === 'month') {
+        const firstDay = new Date(today.getFullYear(), today.getMonth(), 1);
+        if (fromInp) fromInp.value = formatDate(firstDay);
+        if (toInp) toInp.value = formatDate(today);
+    } else if (period === 'last_month') {
+        const firstDay = new Date(today.getFullYear(), today.getMonth() - 1, 1);
+        const lastDay = new Date(today.getFullYear(), today.getMonth(), 0);
+        if (fromInp) fromInp.value = formatDate(firstDay);
+        if (toInp) toInp.value = formatDate(lastDay);
+    } else if (period === 'year') {
+        const firstDay = new Date(today.getFullYear(), 0, 1);
+        if (fromInp) fromInp.value = formatDate(firstDay);
+        if (toInp) toInp.value = formatDate(today);
+    } else if (period === 'all') {
+        if (fromInp) fromInp.value = '';
+        if (toInp) toInp.value = '';
+    }
+
+    if (period !== 'custom') {
+        loadTicketRaporData();
+    }
+}
+
+async function loadTicketRaporData() {
+    const tbody = document.getElementById('ticketRaporTableBody');
+    const countBadge = document.getElementById('trCountBadge');
+    if (tbody) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--text-muted);"><span class="spinner" style="display:inline-block; margin-right:8px;">⏳</span> Bilet hareketleri yükleniyor...</td></tr>`;
+    }
+
+    const q = (document.getElementById('trSearchInput')?.value || '').trim();
+    const user = document.getElementById('trUserFilter')?.value || '';
+    const status = document.getElementById('trStatusFilter')?.value || '';
+    const dateFrom = document.getElementById('trDateFrom')?.value || '';
+    const dateTo = document.getElementById('trDateTo')?.value || '';
+
+    const params = new URLSearchParams();
+    if (q) params.set('q', q);
+    if (user) params.set('kBenutzer', user);
+    if (status) params.set('kStatus', status);
+    if (dateFrom) params.set('dateFrom', dateFrom);
+    if (dateTo) params.set('dateTo', dateTo);
+    params.set('limit', '150');
+
+    try {
+        const res = await fetch(`/api/ticket-reports/list?${params.toString()}`);
+        if (!res.ok) throw new Error('Veriler alınamadı: ' + res.statusText);
+        ticketRaporData = await res.json();
+        renderTicketRaporTable();
+    } catch (e) {
+        console.error('Report fetch error:', e);
+        if (tbody) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 30px; color:#ef5350;">Hata: ${e.message}</td></tr>`;
+        }
+    }
+}
+
+function calculateDuration(startIso, endIso, isResolved) {
+    if (!startIso) return { text: 'Belirsiz', minutes: 0, isResolved: false, isOverdue: false };
+    const start = new Date(startIso);
+    const end = (isResolved && endIso) ? new Date(endIso) : new Date();
+    
+    let diffMs = end - start;
+    if (diffMs < 0) diffMs = 0;
+
+    const totalMinutes = Math.floor(diffMs / (1000 * 60));
+    const hours = Math.floor(totalMinutes / 60);
+    const days = Math.floor(hours / 24);
+    const remHours = hours % 24;
+    const remMinutes = totalMinutes % 60;
+
+    let text = '';
+    if (days > 0) {
+        text = `${days}g ${remHours}sa`;
+    } else if (hours > 0) {
+        text = `${hours}sa ${remMinutes}dk`;
+    } else {
+        text = `${remMinutes} dk`;
+    }
+
+    return {
+        text,
+        minutes: totalMinutes,
+        isResolved,
+        days,
+        hours
+    };
+}
+
+function formatReportDateTime(iso) {
+    if (!iso) return '-';
+    const d = new Date(iso);
+    if (isNaN(d.getTime())) return '-';
+    return d.toLocaleDateString('tr-TR', { day: '2-digit', month: '2-digit', year: 'numeric' }) + ' ' +
+           d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
+}
+
+function renderTicketRaporTable() {
+    const tbody = document.getElementById('ticketRaporTableBody');
+    const countBadge = document.getElementById('trCountBadge');
+    const totalCountEl = document.getElementById('trTotalCount');
+    const resolvedCountEl = document.getElementById('trResolvedCount');
+    const avgDurationEl = document.getElementById('trAvgDuration');
+    const topPersonEl = document.getElementById('trTopPerson');
+
+    if (!tbody) return;
+
+    if (!ticketRaporData || ticketRaporData.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; padding: 40px; color: var(--text-muted); font-size:1.05rem;">🔍 Aradığınız kriterlere uygun bilet hareketi bulunamadı.</td></tr>`;
+        if (countBadge) countBadge.textContent = '0';
+        if (totalCountEl) totalCountEl.textContent = '0';
+        if (resolvedCountEl) resolvedCountEl.textContent = '0';
+        if (avgDurationEl) avgDurationEl.textContent = '-';
+        if (topPersonEl) topPersonEl.textContent = '-';
+        return;
+    }
+
+    if (countBadge) countBadge.textContent = ticketRaporData.length;
+    if (totalCountEl) totalCountEl.textContent = ticketRaporData.length;
+
+    // KPI Metrics calculation
+    let resolvedCount = 0;
+    let resolvedMinutesSum = 0;
+    const personActivity = {};
+
+    ticketRaporData.forEach(t => {
+        const isResolved = (t.kStatus == 3 || t.kStatus == 4);
+        if (isResolved) {
+            resolvedCount++;
+            const start = t.dErstellung || t.dAenderung;
+            const end = t.dLoesung || t.dAenderung;
+            if (start && end) {
+                const diff = (new Date(end) - new Date(start)) / (1000 * 60);
+                if (diff >= 0) resolvedMinutesSum += diff;
+            }
+        }
+
+        const personId = t.kBenutzer_Letzter || t.kBenutzer_Bearbeiter || t.kBenutzer_Ersteller || 0;
+        if (personId) {
+            personActivity[personId] = (personActivity[personId] || 0) + 1;
+        }
+    });
+
+    if (resolvedCountEl) resolvedCountEl.textContent = resolvedCount;
+
+    if (avgDurationEl) {
+        if (resolvedCount > 0) {
+            const avgMin = Math.round(resolvedMinutesSum / resolvedCount);
+            const avgH = Math.floor(avgMin / 60);
+            const avgD = Math.floor(avgH / 24);
+            if (avgD > 0) avgDurationEl.textContent = `${avgD}g ${avgH % 24}sa`;
+            else if (avgH > 0) avgDurationEl.textContent = `${avgH}sa ${avgMin % 60}dk`;
+            else avgDurationEl.textContent = `${avgMin} dk`;
+        } else {
+            avgDurationEl.textContent = '-';
+        }
+    }
+
+    if (topPersonEl) {
+        let maxP = null;
+        let maxCount = 0;
+        Object.keys(personActivity).forEach(pid => {
+            if (personActivity[pid] > maxCount) {
+                maxCount = personActivity[pid];
+                maxP = pid;
+            }
+        });
+        if (maxP) {
+            const uObj = ticketRaporUsers.find(u => String(u.kBenutzer) === String(maxP));
+            topPersonEl.textContent = (uObj ? getShortName(uObj) : `Personel #${maxP}`) + ` (${maxCount})`;
+        } else {
+            topPersonEl.textContent = '-';
+        }
+    }
+
+    // Find maximum duration for relative progress comparison bars
+    let maxMinutes = 60; // minimum scale 1 hour
+    const processedDurations = ticketRaporData.map(t => {
+        const isResolved = (t.kStatus == 3 || t.kStatus == 4);
+        const startIso = t.dErstellung || t.dAenderung;
+        const endIso = t.dLoesung || t.dAenderung;
+        const dur = calculateDuration(startIso, endIso, isResolved);
+        if (dur.minutes > maxMinutes) maxMinutes = dur.minutes;
+        return dur;
+    });
+
+    let html = '';
+    ticketRaporData.forEach((t, idx) => {
+        const dur = processedDurations[idx];
+        const isResolved = (t.kStatus == 3 || t.kStatus == 4);
+        const isPending = (t.kStatus == 2);
+
+        // Person
+        const personId = t.kBenutzer_Letzter || t.kBenutzer_Bearbeiter || t.kBenutzer_Ersteller;
+        const personObj = ticketRaporUsers.find(u => String(u.kBenutzer) === String(personId));
+        const personName = personObj ? getShortName(personObj) : (personId ? 'Personel #' + personId : 'Ekip');
+
+        // Status badge
+        let statusBadge = '<span class="tr-badge open">Açık</span>';
+        if (isResolved) statusBadge = '<span class="tr-badge resolved">Çözüldü</span>';
+        else if (isPending) statusBadge = '<span class="tr-badge pending">Beklemede</span>';
+
+        // Customer
+        const custNr = t.KundenNr || '-';
+        const firma = t.Firma || 'Müşteri Kaydı Yok';
+        const custDisplay = `<div style="font-weight:600; color:var(--text-color);">${firma}</div><div style="font-size:0.8rem; color:var(--text-muted);">No: ${custNr}</div>`;
+
+        // Title & last note
+        const title = t.cTitelErsteNachricht || t.cLetzteNachrichtTitel || 'Başlıksız Bilet';
+        const snippet = t.cLetzteNachrichtInhalt ? (t.cLetzteNachrichtInhalt.length > 70 ? t.cLetzteNachrichtInhalt.substring(0, 70) + '...' : t.cLetzteNachrichtInhalt) : '';
+
+        // Dates
+        const createDateStr = formatReportDateTime(t.dErstellung);
+        const lastActionStr = formatReportDateTime(t.dLetzteNachricht || t.dAenderung || t.dLoesung);
+
+        // Relative progress bar for duration comparison (0% to 100%)
+        const barPct = Math.min(100, Math.max(5, Math.round((dur.minutes / maxMinutes) * 100)));
+        const barColor = isResolved ? '#66bb6a' : (dur.days > 2 ? '#ef5350' : '#ffa726');
+        const durBadgeClass = isResolved ? 'dur-resolved' : (dur.days > 2 ? 'dur-overdue' : 'dur-open');
+
+        html += `
+            <tr class="tr-row" onclick="openTicketFromReport(${t.kTicket})" title="Bileti Ticket ekranında açmak için tıklayın">
+                <td style="white-space:nowrap;">
+                    <span class="tr-ticket-id">${t.cEindeutigeId || ('TKT-' + t.kTicket)}</span>
+                    <div style="font-size:0.75rem; color:var(--text-muted); margin-top:2px;">${t.nAnzahlNachrichten || 1} mesaj</div>
+                </td>
+                <td style="min-width:180px; max-width:260px;">
+                    <div style="font-weight:600; color:var(--primary-color); text-overflow:ellipsis; overflow:hidden; white-space:nowrap;" title="${title}">${title}</div>
+                    ${snippet ? `<div style="font-size:0.8rem; color:var(--text-muted); text-overflow:ellipsis; overflow:hidden; white-space:nowrap; margin-top:2px;" title="${snippet}">${snippet}</div>` : ''}
+                </td>
+                <td style="min-width:160px; max-width:220px;">
+                    ${custDisplay}
+                </td>
+                <td style="white-space:nowrap;">
+                    <div style="display:flex; align-items:center; gap:6px;">
+                        <span class="tr-avatar">${personName.charAt(0).toUpperCase()}</span>
+                        <span style="font-weight:600;">${personName}</span>
+                    </div>
+                </td>
+                <td style="white-space:nowrap; font-size:0.85rem; color:var(--text-muted);">
+                    <div>${createDateStr}</div>
+                </td>
+                <td style="white-space:nowrap; font-size:0.85rem; color:var(--text-color);">
+                    <div>${lastActionStr}</div>
+                </td>
+                <td style="min-width:160px; max-width:210px;">
+                    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:4px;">
+                        <span class="tr-dur-badge ${durBadgeClass}">⏱️ ${dur.text}</span>
+                        <span style="font-size:0.75rem; color:var(--text-muted);">${isResolved ? 'Çözüm' : 'Açık'}</span>
+                    </div>
+                    <div class="tr-bar-bg" title="Kıyaslama: Toplam ${dur.text}">
+                        <div class="tr-bar-fill" style="width:${barPct}%; background:${barColor};"></div>
+                    </div>
+                </td>
+                <td style="white-space:nowrap; text-align:center;">
+                    ${statusBadge}
+                </td>
+            </tr>
+        `;
+    });
+
+    tbody.innerHTML = html;
+}
+
+function openTicketFromReport(ticketId) {
+    if (!ticketId) return;
+    if (typeof switchTab === 'function') {
+        switchTab('tickets');
+        setTimeout(() => {
+            if (typeof selectTicket === 'function') {
+                selectTicket(ticketId);
+            }
+        }, 150);
+    }
+}
