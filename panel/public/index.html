@@ -2051,46 +2051,41 @@
         
         <!-- ===== TICKET RAPOR PANELİ ===== -->
         <div id="ticketraporPaneli" class="panel ticket-rapor-panel" style="display:none; flex:1; min-height:0; flex-direction:column; overflow:hidden;">
-            <!-- Top Bar -->
+            <!-- Top Bar with Compact Inline KPIs -->
             <div class="tr-top-bar">
-                <h2>
-                    <span>📊 Ekip Ticket Hareket & Süre Raporu</span>
-                    <span id="trCountBadge" style="font-size:0.85rem; background:var(--card-bg); padding:2px 10px; border-radius:12px; border:1px solid var(--border-color); color:var(--text-color); font-weight:normal;">0</span>
-                </h2>
-                <div style="display:flex; align-items:center; gap:8px;">
-                    <button class="btn-s primary" onclick="loadTicketRaporData()" style="min-height:34px; padding:6px 14px; font-size:0.88rem;">🔄 Yenile</button>
+                <div style="display:flex; align-items:center; gap:10px; flex-shrink:0;">
+                    <h2 style="margin:0; font-size:1.15rem; color:var(--primary-color); display:flex; align-items:center; gap:8px;">
+                        <span>📊 Ekip Ticket Hareket & Süre Raporu</span>
+                        <span id="trCountBadge" style="font-size:0.8rem; background:var(--card-bg); padding:1px 8px; border-radius:12px; border:1px solid var(--border-color); color:var(--text-color); font-weight:normal;">0</span>
+                    </h2>
                 </div>
-            </div>
 
-            <!-- KPI Row -->
-            <div class="tr-kpi-row">
-                <div class="tr-kpi-card">
-                    <div class="tr-kpi-icon">📋</div>
-                    <div>
-                        <div class="tr-kpi-val" id="trTotalCount">0</div>
-                        <div class="tr-kpi-lbl">Toplam Hareket</div>
+                <!-- Compact KPI Badges inline in top bar -->
+                <div class="tr-compact-kpis">
+                    <div class="tr-chip" title="Toplam Hareket">
+                        <span class="tr-chip-icon">📋</span>
+                        <span class="tr-chip-lbl">Toplam:</span>
+                        <span class="tr-chip-val" id="trTotalCount">0</span>
+                    </div>
+                    <div class="tr-chip" title="Çözülen İşler">
+                        <span class="tr-chip-icon">✅</span>
+                        <span class="tr-chip-lbl">Çözülen:</span>
+                        <span class="tr-chip-val" id="trResolvedCount">0</span>
+                    </div>
+                    <div class="tr-chip" title="Ortalama Çözüm Süresi">
+                        <span class="tr-chip-icon">⏱️</span>
+                        <span class="tr-chip-lbl">Ort. Süre:</span>
+                        <span class="tr-chip-val" id="trAvgDuration">-</span>
+                    </div>
+                    <div class="tr-chip" title="Toplam Çalışma Süresi">
+                        <span class="tr-chip-icon">⏳</span>
+                        <span class="tr-chip-lbl">Top. Çalışma:</span>
+                        <span class="tr-chip-val" id="trTotalDuration">-</span>
                     </div>
                 </div>
-                <div class="tr-kpi-card">
-                    <div class="tr-kpi-icon">✅</div>
-                    <div>
-                        <div class="tr-kpi-val" id="trResolvedCount">0</div>
-                        <div class="tr-kpi-lbl">Çözülen İşler</div>
-                    </div>
-                </div>
-                <div class="tr-kpi-card">
-                    <div class="tr-kpi-icon">⏱️</div>
-                    <div>
-                        <div class="tr-kpi-val" id="trAvgDuration">-</div>
-                        <div class="tr-kpi-lbl">Ortalama Çözüm Süresi</div>
-                    </div>
-                </div>
-                <div class="tr-kpi-card">
-                    <div class="tr-kpi-icon">⏳</div>
-                    <div>
-                        <div class="tr-kpi-val" id="trTotalDuration">-</div>
-                        <div class="tr-kpi-lbl">Toplam Çalışma Süresi</div>
-                    </div>
+
+                <div style="display:flex; align-items:center; gap:8px; flex-shrink:0;">
+                    <button class="btn-s primary" onclick="loadTicketRaporData()" style="min-height:30px; padding:4px 12px; font-size:0.84rem;">🔄 Yenile</button>
                 </div>
             </div>
 
