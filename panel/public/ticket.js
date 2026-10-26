@@ -1,3 +1,4 @@
+let ticketNavigationSource = null;
 let ticketsData = [];
 let ticketUsers = [];
 let currentTicketId = null;
@@ -321,6 +322,7 @@ function renderTicketChat(data) {
         <div class="ticket-detail-header">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:8px;">
                 <div style="display:flex; align-items:center; gap:8px;">
+                    ${ticketNavigationSource === 'rapor' ? `<button type="button" class="btn-s teal" onclick="backToTicketRapor()" title="Ticket Raporu Listesine Geri Dön" style="min-height:32px; padding:4px 10px; font-size:0.85rem; font-weight:600; display:inline-flex; align-items:center; gap:5px;">📊 Rapor Listesine Dön</button>` : ''}
                     <button type="button" class="btn-s secondary mobile-ticket-back-btn" onclick="mobileBackToTicketList()" title="Bilet Listesine Dön">← Biletler</button>
                     <div>
                         <h2 class="ticket-detail-title" style="margin:0;">${displayId}</h2>
@@ -1350,3 +1352,11 @@ function renderTicketReport(filteredTickets) {
     pane.innerHTML = html;
 }
 
+
+
+function backToTicketRapor() {
+    ticketNavigationSource = null;
+    if (typeof switchTab === 'function') {
+        switchTab('ticketrapor');
+    }
+}

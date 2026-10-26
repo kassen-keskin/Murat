@@ -17,8 +17,14 @@ function getShortName(user) {
 
 async function initTicketRaporTab() {
     await fetchTicketRaporUsers();
-    setupTicketRaporDateDefaults();
-    await loadTicketRaporData();
+    // Only set defaults if data has never been loaded yet (preserve filters on return)
+    if (!ticketRaporData || ticketRaporData.length === 0) {
+        setupTicketRaporDateDefaults();
+        await loadTicketRaporData();
+    } else {
+        // Data and filters are already in memory, just re-render with existing state
+        renderTicketRaporTable();
+    }
 }
 
 async function fetchTicketRaporUsers() {
@@ -399,6 +405,11 @@ function renderTicketRaporTable() {
 
 function openTicketFromReport(ticketId) {
     if (!ticketId) return;
+    if (typeof ticketNavigationSource !== 'undefined') {
+        ticketNavigationSource = 'rapor';
+    } else {
+        window.ticketNavigationSource = 'rapor';
+    }
     if (typeof switchTab === 'function') {
         switchTab('tickets');
         setTimeout(() => {
