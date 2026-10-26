@@ -84,6 +84,12 @@ function setTicketRaporPeriod(period) {
         const s = formatDate(today);
         if (fromInp) fromInp.value = s;
         if (toInp) toInp.value = s;
+    } else if (period === 'yesterday') {
+        const yest = new Date(today);
+        yest.setDate(yest.getDate() - 1);
+        const s = formatDate(yest);
+        if (fromInp) fromInp.value = s;
+        if (toInp) toInp.value = s;
     } else if (period === 'week') {
         const d = new Date(today);
         const dayOfWeek = d.getDay() === 0 ? 6 : d.getDay() - 1; // Mon = 0
