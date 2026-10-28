@@ -86,10 +86,10 @@
 
         @media print {
             @page { size: auto; margin: 0mm; }
-            body { overflow: visible !important; height: auto !important; }
+            html, body, .app-container { overflow: visible !important; height: auto !important; background: #ffffff !important; background-color: #ffffff !important; color: #000000 !important; }
             .sidebar, .no-print { display: none !important; }
             .preview { padding: 0 !important; background: white !important; overflow: visible !important; display: block !important; }
-            .document-page { box-shadow: none !important; margin: 0 !important; width: 100% !important; border: none !important; page-break-after: always; padding: 0 20mm !important; }
+            .document-page { box-shadow: none !important; margin: 0 !important; width: 100% !important; min-height: auto !important; background: #ffffff !important; background-color: #ffffff !important; border: none !important; padding: 0 20mm !important; }
             h6 { page-break-after: avoid; break-after: avoid; }
             .indent-section, .section-text { page-break-inside: avoid; break-inside: avoid; }
             table { page-break-inside: auto; }
