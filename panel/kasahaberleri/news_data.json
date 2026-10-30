@@ -1,0 +1,317 @@
+{
+  "last_updated": "30.10.2026 14:01",
+  "queries": [
+    {
+      "query": "Kassensystem OR Registrierkasse -Krankenkasse",
+      "category": "sektor",
+      "label": "Kasa Sistemleri (Genel)"
+    },
+    {
+      "query": "KassenSichV OR Kassensicherungsverordnung",
+      "category": "kanun",
+      "label": "KassenSichV Mevzuatı"
+    },
+    {
+      "query": "Kassenmeldepflicht OR \"146a AO\" Kasse",
+      "category": "kanun",
+      "label": "Kasa Bildirim Zorunluluğu (§ 146a AO)"
+    },
+    {
+      "query": "GoBD Kassenführung OR DSFinV-K",
+      "category": "kanun",
+      "label": "GoBD & DSFinV-K Standartları"
+    },
+    {
+      "query": "\"Kassen-Nachschau\" OR Betriebsprüfung Kasse Finanzamt",
+      "category": "kanun",
+      "label": "Finanzamt Kasa Denetimi (Kassen-Nachschau)"
+    },
+    {
+      "query": "E-Rechnung Pflicht Kassensystem OR Gastronomie OR Einzelhandel",
+      "category": "kanun",
+      "label": "E-Rechnung & Fatura Zorunluluğu"
+    },
+    {
+      "query": "\"Technische Sicherheitseinrichtung\" OR \"TSE\" Kasse BSI",
+      "category": "tse",
+      "label": "TSE & BSI Sertifikasyonu"
+    },
+    {
+      "query": "\"Cloud-TSE\" OR Fiskaly OR Swissbit TSE Kasse",
+      "category": "tse",
+      "label": "Cloud-TSE & Donanım Üreticileri"
+    },
+    {
+      "query": "POS-Systeme Innovation OR Self-Checkout OR SoftPOS Einzelhandel Gastronomie",
+      "category": "teknoloji",
+      "label": "POS Teknolojik Yenilikler & SoftPOS"
+    },
+    {
+      "query": "\"Digitaler Bon\" OR \"Digitaler Kassenbon\" OR Bonpflicht",
+      "category": "teknoloji",
+      "label": "Dijital Fiş & Bonpflicht"
+    },
+    {
+      "query": "DATEV Kassenarchiv OR \"Mein ELSTER\" Aufzeichnungssysteme",
+      "category": "vergi",
+      "label": "DATEV & ELSTER Entegrasyonları"
+    }
+  ],
+  "articles": [
+    {
+      "id": "rehber-kassenmeldepflicht-146a",
+      "original_title": "§ 146a Abs. 4 AO: Elektronische Kassenmeldepflicht über Mein ELSTER – Fristen & Anforderungen",
+      "title_tr": "§ 146a AO Elektronik Kasa Bildirim Zorunluluğu (ELSTER Meldepflicht): Kapsamlı Rehber",
+      "url": "https://www.bundesfinanzministerium.de/Content/DE/Standardartikel/Themen/Steuern/Steuerarten/Abgabenordnung/kassensicherungsverordnung.html",
+      "source": "BMF / Mevzuat Rehberi",
+      "source_url": "https://www.bundesfinanzministerium.de",
+      "published_at": "2026-10-25T09:00:00+00:00",
+      "date_display": "25.10.2026 09:00",
+      "category": "kanun",
+      "importance": "yuksek",
+      "summary_tr": "Almanya'da § 146a Abs. 4 AO uyarınca tüm elektronik kayıt ve kasa sistemlerinin (eAS) ve bağlı TSE ünitelerinin Mein ELSTER veya ERiC arayüzü üzerinden Finanzamt'a bildirilmesi zorunludur. Yeni kurulan veya kullanım dışı bırakılan kasalar için 1 aylık bildirim süresi uygulanmaktadır.",
+      "impact_tr": "Müşterilere kurulan her yeni kasa, TSE değişimi veya kasa iptali sonrasında ELSTER bildirim verilerinin (TSE Seri No, BSI Sertifika ID, Kasa Seri No, Kurulum Tarihi) eksiksiz tutulması kritik önem taşır.",
+      "tags": [
+        "§ 146a AO",
+        "Meldepflicht",
+        "ELSTER",
+        "KassenSichV"
+      ],
+      "is_read": false,
+      "is_bookmarked": true,
+      "user_note": "",
+      "ai_processed": true,
+      "reader_content": {
+        "title_tr": "§ 146a AO Elektronik Kasa Bildirim Zorunluluğu (ELSTER Meldepflicht)",
+        "lead_tr": "Alman Vergi Usul Kanunu (§ 146a Abs. 4 AO) kapsamında işletmelerin kullandığı tüm elektronik yazar kasalar ve TSE güvenlik birimleri vergi dairesine (Finanzamt) elektronik ortamda bildirilmek zorundadır.",
+        "article_body_tr": "Almanya Federal Maliye Bakanlığı (BMF) düzenlemesiyle birlikte elektronik kasa sistemlerinin (Elektronische Aufzeichnungssysteme - eAS) Mein ELSTER portalı veya DATEV/ERiC XML arayüzleri üzerinden bildirilmesi yasal bir zorunluluk haline gelmiştir.\n\nBir işletmede kullanılan tüm kasalar tek bir işletme yerine (Betriebsstätte) ait tek bir bildirimde toplu olarak raporlanmalıdır. Her yeni kasa alımında, kiralanmasında, TSE değişiminde veya kasanın sistemden çıkarılmasında (Außerbetriebnahme) olay tarihinden itibaren en geç 1 ay içinde bildirim güncellenmelidir.\n\nKiralanan (Leasing/Miete) kasalar da satın alınan kasalarla aynı bildirim yükümlülüğüne tabidir.",
+        "legal_or_tech_context_tr": "§ 146a Abs. 4 AO ve KassenSichV kapsamında bildirimde bulunması gereken temel teknik veriler şunlardır: Kasa türü (Kassensystem / EU-Taxameter), Üretici ve Model adı, Yazılım adı ve sürümü, Kasa Seri Numarası, TSE Seri Numarası, BSI Sertifika ID'si, Kurulum (Inbetriebnahme) tarihi.",
+        "action_items_tr": [
+          "Müşteriye kasa teslim edilirken TSE Seri Numarası, BSI Kodu ve Kasa Seri Numarası bilgilerini teslimat formunda ve Panel TSE/ELSTER modülünde eksiksiz kaydedin.",
+          "Arıza veya süre bitimi nedeniyle TSE USB/SD kartı değiştirildiğinde müşteriyi veya mali müşavirini (Steuerberater) ELSTER güncellemesi konusunda bilgilendirin.",
+          "İade alınan veya hurdaya ayrılan kasalar için 'Außerbetriebnahme' tarihinin bildirilmesi gerektiğini hatırlatın."
+        ],
+        "glossary": [
+          {
+            "term": "Mitteilungspflicht (§ 146a Abs. 4 AO)",
+            "meaning_tr": "Elektronik kayıt sistemlerini vergi dairesine bildirme yükümlülüğü"
+          },
+          {
+            "term": "Betriebsstätte",
+            "meaning_tr": "Kasanın fiilen kullanıldığı şube / iş yeri"
+          },
+          {
+            "term": "Inbetriebnahme / Außerbetriebnahme",
+            "meaning_tr": "Kasanın devreye alınması / kullanım dışı bırakılması"
+          }
+        ],
+        "scraped_de": "",
+        "generated_at": "30.10.2026 12:00"
+      }
+    },
+    {
+      "id": "rehber-e-rechnung-pflicht-kasse",
+      "original_title": "E-Rechnungspflicht im B2B-Bereich und Auswirkungen auf Kassensysteme & Kleinbetragsrechnungen",
+      "title_tr": "B2B E-Fatura (E-Rechnung) Zorunluluğu ve Kasa Sistemlerine (Kleinbetragsrechnung) Etkisi",
+      "url": "https://www.bundesfinanzministerium.de/Content/DE/FAQ/e-rechnung.html",
+      "source": "BMF / Vergi Mevzuatı",
+      "source_url": "https://www.bundesfinanzministerium.de",
+      "published_at": "2026-10-20T10:30:00+00:00",
+      "date_display": "20.10.2026 10:30",
+      "category": "kanun",
+      "importance": "yuksek",
+      "summary_tr": "Wachstumschancengesetz kapsamında Almanya'da B2B (işletmeler arası) işlemlerde EN 16931 uyumlu yapılandırılmış E-Rechnung (ZUGFeRD / XRechnung) dönemi başlamıştır. 250 € altındaki kasa fişleri (Kleinbetragsrechnungen) için istisna devam etse de B2B kurumsal satış yapan kasalarda ZUGFeRD desteği önem kazanmaktadır.",
+      "impact_tr": "Restoran ve perakendede 250 € üstü B2B iş yemekleri (Bewirtungsbeleg) veya ticari alışverişlerde müşteriler kasadan ZUGFeRD PDF/XML formatında e-fatura talep edebilmektedir.",
+      "tags": [
+        "E-Rechnung",
+        "ZUGFeRD",
+        "Kleinbetragsrechnung",
+        "B2B"
+      ],
+      "is_read": true,
+      "is_bookmarked": false,
+      "user_note": "",
+      "ai_processed": true,
+      "reader_content": {
+        "title_tr": "E-Rechnung Zorunluluğu ve Kasa Sistemlerine Etkisi",
+        "lead_tr": "Almanya'da B2B işlemlerde kağıt ve standart PDF faturaların yerini EN 16931 standardındaki yapılandırılmış elektronik faturalar (XRechnung ve ZUGFeRD) almaktadır.",
+        "article_body_tr": "1 Ocak 2025 itibarıyla tüm işletmeler için E-Rechnung alma zorunluluğu devreye girmiş, kademeli geçiş takvimiyle (2026-2028) B2B fatura düzenleme zorunluluğu yaygınlaşmıştır.\n\nKasa sistemleri açısından en önemli ayrım § 33 UStDV kapsamındaki 'Kleinbetragsrechnung' (Küçük Tutarlı Fatura - Brüt 250 €'ya kadar olan fişler) istisnasıdır. 250 €'ya kadar olan kasa fişleri klasik termal fiş veya dijital fiş olarak düzenlenmeye devam edebilir.\n\nAncak 250 €'yu aşan ve başka bir işletmeye (B2B) kesilen faturalarda (örneğin kurumsal restoran ağırlama fişleri - Bewirtungsbeleg veya toptan/ticari market satışları) kasa yazılımının ZUGFeRD veya XRechnung üretebilmesi ya da arka ofis (JTL-Wawi, LaCash, LotusPecas) üzerinden E-Rechnung gönderebilmesi gerekmektedir.",
+        "legal_or_tech_context_tr": "UStG § 14 ve UStDV § 33: 250 € brüt tutara kadar olan fişler E-Rechnung zorunluluğundan muaftır. 250 € üzeri B2B işlemlerde EN 16931 uyumlu hibrit PDF/XML (ZUGFeRD 2.2+) veya XRechnung standartları geçerlidir.",
+        "action_items_tr": [
+          "Müşterilere 250 € altındaki normal kasa fişlerinin (Kassenbon) E-Rechnung zorunluluğundan muaf olduğunu net şekilde açıklayın.",
+          "250 € üzeri kurumsal fatura (Rechnung / Bewirtungsbeleg) kesen restoran ve market müşterilerinde kasa yazılımının ZUGFeRD/E-Rechnung modülünü kontrol edin.",
+          "Kendi şirket içi faturalandırma süreçlerinizde gelen ve giden E-Rechnung arşivlemesinin GoBD uyumlu olduğundan emin olun."
+        ],
+        "glossary": [
+          {
+            "term": "Kleinbetragsrechnung (§ 33 UStDV)",
+            "meaning_tr": "Brüt 250 € sınırına kadar olan basitleştirilmiş fatura / kasa fişi"
+          },
+          {
+            "term": "ZUGFeRD",
+            "meaning_tr": "Hem okunabilir PDF hem de gömülü XML verisi içeren hibrit Alman e-fatura standardı"
+          },
+          {
+            "term": "Bewirtungsbeleg",
+            "meaning_tr": "Restoranlarda iş yemeği gideri olarak vergiden düşülen resmi ağırlama fişi"
+          }
+        ],
+        "scraped_de": "",
+        "generated_at": "30.10.2026 12:00"
+      }
+    },
+    {
+      "id": "rehber-kassen-nachschau-gobd",
+      "original_title": "Kassen-Nachschau (§ 146b AO) & DSFinV-K: Worauf Prüfer des Finanzamts besonders achten",
+      "title_tr": "Finanzamt Habersiz Kasa Denetimi (Kassen-Nachschau) ve DSFinV-K / GoBD Kontrol Listesi",
+      "url": "https://www.bundesfinanzministerium.de",
+      "source": "Finanzamt Denetim Rehberi",
+      "source_url": "https://www.bundesfinanzministerium.de",
+      "published_at": "2026-10-18T14:15:00+00:00",
+      "date_display": "18.10.2026 14:15",
+      "category": "vergi",
+      "importance": "yuksek",
+      "summary_tr": "Vergi dairesi denetçileri § 146b AO uyarınca önceden haber vermeksizin iş saatleri içinde işletmeye gelerek kasayı, TSE durumunu, Verfahrensdokumentation belgesini ve DSFinV-K / TAR veri dışa aktarımını kontrol edebilmektedir.",
+      "impact_tr": "Müşterilerin denetim anında USB belleğe veya denetçiye anında DSFinV-K ve TSE-TAR dışa aktarımı verebilmesi ve TSE sertifika süresinin dolmamış olması cezai yaptırımları önler.",
+      "tags": [
+        "Kassen-Nachschau",
+        "§ 146b AO",
+        "DSFinV-K",
+        "GoBD"
+      ],
+      "is_read": false,
+      "is_bookmarked": false,
+      "user_note": "",
+      "ai_processed": true,
+      "reader_content": {
+        "title_tr": "Finanzamt Habersiz Kasa Denetimi (Kassen-Nachschau § 146b AO)",
+        "lead_tr": "Kassen-Nachschau, vergi denetçilerinin önceden randevu almadan işletmeye gelerek kasa düzenini ve TSE kayıtlarını yerinde denetlemesi uygulamasıdır.",
+        "article_body_tr": "Denetçi işletmeye geldiğinde önce müşteri gibi nakit veya kartlı alışveriş yaparak fiş (Bonpflicht) verilip verilmediğini ve fiş üzerindeki TSE QR kodunu / imza sayacını kontrol edebilir.\n\nArdından kimliğini göstererek (Prüfungsausweis) şu 4 temel unsuru talep eder:\n1. Güncel kasa nakit sayımı (Kassensturz) ile kasadaki teorik bakiye (Soll-Bestand) uyumu.\n2. TSE'nin aktif olduğu ve sertifika süresinin geçerli olduğu.\n3. DSFinV-K standartlarında kasa verilerinin ve TSE TAR dosyalarının dışa aktarımı.\n4. İşletmeye özel süreç dokümantasyonu (Verfahrensdokumentation) ve Z-Raporları.",
+        "legal_or_tech_context_tr": "§ 146b AO (Kassen-Nachschau), GoBD ve DSFinV-K 2.3+. Eksik TSE, geçersiz sertifika veya bozuk veri aktarımı durumunda Finanzamt ciro tahminine (Hinzuschätzung) ve § 379 AO kapsamında 25.000 €'ya varan para cezasına başvurabilir.",
+        "action_items_tr": [
+          "Müşterilerin TSE bitiş tarihlerini Panel üzerinden düzenli takip edin ve süresi dolmadan yenileyin.",
+          "Kasa kurulumunda müşteriye 'Finanzamt Export (DSFinV-K / TAR)' menüsünün nasıl çalıştığını gösterin.",
+          "Kasa teslimat ve kurulum belgelerinin (Verfahrensdokumentation eki olarak) işletmede kolay ulaşılır bir klasörde saklanmasını tavsiye edin."
+        ],
+        "glossary": [
+          {
+            "term": "Kassensturz",
+            "meaning_tr": "Kasadaki fiili nakit paranın sayılıp sistemdeki kayıtla karşılaştırılması"
+          },
+          {
+            "term": "DSFinV-K",
+            "meaning_tr": "Kasa verilerinin vergi denetimi için standart dijital dışa aktarım formatı"
+          },
+          {
+            "term": "Verfahrensdokumentation",
+            "meaning_tr": "Kasa sisteminin nasıl kurulduğunu, kullanıldığını ve arşivlendiğini anlatan zorunlu süreç belgesi"
+          }
+        ],
+        "scraped_de": "",
+        "generated_at": "30.10.2026 12:00"
+      }
+    },
+    {
+      "id": "rehber-tse-bsi-cloud-usb",
+      "original_title": "TSE-Zertifizierung nach BSI TR-03153: Hardware-TSE (USB/microSD) vs. Cloud-TSE im Vergleich",
+      "title_tr": "BSI TR-03153 TSE Teknolojileri: Donanım TSE (Swissbit/Epson USB) ve Cloud-TSE Karşılaştırması",
+      "url": "https://www.bsi.bund.de",
+      "source": "BSI / Teknoloji & Güvenlik",
+      "source_url": "https://www.bsi.bund.de",
+      "published_at": "2026-10-15T11:00:00+00:00",
+      "date_display": "15.10.2026 11:00",
+      "category": "tse",
+      "importance": "orta",
+      "summary_tr": "Donanım tabanlı TSE'ler (Swissbit USB/SD, Diebold Nixdorf, Epson) internet bağlantısından bağımsız çalışırken 5-7 yıllık sertifika ömrüne sahiptir ve fiziksel değişim gerektirir. Cloud-TSE çözümleri ise merkezi yönetim sunarken sürekli çevrimiçi bağlantı ve çalışma ortamı güvenliği (SMAERS) şartlarına tabidir.",
+      "impact_tr": "Müşterilerin mevcut donanım TSE'lerinin sertifika bitiş tarihlerini (CertificateExpirationDate) takip etmek hem yasal uyumluluk hem de yenileme satışı açısından kritik fırsattır.",
+      "tags": [
+        "TSE",
+        "BSI TR-03153",
+        "Swissbit",
+        "Cloud-TSE"
+      ],
+      "is_read": false,
+      "is_bookmarked": false,
+      "user_note": "",
+      "ai_processed": true,
+      "reader_content": {
+        "title_tr": "BSI TR-03153 TSE Teknolojileri ve Sertifika Yaşam Döngüsü",
+        "lead_tr": "Her elektronik yazar kasa, işlemleri silinemez şekilde imzalayan BSI sertifikalı bir TSE (Technische Sicherheitseinrichtung) ile çalışmak zorundadır.",
+        "article_body_tr": "Almanya'da kasa sistemlerinde iki ana TSE mimarisi kullanılmaktadır:\n\n1. Donanım TSE (USB, microSD, Yazıcı İçi TSE): Swissbit, Cryptovision/Atos, Epson gibi üreticilerin sunduğu fiziksel güvenlik modülleridir. En büyük avantajı internet kesilse bile kesintisiz imzalama yapmasıdır. Ancak her donanım TSE'nin üzerindeki kriptografik sertifikanın belirli bir bitiş tarihi (genellikle 5 yıl) vardır ve süresi dolduğunda veya hafızası tükendiğinde fiziksel olarak yenisiyle değiştirilmesi gerekir.\n\n2. Bulut TSE (Cloud-TSE - örn. Fiskaly, Deutsche Fiskal): Fiziksel donanım gerektirmez ancak kasada sürekli internet bağlantısı ve BSI'ın SMAERS güvenlik gereksinimlerini karşılayan yazılım entegrasyonu şarttır.",
+        "legal_or_tech_context_tr": "BSI TR-03153-1 standardı. Süresi dolan TSE ile yapılan işlemler imzasız sayılır ve KassenSichV ihlali oluşturur. Eski TSE kartları/USB'leri atılmamalı, 10 yıllık GoBD saklama süresi boyunca müşteri tarafından muhafaza edilmelidir.",
+        "action_items_tr": [
+          "Süresi biten eski TSE USB/SD kartlarının kesinlikle çöpe atılmaması, 10 yıl boyunca fatura/kasa arşiviyle birlikte saklanması gerektiğini müşteriye bildirin.",
+          "Panel içindeki TSE Bitiş Tarihi filtresini kullanarak süresi yaklaşan müşterilerle proaktif iletişime geçin.",
+          "Yeni TSE takıldığında kasa yazılımında eski TSE'yi kapatıp (Deaktivieren) yeni TSE'yi aktif ettikten sonra ELSTER bildirimini güncelleyin."
+        ],
+        "glossary": [
+          {
+            "term": "BSI TR-03153",
+            "meaning_tr": "Federal Bilgi Güvenliği Dairesi'nin TSE cihazları için belirlediği teknik standart"
+          },
+          {
+            "term": "TAR-Datei (Tape Archive)",
+            "meaning_tr": "TSE'nin imzaladığı tüm log dosyalarını içeren standart arşiv paketi"
+          },
+          {
+            "term": "Aufbewahrungspflicht (10 Jahre)",
+            "meaning_tr": "Kasa verileri ve eski TSE donanımlarının 10 yıl boyunca saklanması zorunluluğu"
+          }
+        ],
+        "scraped_de": "",
+        "generated_at": "30.10.2026 12:00"
+      }
+    },
+    {
+      "id": "rehber-pos-teknoloji-trendleri",
+      "original_title": "Moderne Kassensysteme im Handel & Gastronomie: SoftPOS, Self-Checkout, Digitaler Bon und KI",
+      "title_tr": "Yeni Nesil Kasa Teknolojileri: SoftPOS (Tap-to-Pay), Self-Checkout, Dijital Fiş ve Yapay Zeka",
+      "url": "https://www.ehi.org",
+      "source": "Perakende & POS Teknolojileri",
+      "source_url": "https://www.ehi.org",
+      "published_at": "2026-10-12T08:45:00+00:00",
+      "date_display": "12.10.2026 08:45",
+      "category": "teknoloji",
+      "importance": "orta",
+      "summary_tr": "Perakende ve gastronomide personel maliyetlerinin artmasıyla birlikte Self-Checkout (kendi kendine ödeme) terminalleri, garson el terminallerinde SoftPOS (ek kart okuyucu olmadan telefondan temassız ödeme) ve QR kodlu dijital fiş çözümleri hızla yaygınlaşıyor.",
+      "impact_tr": "Müşterilere kasa satışı yaparken entegre kart terminali (ZVT/OPI), QR dijital fiş ve mobil el terminali çözümleri sunmak rekabet avantajı sağlar.",
+      "tags": [
+        "SoftPOS",
+        "Self-Checkout",
+        "Digitaler Bon",
+        "ZVT"
+      ],
+      "is_read": true,
+      "is_bookmarked": false,
+      "user_note": "",
+      "ai_processed": true,
+      "reader_content": {
+        "title_tr": "Perakende ve Gastronomide Yeni Nesil Kasa Teknolojileri",
+        "lead_tr": "Kasa sistemleri artık sadece nakit ve fiş basan cihazlar olmaktan çıkıp, ödeme terminalleri, stok yönetimi ve müşteri deneyimini birleştiren akıllı merkezlere dönüşüyor.",
+        "article_body_tr": "Almanya'da küçük ve orta ölçekli işletmelerde (Gastronomi, Fırın, Market, Döner/Restoran, Kiosk) öne çıkan 4 büyük teknolojik dönüşüm:\n\n1. ZVT / OPI Entegreli Ödeme & SoftPOS: Kart terminaline tutarı elle girme hatasını sıfırlayan kasa-POS bağlantısı (ZVT protokolü) ve garsonların Android el terminalinden doğrudan NFC ile ödeme almasını sağlayan SoftPOS (Tap-to-Pay) teknolojisi.\n\n2. Self-Checkout & Sipariş Kioskları: Özellikle fast-food restoranlarında ve marketlerde müşterinin kendi siparişini verip kartla ödediği dokunmatik kiosklar personel açığını kapatıyor.\n\n3. Dijital Fiş (Digitaler Kassenbon): Bonpflicht (fiş verme zorunluluğu) kapsamında kağıt israfını önlemek için müşteri ekranında gösterilen QR kod ile fişin PDF olarak telefona indirilmesi.\n\n4. Otomatik Muhasebe Köprüsü (DATEV MeinFiskal / Kassenarchiv): Gün sonu Z-raporlarının ve DSFinV-K verilerinin mali müşavire otomatik aktarılması.",
+        "legal_or_tech_context_tr": "Dijital fiş (Digitaler Bon) uygulaması KassenSichV § 6 (Belegausgabepflicht) ile tamamen uyumludur; müşterinin fişi QR kod veya e-posta ile alabilmesi yeterlidir. Kart terminali entegrasyonlarında ZVT protokolü ile kasa kayıtlarının eşleşmesi GoBD denetimlerinde büyük kolaylık sağlar.",
+        "action_items_tr": [
+          "Kart terminali kullanan müşterilerde ZVT kasa bağlantısını aktif ederek yanlış tutar tuşlama ve Finanzamt kart-kasa uyumsuzluğu sorunlarını önleyin.",
+          "Yoğun restoran müşterilerine mobil sipariş terminali veya self-sipariş kiosk alternatiflerini tanıtın.",
+          "Müşteri ekranı olan kasalarda QR Dijital Fiş özelliğini etkinleştirerek termal rulo maliyetinden tasarruf sağlayabileceklerini belirtin."
+        ],
+        "glossary": [
+          {
+            "term": "ZVT-Protokoll (Zahlungsverkehrs-Terminal)",
+            "meaning_tr": "Almanya'da yazar kasa ile EC/kredi kartı terminali arasındaki standart haberleşme protokolü"
+          },
+          {
+            "term": "SoftPOS / Tap-to-Pay",
+            "meaning_tr": "Harici POS cihazı olmadan NFC destekli Android/iOS cihaz üzerinden doğrudan kartlı ödeme alma teknolojisi"
+          },
+          {
+            "term": "Belegausgabepflicht (Bonpflicht)",
+            "meaning_tr": "Her işlem sonunda müşteriye basılı veya elektronik fiş sunma zorunluluğu"
+          }
+        ],
+        "scraped_de": "",
+        "generated_at": "30.10.2026 12:00"
+      }
+    }
+  ]
+}

@@ -1465,6 +1465,8 @@
     <script src="/tse.js" defer></script>
     <link rel="stylesheet" href="/pos.css">
     <link rel="stylesheet" href="/ticket_rapor.css">
+    <link rel="stylesheet" href="/kasahaberleri.css">
+    <script src="/kasahaberleri.js" defer></script>
 </head>
 
 <body>
@@ -1512,6 +1514,7 @@
                             <option value="korgo">🚚 Kargo</option>
                             <option value="tse">🔐 TSE USB</option>
                             <option value="lisans">🔗 Lisans</option>
+                            <option value="kasahaberleri">📰 Kasa Haberleri &amp; Mevzuat</option>
                         </optgroup>
                     </select>
 
@@ -1606,6 +1609,11 @@
                             <div id="tabTse" class="tab-item module-menu-item" data-tab="tse" onclick="selectModule('tse')">
                                 <span class="item-icon">🔐</span>
                                 <span class="item-name">TSE USB</span>
+                                <span class="item-check">✓</span>
+                            </div>
+                            <div id="tabKasaHaberleri" class="tab-item module-menu-item" data-tab="kasahaberleri" onclick="selectModule('kasahaberleri')">
+                                <span class="item-icon">📰</span>
+                                <span class="item-name">Kasa Haberleri &amp; Mevzuat</span>
                                 <span class="item-check">✓</span>
                             </div>
                             <div id="tabLisans" class="tab-item module-menu-item" data-tab="lisans" onclick="selectModule('lisans')">
@@ -2423,6 +2431,9 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
     <div id="katalogPaneli" class="panel" style="display:none; padding:0; flex:1; overflow:hidden; min-width:0; width:100%; max-width:100%; height:100%; -webkit-overflow-scrolling:touch; position:relative;">
         <iframe id="katalogIframe" src="/katalog/index.html?v=2.1" style="width:100%; min-width:0; max-width:100%; height:100%; border:none; display:block;" allowfullscreen></iframe>
     </div>
+    <div id="kasahaberleriPaneli" class="panel kh-panel" style="display:none; flex:1; flex-direction:column; overflow:hidden;">
+        <div id="kasahaberleriContainer" style="display:flex; flex-direction:column; flex:1; min-height:0; overflow:hidden;"></div>
+    </div>
     
     </div><!-- /dashboard-container -->
 
@@ -2609,6 +2620,9 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 await fetchAylikData();
             } else if (currentTab === 'elster') {
                 await refreshElsterData();
+            } else if (currentTab === 'kasahaberleri') {
+                if (typeof loadKasaHaberleri === 'function') await loadKasaHaberleri();
+                return;
             }
 
             populateFilterOptions();
@@ -2717,10 +2731,11 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             'lotus':    { icon: '🪷', label: 'LotusPecas' },
             'korgo':    { icon: '🚚', label: 'Kargo' },
             'tse':      { icon: '🔐', label: 'TSE USB' },
-            'lisans':   { icon: '🔗', label: 'Lisans' }
+            'lisans':   { icon: '🔗', label: 'Lisans' },
+            'kasahaberleri': { icon: '📰', label: 'Kasa Haberleri & Mevzuat' }
         };
 
-        const moduleOrder = ['rental', 'custom', 'aylik', 'satis', 'teslimat', 'formhub', 'katalog', 'tickets', 'ticketrapor', 'rma', 'elster', 'pos', 'lacash', 'lotus', 'korgo', 'tse', 'lisans'];
+        const moduleOrder = ['rental', 'custom', 'aylik', 'satis', 'teslimat', 'formhub', 'katalog', 'tickets', 'ticketrapor', 'rma', 'elster', 'pos', 'lacash', 'lotus', 'korgo', 'tse', 'lisans', 'kasahaberleri'];
 
         function updateModuleComboboxUI(tab) {
             const meta = moduleMeta[tab] || { icon: '📋', label: tab };
@@ -2866,6 +2881,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             document.getElementById('tabLotus')?.classList.toggle('active', tab === 'lotus');
             document.getElementById('tabKorgo')?.classList.toggle('active', tab === 'korgo');
             document.getElementById('tabTse')?.classList.toggle('active', tab === 'tse');
+            document.getElementById('tabKasaHaberleri')?.classList.toggle('active', tab === 'kasahaberleri');
 
             const filterPanel = document.querySelector('.filter-panel');
             const listPanel   = document.querySelector('.panel.list-panel');
@@ -2887,7 +2903,9 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
 
             if (lotusPaneli) lotusPaneli.style.display = 'none';
             if (korgoPaneli) korgoPaneli.style.display = 'none';
+            const kasahaberleriPaneli = document.getElementById('kasahaberleriPaneli');
             if (ticketraporPaneli) ticketraporPaneli.style.display = 'none';
+            if (kasahaberleriPaneli) kasahaberleriPaneli.style.display = 'none';
 
             
 
@@ -3123,6 +3141,23 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 if(lacashPaneli) lacashPaneli.style.display = 'none';
                 if(lotusPaneli) lotusPaneli.style.display = 'none';
                 if (typeof loadTseCustomers === 'function') loadTseCustomers();
+            } else if (tab === 'kasahaberleri') {
+                filterPanel.style.display = 'none';
+                listPanel.style.display   = 'none';
+                satisPaneli.style.display = 'none';
+                if(tsePaneli) tsePaneli.style.display = 'none';
+                teslimatPaneli.style.display = 'none';
+                formHubPaneli.style.display = 'none';
+                lisansPaneli.style.display = 'none';
+                ticketsPaneli.style.display = 'none';
+                elsterPaneli.style.display = 'none';
+                rmaPaneli.style.display = 'none';
+                katalogPaneli.style.display = 'none';
+                if(posPaneli) posPaneli.style.display = 'none';
+                if(lacashPaneli) lacashPaneli.style.display = 'none';
+                if(lotusPaneli) lotusPaneli.style.display = 'none';
+                if(kasahaberleriPaneli) kasahaberleriPaneli.style.display = 'flex';
+                if (typeof initKasaHaberleriTab === 'function') initKasaHaberleriTab();
             } else {
                 filterPanel.style.display = '';
                 listPanel.style.display   = '';

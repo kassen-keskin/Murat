@@ -2356,5 +2356,147 @@ def save_rma_pdf():
         return jsonify({"error": str(e)}), 500
 
 
+# =========================================================
+# KASA HABERLERİ & MEVZUAT RADARI API ENDPOINTS
+# =========================================================
+import sys as _sys
+_kasahaberleri_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'kasahaberleri')
+if _kasahaberleri_dir not in _sys.path:
+    _sys.path.insert(0, _kasahaberleri_dir)
+
+from news_service import (
+    load_news_store,
+    save_news_store,
+    refresh_news,
+    build_article_reader_content,
+    ask_kasa_knowledge_ai,
+    CATEGORY_META,
+    DEFAULT_QUERIES
+)
+
+
+@app.route('/api/kasahaberleri', methods=['GET'])
+def api_get_kasahaberleri():
+    try:
+        store = load_news_store()
+        return jsonify({
+            "success": True,
+            "last_updated": store.get("last_updated"),
+            "categories": CATEGORY_META,
+            "queries": store.get("queries", DEFAULT_QUERIES),
+            "articles": store.get("articles", [])
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/kasahaberleri/fetch', methods=['POST'])
+def api_fetch_kasahaberleri():
+    try:
+        payload = request.get_json(silent=True) or {}
+        days = int(payload.get("days", 30))
+        max_new = int(payload.get("max_new", 20))
+        stats = refresh_news(max_new_items=max_new, days=days)
+        store = load_news_store()
+        return jsonify({
+            "success": True,
+            "added_count": stats.get("added_count", 0),
+            "total_count": stats.get("total_count", 0),
+            "last_updated": store.get("last_updated"),
+            "articles": store.get("articles", [])
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/kasahaberleri/read', methods=['POST'])
+def api_read_kasahaberi():
+    try:
+        payload = request.get_json(silent=True) or {}
+        article_id = str(payload.get("id") or "").strip()
+        force_refresh = bool(payload.get("force_refresh", False))
+        if not article_id:
+            return jsonify({"error": "Haber ID gereklidir."}), 400
+        res = build_article_reader_content(article_id, force_refresh=force_refresh)
+        if "error" in res:
+            return jsonify(res), 404
+        return jsonify({"success": True, **res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/kasahaberleri/update-item', methods=['POST'])
+def api_update_kasahaberi_item():
+    try:
+        payload = request.get_json(silent=True) or {}
+        article_id = str(payload.get("id") or "").strip()
+        action = str(payload.get("action") or "").strip()
+        if not article_id:
+            return jsonify({"error": "Haber ID gereklidir."}), 400
+
+        store = load_news_store()
+        articles = store.get("articles", [])
+
+        if action == "delete":
+            store["articles"] = [a for a in articles if a.get("id") != article_id]
+            save_news_store(store)
+            return jsonify({"success": True})
+
+        target = next((a for a in articles if a.get("id") == article_id), None)
+        if not target:
+            return jsonify({"error": "Haber bulunamadı."}), 404
+
+        if "is_bookmarked" in payload:
+            target["is_bookmarked"] = bool(payload["is_bookmarked"])
+        if "is_read" in payload:
+            target["is_read"] = bool(payload["is_read"])
+        if "user_note" in payload:
+            target["user_note"] = str(payload["user_note"] or "").strip()
+
+        save_news_store(store)
+        return jsonify({"success": True, "article": target})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/kasahaberleri/ask', methods=['POST'])
+def api_ask_kasahaberleri():
+    try:
+        payload = request.get_json(silent=True) or {}
+        question = str(payload.get("question") or "").strip()
+        res = ask_kasa_knowledge_ai(question)
+        if "error" in res:
+            return jsonify(res), 400
+        return jsonify({"success": True, **res})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route('/api/kasahaberleri/queries', methods=['POST'])
+def api_save_kasahaberleri_queries():
+    try:
+        payload = request.get_json(silent=True) or {}
+        queries = payload.get("queries")
+        if payload.get("reset"):
+            queries = list(DEFAULT_QUERIES)
+        if not isinstance(queries, list) or len(queries) == 0:
+            return jsonify({"error": "Geçerli bir sorgu listesi gereklidir."}), 400
+
+        cleaned = []
+        for q in queries:
+            if isinstance(q, dict) and q.get("query"):
+                cleaned.append({
+                    "query": str(q["query"]).strip(),
+                    "category": str(q.get("category") or "sektor").strip(),
+                    "label": str(q.get("label") or q["query"]).strip()
+                })
+        store = load_news_store()
+        store["queries"] = cleaned or list(DEFAULT_QUERIES)
+        save_news_store(store)
+        return jsonify({"success": True, "queries": store["queries"]})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', debug=False, port=3000)
