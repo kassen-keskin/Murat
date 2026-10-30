@@ -1,4 +1,13 @@
 /* Ticket System CSS */
+.btn-s.teal {
+    background: var(--secondary-color, #00b4d8);
+    color: #000;
+    font-weight: 600;
+    border: none;
+}
+.btn-s.teal:hover {
+    filter: brightness(1.1);
+}
 
 .tickets-panel {
     display: flex;

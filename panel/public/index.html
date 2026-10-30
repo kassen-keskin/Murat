@@ -2840,6 +2840,10 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
 
         async function switchTab(tab) {
             currentTab = tab;
+            if (tab !== 'tickets') {
+                if (typeof ticketNavigationSource !== 'undefined') ticketNavigationSource = null;
+                if (typeof window !== 'undefined') window.ticketNavigationSource = null;
+            }
 
             // Update Combobox UI
             updateModuleComboboxUI(tab);

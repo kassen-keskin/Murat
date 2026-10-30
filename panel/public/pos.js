@@ -126,6 +126,12 @@ function renderPosBoard() {
                     </div>
                 `;
                 card.onclick = (e) => {
+                    if (typeof openTicketWithSource === 'function') {
+                        openTicketWithSource(ticket.kTicket, 'pos');
+                        return;
+                    }
+                    if (typeof setTicketNavigationSource === 'function') setTicketNavigationSource('pos');
+                    else window.ticketNavigationSource = 'pos';
                     switchTab('tickets');
                     setTimeout(() => {
                         if (typeof selectTicket === 'function') selectTicket(ticket.kTicket);

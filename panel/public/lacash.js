@@ -121,6 +121,12 @@ function renderLacashBoard() {
                     </div>
                 `;
                 card.onclick = (e) => {
+                    if (typeof openTicketWithSource === 'function') {
+                        openTicketWithSource(ticket.kTicket, 'lacash');
+                        return;
+                    }
+                    if (typeof setTicketNavigationSource === 'function') setTicketNavigationSource('lacash');
+                    else window.ticketNavigationSource = 'lacash';
                     switchTab('tickets');
                     setTimeout(() => {
                         if (typeof selectTicket === 'function') selectTicket(ticket.kTicket);

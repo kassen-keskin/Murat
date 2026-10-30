@@ -127,6 +127,12 @@ function renderKargoBoard() {
                     </div>
                 `;
                 card.onclick = (e) => {
+                    if (typeof openTicketWithSource === 'function') {
+                        openTicketWithSource(ticket.kTicket, 'korgo');
+                        return;
+                    }
+                    if (typeof setTicketNavigationSource === 'function') setTicketNavigationSource('korgo');
+                    else window.ticketNavigationSource = 'korgo';
                     switchTab('tickets');
                     setTimeout(() => {
                         if (typeof selectTicket === 'function') selectTicket(ticket.kTicket);

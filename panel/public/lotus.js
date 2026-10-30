@@ -129,6 +129,12 @@ function renderLotusBoard() {
                     </div>
                 `;
                 card.onclick = (e) => {
+                    if (typeof openTicketWithSource === 'function') {
+                        openTicketWithSource(ticket.kTicket, 'lotus');
+                        return;
+                    }
+                    if (typeof setTicketNavigationSource === 'function') setTicketNavigationSource('lotus');
+                    else window.ticketNavigationSource = 'lotus';
                     switchTab('tickets');
                     setTimeout(() => {
                         if (typeof selectTicket === 'function') selectTicket(ticket.kTicket);

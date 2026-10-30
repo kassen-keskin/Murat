@@ -1,4 +1,26 @@
 let ticketNavigationSource = null;
+window.ticketNavigationSource = null;
+
+function setTicketNavigationSource(source) {
+    ticketNavigationSource = source;
+    window.ticketNavigationSource = source;
+}
+window.setTicketNavigationSource = setTicketNavigationSource;
+
+function openTicketWithSource(ticketId, source) {
+    if (!ticketId) return;
+    setTicketNavigationSource(source);
+    if (typeof switchTab === 'function') {
+
+        switchTab('tickets');
+        setTimeout(() => {
+            if (typeof selectTicket === 'function') {
+                selectTicket(ticketId);
+            }
+        }, 150);
+    }
+}
+window.openTicketWithSource = openTicketWithSource;
 let ticketsData = [];
 let ticketUsers = [];
 let currentTicketId = null;
@@ -54,6 +76,7 @@ async function doTicketLogin() {
         err.textContent = "Lütfen kullanıcı adı ve şifre girin.";
         err.style.display = 'block';
         return;
+    
     }
     
     btn.disabled = true;
@@ -209,6 +232,7 @@ function renderTicketsList(data) {
     if (data.length === 0) {
         container.innerHTML = '<div style="color:var(--text-muted);text-align:center;padding:20px;">Kayıt bulunamadı.</div>';
         return;
+    
     }
 
     data.forEach(t => {
@@ -322,7 +346,7 @@ function renderTicketChat(data) {
         <div class="ticket-detail-header">
             <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:10px; gap:8px;">
                 <div style="display:flex; align-items:center; gap:8px;">
-                    ${ticketNavigationSource === 'rapor' ? `<button type="button" class="btn-s teal" onclick="backToTicketRapor()" title="Ticket Raporu Listesine Geri Dön" style="min-height:32px; padding:4px 10px; font-size:0.85rem; font-weight:600; display:inline-flex; align-items:center; gap:5px;">📊 Rapor Listesine Dön</button>` : ''}
+                    ${getTicketBackButtonHtml()}
                     <button type="button" class="btn-s secondary mobile-ticket-back-btn" onclick="mobileBackToTicketList()" title="Bilet Listesine Dön">← Biletler</button>
                     <div>
                         <h2 class="ticket-detail-title" style="margin:0;">${displayId}</h2>
@@ -492,6 +516,7 @@ function attachTicketReplyDropzone() {
         if (!isImage && !isVideo && !isPdf) {
             preview.innerHTML = '<span style="color:var(--text-muted);">Sadece resim, video veya PDF dosyası ekleyebilirsiniz.</span>';
             return;
+        
         }
 
         currentTicketAttachment = file;
@@ -591,6 +616,7 @@ async function submitTicketReply(ticketId) {
     if (!content && !currentTicketAttachment) {
         alert("Lütfen bir mesaj yazın veya bir dosya ekleyin.");
         return;
+    
     }
 
     try {
@@ -683,6 +709,7 @@ async function ensureTicketCustomersLoaded() {
 
     if (Array.isArray(dataStore.custom) && dataStore.custom.length > 0) {
         return;
+    
     }
 
     if (typeof fetchData === 'function') {
@@ -865,6 +892,7 @@ async function submitNewTicket() {
     if (!cInhalt) {
         alert("İlk mesaj içeriği zorunludur.");
         return;
+    
     }
 
     try {
@@ -1205,6 +1233,7 @@ function handleTicketDragStart(e, ticketId, ticketOwnerId) {
         e.preventDefault();
         alert("Sadece kendi biletlerinizi taşıyabilirsiniz.");
         return;
+    
     }
     e.dataTransfer.setData("text/plain", ticketId);
     e.dataTransfer.effectAllowed = "move";
@@ -1354,9 +1383,43 @@ function renderTicketReport(filteredTickets) {
 
 
 
-function backToTicketRapor() {
+function getTicketBackButtonHtml() {
+    const src = ticketNavigationSource || window.ticketNavigationSource;
+    if (!src) return '';
+
+    const sources = {
+        'rapor':   { label: 'Rapor Listesine Dön', icon: '📊', title: 'Ticket Raporu Listesine Geri Dön' },
+        'pos':     { label: "POS'a Dön",           icon: '💳', title: 'POS Paneline Geri Dön' },
+        'lacash':  { label: "LaCash'e Dön",        icon: '💶', title: 'LaCash Paneline Geri Dön' },
+        'lotus':   { label: "LotusPecas'a Dön",    icon: '🪷', title: 'LotusPecas Paneline Geri Dön' },
+        'korgo':   { label: "Kargo'ya Dön",        icon: '🚚', title: 'Kargo Paneline Geri Dön' }
+    };
+
+    const nav = sources[src];
+    if (!nav) return '';
+
+    return `<button type="button" class="btn-s teal" onclick="backToTicketSource()" title="${nav.title}" style="min-height:32px; padding:4px 10px; font-size:0.85rem; font-weight:600; display:inline-flex; align-items:center; gap:5px; cursor:pointer;">↩ ${nav.icon} ${nav.label}</button>`;
+}
+
+function backToTicketSource() {
+    const src = ticketNavigationSource || window.ticketNavigationSource;
     ticketNavigationSource = null;
-    if (typeof switchTab === 'function') {
-        switchTab('ticketrapor');
+    window.ticketNavigationSource = null;
+
+    const targetTabs = {
+        'rapor':  'ticketrapor',
+        'pos':    'pos',
+        'lacash': 'lacash',
+        'lotus':  'lotus',
+        'korgo':  'korgo'
+    };
+
+    const target = targetTabs[src] || src;
+    if (target && typeof switchTab === 'function') {
+        switchTab(target);
     }
+}
+
+function backToTicketRapor() {
+    backToTicketSource();
 }
