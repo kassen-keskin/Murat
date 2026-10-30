@@ -2,6 +2,7 @@ import os
 import re
 import json
 import time
+import base64
 import hashlib
 import urllib.request
 import urllib.parse
@@ -21,9 +22,7 @@ load_dotenv(os.path.join(BASE_DIR, ".env"))
 load_dotenv(os.path.join(PANEL_DIR, ".env"))
 
 NEWS_DATA_FILE = os.path.join(BASE_DIR, "news_data.json")
-LEGACY_SENT_FILE = os.path.join(BASE_DIR, "sent_news.json")
 
-# Curated search queries grouped by category, excluding Krankenkasse/Sparkasse noise
 DEFAULT_QUERIES = [
     {"query": 'Kassensystem OR Registrierkasse -Krankenkasse', "category": "sektor", "label": "Kasa Sistemleri (Genel)"},
     {"query": 'KassenSichV OR Kassensicherungsverordnung', "category": "kanun", "label": "KassenSichV Mevzuatı"},
@@ -52,194 +51,11 @@ CATEGORY_META = {
     "sektor": {"name": "Sektör & POS Haberleri", "icon": "🖥️", "color": "#bb86fc"},
 }
 
-SEED_ARTICLES = [
-    {
-        "id": "rehber-kassenmeldepflicht-146a",
-        "original_title": "§ 146a Abs. 4 AO: Elektronische Kassenmeldepflicht über Mein ELSTER – Fristen & Anforderungen",
-        "title_tr": "§ 146a AO Elektronik Kasa Bildirim Zorunluluğu (ELSTER Meldepflicht): Kapsamlı Rehber",
-        "url": "https://www.bundesfinanzministerium.de/Content/DE/Standardartikel/Themen/Steuern/Steuerarten/Abgabenordnung/kassensicherungsverordnung.html",
-        "source": "BMF / Mevzuat Rehberi",
-        "source_url": "https://www.bundesfinanzministerium.de",
-        "published_at": "2026-10-25T09:00:00+00:00",
-        "date_display": "25.10.2026 09:00",
-        "category": "kanun",
-        "importance": "yuksek",
-        "summary_tr": "Almanya'da § 146a Abs. 4 AO uyarınca tüm elektronik kayıt ve kasa sistemlerinin (eAS) ve bağlı TSE ünitelerinin Mein ELSTER veya ERiC arayüzü üzerinden Finanzamt'a bildirilmesi zorunludur. Yeni kurulan veya kullanım dışı bırakılan kasalar için 1 aylık bildirim süresi uygulanmaktadır.",
-        "impact_tr": "Müşterilere kurulan her yeni kasa, TSE değişimi veya kasa iptali sonrasında ELSTER bildirim verilerinin (TSE Seri No, BSI Sertifika ID, Kasa Seri No, Kurulum Tarihi) eksiksiz tutulması kritik önem taşır.",
-        "tags": ["§ 146a AO", "Meldepflicht", "ELSTER", "KassenSichV"],
-        "is_read": False,
-        "is_bookmarked": True,
-        "user_note": "",
-        "ai_processed": True,
-        "reader_content": {
-            "title_tr": "§ 146a AO Elektronik Kasa Bildirim Zorunluluğu (ELSTER Meldepflicht)",
-            "lead_tr": "Alman Vergi Usul Kanunu (§ 146a Abs. 4 AO) kapsamında işletmelerin kullandığı tüm elektronik yazar kasalar ve TSE güvenlik birimleri vergi dairesine (Finanzamt) elektronik ortamda bildirilmek zorundadır.",
-            "article_body_tr": "Almanya Federal Maliye Bakanlığı (BMF) düzenlemesiyle birlikte elektronik kasa sistemlerinin (Elektronische Aufzeichnungssysteme - eAS) Mein ELSTER portalı veya DATEV/ERiC XML arayüzleri üzerinden bildirilmesi yasal bir zorunluluk haline gelmiştir.\n\nBir işletmede kullanılan tüm kasalar tek bir işletme yerine (Betriebsstätte) ait tek bir bildirimde toplu olarak raporlanmalıdır. Her yeni kasa alımında, kiralanmasında, TSE değişiminde veya kasanın sistemden çıkarılmasında (Außerbetriebnahme) olay tarihinden itibaren en geç 1 ay içinde bildirim güncellenmelidir.\n\nKiralanan (Leasing/Miete) kasalar da satın alınan kasalarla aynı bildirim yükümlülüğüne tabidir.",
-            "legal_or_tech_context_tr": "§ 146a Abs. 4 AO ve KassenSichV kapsamında bildirimde bulunması gereken temel teknik veriler şunlardır: Kasa türü (Kassensystem / EU-Taxameter), Üretici ve Model adı, Yazılım adı ve sürümü, Kasa Seri Numarası, TSE Seri Numarası, BSI Sertifika ID'si, Kurulum (Inbetriebnahme) tarihi.",
-            "action_items_tr": [
-                "Müşteriye kasa teslim edilirken TSE Seri Numarası, BSI Kodu ve Kasa Seri Numarası bilgilerini teslimat formunda ve Panel TSE/ELSTER modülünde eksiksiz kaydedin.",
-                "Arıza veya süre bitimi nedeniyle TSE USB/SD kartı değiştirildiğinde müşteriyi veya mali müşavirini (Steuerberater) ELSTER güncellemesi konusunda bilgilendirin.",
-                "İade alınan veya hurdaya ayrılan kasalar için 'Außerbetriebnahme' tarihinin bildirilmesi gerektiğini hatırlatın."
-            ],
-            "glossary": [
-                {"term": "Mitteilungspflicht (§ 146a Abs. 4 AO)", "meaning_tr": "Elektronik kayıt sistemlerini vergi dairesine bildirme yükümlülüğü"},
-                {"term": "Betriebsstätte", "meaning_tr": "Kasanın fiilen kullanıldığı şube / iş yeri"},
-                {"term": "Inbetriebnahme / Außerbetriebnahme", "meaning_tr": "Kasanın devreye alınması / kullanım dışı bırakılması"}
-            ],
-            "scraped_de": "",
-            "generated_at": "30.10.2026 12:00"
-        }
-    },
-    {
-        "id": "rehber-e-rechnung-pflicht-kasse",
-        "original_title": "E-Rechnungspflicht im B2B-Bereich und Auswirkungen auf Kassensysteme & Kleinbetragsrechnungen",
-        "title_tr": "B2B E-Fatura (E-Rechnung) Zorunluluğu ve Kasa Sistemlerine (Kleinbetragsrechnung) Etkisi",
-        "url": "https://www.bundesfinanzministerium.de/Content/DE/FAQ/e-rechnung.html",
-        "source": "BMF / Vergi Mevzuatı",
-        "source_url": "https://www.bundesfinanzministerium.de",
-        "published_at": "2026-10-20T10:30:00+00:00",
-        "date_display": "20.10.2026 10:30",
-        "category": "kanun",
-        "importance": "yuksek",
-        "summary_tr": "Wachstumschancengesetz kapsamında Almanya'da B2B (işletmeler arası) işlemlerde EN 16931 uyumlu yapılandırılmış E-Rechnung (ZUGFeRD / XRechnung) dönemi başlamıştır. 250 € altındaki kasa fişleri (Kleinbetragsrechnungen) için istisna devam etse de B2B kurumsal satış yapan kasalarda ZUGFeRD desteği önem kazanmaktadır.",
-        "impact_tr": "Restoran ve perakendede 250 € üstü B2B iş yemekleri (Bewirtungsbeleg) veya ticari alışverişlerde müşteriler kasadan ZUGFeRD PDF/XML formatında e-fatura talep edebilmektedir.",
-        "tags": ["E-Rechnung", "ZUGFeRD", "Kleinbetragsrechnung", "B2B"],
-        "is_read": False,
-        "is_bookmarked": False,
-        "user_note": "",
-        "ai_processed": True,
-        "reader_content": {
-            "title_tr": "E-Rechnung Zorunluluğu ve Kasa Sistemlerine Etkisi",
-            "lead_tr": "Almanya'da B2B işlemlerde kağıt ve standart PDF faturaların yerini EN 16931 standardındaki yapılandırılmış elektronik faturalar (XRechnung ve ZUGFeRD) almaktadır.",
-            "article_body_tr": "1 Ocak 2025 itibarıyla tüm işletmeler için E-Rechnung alma zorunluluğu devreye girmiş, kademeli geçiş takvimiyle (2026-2028) B2B fatura düzenleme zorunluluğu yaygınlaşmıştır.\n\nKasa sistemleri açısından en önemli ayrım § 33 UStDV kapsamındaki 'Kleinbetragsrechnung' (Küçük Tutarlı Fatura - Brüt 250 €'ya kadar olan fişler) istisnasıdır. 250 €'ya kadar olan kasa fişleri klasik termal fiş veya dijital fiş olarak düzenlenmeye devam edebilir.\n\nAncak 250 €'yu aşan ve başka bir işletmeye (B2B) kesilen faturalarda (örneğin kurumsal restoran ağırlama fişleri - Bewirtungsbeleg veya toptan/ticari market satışları) kasa yazılımının ZUGFeRD veya XRechnung üretebilmesi ya da arka ofis (JTL-Wawi, LaCash, LotusPecas) üzerinden E-Rechnung gönderebilmesi gerekmektedir.",
-            "legal_or_tech_context_tr": "UStG § 14 ve UStDV § 33: 250 € brüt tutara kadar olan fişler E-Rechnung zorunluluğundan muaftır. 250 € üzeri B2B işlemlerde EN 16931 uyumlu hibrit PDF/XML (ZUGFeRD 2.2+) veya XRechnung standartları geçerlidir.",
-            "action_items_tr": [
-                "Müşterilere 250 € altındaki normal kasa fişlerinin (Kassenbon) E-Rechnung zorunluluğundan muaf olduğunu net şekilde açıklayın.",
-                "250 € üzeri kurumsal fatura (Rechnung / Bewirtungsbeleg) kesen restoran ve market müşterilerinde kasa yazılımının ZUGFeRD/E-Rechnung modülünü kontrol edin.",
-                "Kendi şirket içi faturalandırma süreçlerinizde gelen ve giden E-Rechnung arşivlemesinin GoBD uyumlu olduğundan emin olun."
-            ],
-            "glossary": [
-                {"term": "Kleinbetragsrechnung (§ 33 UStDV)", "meaning_tr": "Brüt 250 € sınırına kadar olan basitleştirilmiş fatura / kasa fişi"},
-                {"term": "ZUGFeRD", "meaning_tr": "Hem okunabilir PDF hem de gömülü XML verisi içeren hibrit Alman e-fatura standardı"},
-                {"term": "Bewirtungsbeleg", "meaning_tr": "Restoranlarda iş yemeği gideri olarak vergiden düşülen resmi ağırlama fişi"}
-            ],
-            "scraped_de": "",
-            "generated_at": "30.10.2026 12:00"
-        }
-    },
-    {
-        "id": "rehber-kassen-nachschau-gobd",
-        "original_title": "Kassen-Nachschau (§ 146b AO) & DSFinV-K: Worauf Prüfer des Finanzamts besonders achten",
-        "title_tr": "Finanzamt Habersiz Kasa Denetimi (Kassen-Nachschau) ve DSFinV-K / GoBD Kontrol Listesi",
-        "url": "https://www.bundesfinanzministerium.de",
-        "source": "Finanzamt Denetim Rehberi",
-        "source_url": "https://www.bundesfinanzministerium.de",
-        "published_at": "2026-10-18T14:15:00+00:00",
-        "date_display": "18.10.2026 14:15",
-        "category": "vergi",
-        "importance": "yuksek",
-        "summary_tr": "Vergi dairesi denetçileri § 146b AO uyarınca önceden haber vermeksizin iş saatleri içinde işletmeye gelerek kasayı, TSE durumunu, Verfahrensdokumentation belgesini ve DSFinV-K / TAR veri dışa aktarımını kontrol edebilmektedir.",
-        "impact_tr": "Müşterilerin denetim anında USB belleğe veya denetçiye anında DSFinV-K ve TSE-TAR dışa aktarımı verebilmesi ve TSE sertifika süresinin dolmamış olması cezai yaptırımları önler.",
-        "tags": ["Kassen-Nachschau", "§ 146b AO", "DSFinV-K", "GoBD"],
-        "is_read": False,
-        "is_bookmarked": False,
-        "user_note": "",
-        "ai_processed": True,
-        "reader_content": {
-            "title_tr": "Finanzamt Habersiz Kasa Denetimi (Kassen-Nachschau § 146b AO)",
-            "lead_tr": "Kassen-Nachschau, vergi denetçilerinin önceden randevu almadan işletmeye gelerek kasa düzenini ve TSE kayıtlarını yerinde denetlemesi uygulamasıdır.",
-            "article_body_tr": "Denetçi işletmeye geldiğinde önce müşteri gibi nakit veya kartlı alışveriş yaparak fiş (Bonpflicht) verilip verilmediğini ve fiş üzerindeki TSE QR kodunu / imza sayacını kontrol edebilir.\n\nArdından kimliğini göstererek (Prüfungsausweis) şu 4 temel unsuru talep eder:\n1. Güncel kasa nakit sayımı (Kassensturz) ile kasadaki teorik bakiye (Soll-Bestand) uyumu.\n2. TSE'nin aktif olduğu ve sertifika süresinin geçerli olduğu.\n3. DSFinV-K standartlarında kasa verilerinin ve TSE TAR dosyalarının dışa aktarımı.\n4. İşletmeye özel süreç dokümantasyonu (Verfahrensdokumentation) ve Z-Raporları.",
-            "legal_or_tech_context_tr": "§ 146b AO (Kassen-Nachschau), GoBD ve DSFinV-K 2.3+. Eksik TSE, geçersiz sertifika veya bozuk veri aktarımı durumunda Finanzamt ciro tahminine (Hinzuschätzung) ve § 379 AO kapsamında 25.000 €'ya varan para cezasına başvurabilir.",
-            "action_items_tr": [
-                "Müşterilerin TSE bitiş tarihlerini Panel üzerinden düzenli takip edin ve süresi dolmadan yenileyin.",
-                "Kasa kurulumunda müşteriye 'Finanzamt Export (DSFinV-K / TAR)' menüsünün nasıl çalıştığını gösterin.",
-                "Kasa teslimat ve kurulum belgelerinin (Verfahrensdokumentation eki olarak) işletmede kolay ulaşılır bir klasörde saklanmasını tavsiye edin."
-            ],
-            "glossary": [
-                {"term": "Kassensturz", "meaning_tr": "Kasadaki fiili nakit paranın sayılıp sistemdeki kayıtla karşılaştırılması"},
-                {"term": "DSFinV-K", "meaning_tr": "Kasa verilerinin vergi denetimi için standart dijital dışa aktarım formatı"},
-                {"term": "Verfahrensdokumentation", "meaning_tr": "Kasa sisteminin nasıl kurulduğunu, kullanıldığını ve arşivlendiğini anlatan zorunlu süreç belgesi"}
-            ],
-            "scraped_de": "",
-            "generated_at": "30.10.2026 12:00"
-        }
-    },
-    {
-        "id": "rehber-tse-bsi-cloud-usb",
-        "original_title": "TSE-Zertifizierung nach BSI TR-03153: Hardware-TSE (USB/microSD) vs. Cloud-TSE im Vergleich",
-        "title_tr": "BSI TR-03153 TSE Teknolojileri: Donanım TSE (Swissbit/Epson USB) ve Cloud-TSE Karşılaştırması",
-        "url": "https://www.bsi.bund.de",
-        "source": "BSI / Teknoloji & Güvenlik",
-        "source_url": "https://www.bsi.bund.de",
-        "published_at": "2026-10-15T11:00:00+00:00",
-        "date_display": "15.10.2026 11:00",
-        "category": "tse",
-        "importance": "orta",
-        "summary_tr": "Donanım tabanlı TSE'ler (Swissbit USB/SD, Diebold Nixdorf, Epson) internet bağlantısından bağımsız çalışırken 5-7 yıllık sertifika ömrüne sahiptir ve fiziksel değişim gerektirir. Cloud-TSE çözümleri ise merkezi yönetim sunarken sürekli çevrimiçi bağlantı ve çalışma ortamı güvenliği (SMAERS) şartlarına tabidir.",
-        "impact_tr": "Müşterilerin mevcut donanım TSE'lerinin sertifika bitiş tarihlerini (CertificateExpirationDate) takip etmek hem yasal uyumluluk hem de yenileme satışı açısından kritik fırsattır.",
-        "tags": ["TSE", "BSI TR-03153", "Swissbit", "Cloud-TSE"],
-        "is_read": False,
-        "is_bookmarked": False,
-        "user_note": "",
-        "ai_processed": True,
-        "reader_content": {
-            "title_tr": "BSI TR-03153 TSE Teknolojileri ve Sertifika Yaşam Döngüsü",
-            "lead_tr": "Her elektronik yazar kasa, işlemleri silinemez şekilde imzalayan BSI sertifikalı bir TSE (Technische Sicherheitseinrichtung) ile çalışmak zorundadır.",
-            "article_body_tr": "Almanya'da kasa sistemlerinde iki ana TSE mimarisi kullanılmaktadır:\n\n1. Donanım TSE (USB, microSD, Yazıcı İçi TSE): Swissbit, Cryptovision/Atos, Epson gibi üreticilerin sunduğu fiziksel güvenlik modülleridir. En büyük avantajı internet kesilse bile kesintisiz imzalama yapmasıdır. Ancak her donanım TSE'nin üzerindeki kriptografik sertifikanın belirli bir bitiş tarihi (genellikle 5 yıl) vardır ve süresi dolduğunda veya hafızası tükendiğinde fiziksel olarak yenisiyle değiştirilmesi gerekir.\n\n2. Bulut TSE (Cloud-TSE - örn. Fiskaly, Deutsche Fiskal): Fiziksel donanım gerektirmez ancak kasada sürekli internet bağlantısı ve BSI'ın SMAERS güvenlik gereksinimlerini karşılayan yazılım entegrasyonu şarttır.",
-            "legal_or_tech_context_tr": "BSI TR-03153-1 standardı. Süresi dolan TSE ile yapılan işlemler imzasız sayılır ve KassenSichV ihlali oluşturur. Eski TSE kartları/USB'leri atılmamalı, 10 yıllık GoBD saklama süresi boyunca müşteri tarafından muhafaza edilmelidir.",
-            "action_items_tr": [
-                "Süresi biten eski TSE USB/SD kartlarının kesinlikle çöpe atılmaması, 10 yıl boyunca fatura/kasa arşiviyle birlikte saklanması gerektiğini müşteriye bildirin.",
-                "Panel içindeki TSE Bitiş Tarihi filtresini kullanarak süresi yaklaşan müşterilerle proaktif iletişime geçin.",
-                "Yeni TSE takıldığında kasa yazılımında eski TSE'yi kapatıp (Deaktivieren) yeni TSE'yi aktif ettikten sonra ELSTER bildirimini güncelleyin."
-            ],
-            "glossary": [
-                {"term": "BSI TR-03153", "meaning_tr": "Federal Bilgi Güvenliği Dairesi'nin TSE cihazları için belirlediği teknik standart"},
-                {"term": "TAR-Datei (Tape Archive)", "meaning_tr": "TSE'nin imzaladığı tüm log dosyalarını içeren standart arşiv paketi"},
-                {"term": "Aufbewahrungspflicht (10 Jahre)", "meaning_tr": "Kasa verileri ve eski TSE donanımlarının 10 yıl boyunca saklanması zorunluluğu"}
-            ],
-            "scraped_de": "",
-            "generated_at": "30.10.2026 12:00"
-        }
-    },
-    {
-        "id": "rehber-pos-teknoloji-trendleri",
-        "original_title": "Moderne Kassensysteme im Handel & Gastronomie: SoftPOS, Self-Checkout, Digitaler Bon und KI",
-        "title_tr": "Yeni Nesil Kasa Teknolojileri: SoftPOS (Tap-to-Pay), Self-Checkout, Dijital Fiş ve Yapay Zeka",
-        "url": "https://www.ehi.org",
-        "source": "Perakende & POS Teknolojileri",
-        "source_url": "https://www.ehi.org",
-        "published_at": "2026-10-12T08:45:00+00:00",
-        "date_display": "12.10.2026 08:45",
-        "category": "teknoloji",
-        "importance": "orta",
-        "summary_tr": "Perakende ve gastronomide personel maliyetlerinin artmasıyla birlikte Self-Checkout (kendi kendine ödeme) terminalleri, garson el terminallerinde SoftPOS (ek kart okuyucu olmadan telefondan temassız ödeme) ve QR kodlu dijital fiş çözümleri hızla yaygınlaşıyor.",
-        "impact_tr": "Müşterilere kasa satışı yaparken entegre kart terminali (ZVT/OPI), QR dijital fiş ve mobil el terminali çözümleri sunmak rekabet avantajı sağlar.",
-        "tags": ["SoftPOS", "Self-Checkout", "Digitaler Bon", "ZVT"],
-        "is_read": False,
-        "is_bookmarked": False,
-        "user_note": "",
-        "ai_processed": True,
-        "reader_content": {
-            "title_tr": "Perakende ve Gastronomide Yeni Nesil Kasa Teknolojileri",
-            "lead_tr": "Kasa sistemleri artık sadece nakit ve fiş basan cihazlar olmaktan çıkıp, ödeme terminalleri, stok yönetimi ve müşteri deneyimini birleştiren akıllı merkezlere dönüşüyor.",
-            "article_body_tr": "Almanya'da küçük ve orta ölçekli işletmelerde (Gastronomi, Fırın, Market, Döner/Restoran, Kiosk) öne çıkan 4 büyük teknolojik dönüşüm:\n\n1. ZVT / OPI Entegreli Ödeme & SoftPOS: Kart terminaline tutarı elle girme hatasını sıfırlayan kasa-POS bağlantısı (ZVT protokolü) ve garsonların Android el terminalinden doğrudan NFC ile ödeme almasını sağlayan SoftPOS (Tap-to-Pay) teknolojisi.\n\n2. Self-Checkout & Sipariş Kioskları: Özellikle fast-food restoranlarında ve marketlerde müşterinin kendi siparişini verip kartla ödediği dokunmatik kiosklar personel açığını kapatıyor.\n\n3. Dijital Fiş (Digitaler Kassenbon): Bonpflicht (fiş verme zorunluluğu) kapsamında kağıt israfını önlemek için müşteri ekranında gösterilen QR kod ile fişin PDF olarak telefona indirilmesi.\n\n4. Otomatik Muhasebe Köprüsü (DATEV MeinFiskal / Kassenarchiv): Gün sonu Z-raporlarının ve DSFinV-K verilerinin mali müşavire otomatik aktarılması.",
-            "legal_or_tech_context_tr": "Dijital fiş (Digitaler Bon) uygulaması KassenSichV § 6 (Belegausgabepflicht) ile tamamen uyumludur; müşterinin fişi QR kod veya e-posta ile alabilmesi yeterlidir. Kart terminali entegrasyonlarında ZVT protokolü ile kasa kayıtlarının eşleşmesi GoBD denetimlerinde büyük kolaylık sağlar.",
-            "action_items_tr": [
-                "Kart terminali kullanan müşterilerde ZVT kasa bağlantısını aktif ederek yanlış tutar tuşlama ve Finanzamt kart-kasa uyumsuzluğu sorunlarını önleyin.",
-                "Yoğun restoran müşterilerine mobil sipariş terminali veya self-sipariş kiosk alternatiflerini tanıtın.",
-                "Müşteri ekranı olan kasalarda QR Dijital Fiş özelliğini etkinleştirerek termal rulo maliyetinden tasarruf sağlayabileceklerini belirtin."
-            ],
-            "glossary": [
-                {"term": "ZVT-Protokoll (Zahlungsverkehrs-Terminal)", "meaning_tr": "Almanya'da yazar kasa ile EC/kredi kartı terminali arasındaki standart haberleşme protokolü"},
-                {"term": "SoftPOS / Tap-to-Pay", "meaning_tr": "Harici POS cihazı olmadan NFC destekli Android/iOS cihaz üzerinden doğrudan kartlı ödeme alma teknolojisi"},
-                {"term": "Belegausgabepflicht (Bonpflicht)", "meaning_tr": "Her işlem sonunda müşteriye basılı veya elektronik fiş sunma zorunluluğu"}
-            ],
-            "scraped_de": "",
-            "generated_at": "30.10.2026 12:00"
-        }
-    }
-]
-
+BROWSER_HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Safari/537.36",
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "de-DE,de;q=0.9,en;q=0.8",
+}
 
 
 class _HTMLStripper(HTMLParser):
@@ -249,13 +65,13 @@ class _HTMLStripper(HTMLParser):
         self._skip = False
 
     def handle_starttag(self, tag, attrs):
-        if tag in ("script", "style", "noscript", "svg", "header", "footer", "nav"):
+        if tag in ("script", "style", "noscript", "svg", "header", "footer", "nav", "aside", "form"):
             self._skip = True
         elif tag in ("p", "br", "div", "li", "h1", "h2", "h3", "h4", "tr"):
             self.parts.append("\n")
 
     def handle_endtag(self, tag):
-        if tag in ("script", "style", "noscript", "svg", "header", "footer", "nav"):
+        if tag in ("script", "style", "noscript", "svg", "header", "footer", "nav", "aside", "form"):
             self._skip = False
         elif tag in ("p", "div", "li", "h1", "h2", "h3", "h4"):
             self.parts.append("\n")
@@ -283,23 +99,39 @@ def strip_html(html_text: str) -> str:
         return unescape(re.sub(r"<[^>]+>", " ", html_text)).strip()
 
 
+def is_deep_article_url(url: str) -> bool:
+    """Returns True only if the URL points to a specific path/page, not just a bare domain root."""
+    if not url or not url.startswith(("http://", "https://")):
+        return False
+    try:
+        parsed = urllib.parse.urlparse(url)
+        if not parsed.netloc:
+            return False
+        path_clean = (parsed.path or "").strip("/")
+        # Reject bare homepages like https://www.ehi.org or https://www.bsi.bund.de/de
+        if len(path_clean) <= 3 and not parsed.query:
+            return False
+        return True
+    except Exception:
+        return False
+
+
 def make_article_id(url: str, title: str = "") -> str:
-    basis = (url or title or str(time.time())).encode("utf-8", errors="ignore")
+    basis = (title or url or str(time.time())).encode("utf-8", errors="ignore")
     return hashlib.sha1(basis).hexdigest()[:16]
 
 
 def get_gemini_api_key() -> str:
     load_dotenv(os.path.join(BASE_DIR, ".env"), override=False)
     load_dotenv(os.path.join(PANEL_DIR, ".env"), override=False)
-    key = os.getenv("GEMINI_API_KEY", "").strip().strip('"').strip("'")
-    return key
+    return os.getenv("GEMINI_API_KEY", "").strip().strip('"').strip("'")
 
 
 def load_news_store() -> dict:
     default_store = {
-        "last_updated": datetime.now().strftime("%d.%m.%Y %H:%M"),
+        "last_updated": None,
         "queries": DEFAULT_QUERIES,
-        "articles": list(SEED_ARTICLES)
+        "articles": []
     }
     if not os.path.exists(NEWS_DATA_FILE):
         save_news_store(default_store)
@@ -309,8 +141,16 @@ def load_news_store() -> dict:
             data = json.load(f)
             if not isinstance(data, dict):
                 return default_store
-            if "articles" not in data or not isinstance(data["articles"], list) or len(data["articles"]) == 0:
-                data["articles"] = list(SEED_ARTICLES)
+            articles = data.get("articles")
+            if not isinstance(articles, list):
+                articles = []
+            # Clean out any old synthetic seed articles that had bare homepage URLs
+            cleaned_articles = [
+                a for a in articles
+                if not str(a.get("id", "")).startswith("rehber-")
+                or is_deep_article_url(a.get("resolved_url") or a.get("url") or "")
+            ]
+            data["articles"] = cleaned_articles
             if "queries" not in data or not isinstance(data["queries"], list) or len(data["queries"]) == 0:
                 data["queries"] = DEFAULT_QUERIES
             return data
@@ -345,14 +185,12 @@ def is_likely_irrelevant(title: str, snippet: str = "") -> bool:
     combined = f"{title} {snippet}".lower()
     for neg in NEGATIVE_KEYWORDS:
         if neg in combined:
-            # Only keep if it also explicitly mentions Kassensystem / Registrierkasse / KassenSichV / TSE
             if not any(pos in combined for pos in ["registrierkasse", "kassensystem", "kassensichv", "bonpflicht", "pos-system"]):
                 return True
     return False
 
 
 def google_translate_fallback(text: str, target_lang: str = "tr") -> str:
-    """Fallback translation using Google Translate public endpoint if Gemini is unavailable."""
     if not text or not text.strip():
         return ""
     try:
@@ -369,7 +207,6 @@ def google_translate_fallback(text: str, target_lang: str = "tr") -> str:
 
 
 def call_gemini_json(prompt: str, temperature: float = 0.2, max_tokens: int = 4096):
-    """Calls Gemini REST API directly without requiring heavy SDK dependencies."""
     api_key = get_gemini_api_key()
     if not api_key:
         return None, "GEMINI_API_KEY tanımlı değil."
@@ -406,7 +243,6 @@ def call_gemini_json(prompt: str, temperature: float = 0.2, max_tokens: int = 40
                     parts = candidates[0].get("content", {}).get("parts") or []
                     if parts and "text" in parts[0]:
                         raw_text = parts[0]["text"].strip()
-                        # Strip markdown code fences if present
                         if raw_text.startswith("```"):
                             raw_text = re.sub(r"^```(?:json)?\s*", "", raw_text)
                             raw_text = re.sub(r"\s*```$", "", raw_text)
@@ -426,7 +262,126 @@ def call_gemini_json(prompt: str, temperature: float = 0.2, max_tokens: int = 40
     return None, last_err or "Gemini API yanıt vermedi."
 
 
-def fetch_raw_rss_items(queries=None, days: int = 30, per_query_limit: int = 10) -> list:
+def resolve_google_news_url(gnews_url: str, title: str = "", source: str = "") -> str:
+    """
+    Decodes a Google News RSS article link (https://news.google.com/rss/articles/CBMi...)
+    into the exact deep publisher URL where the article lives.
+    """
+    if not gnews_url:
+        return ""
+    if "news.google.com" not in gnews_url and "bing.com/news/apiclick" not in gnews_url:
+        return gnews_url
+
+    # Case 0: Bing News apiclick URL with ?url=...
+    if "bing.com/news/apiclick" in gnews_url:
+        try:
+            parsed_q = urllib.parse.parse_qs(urllib.parse.urlparse(gnews_url).query)
+            if "url" in parsed_q and parsed_q["url"]:
+                candidate = parsed_q["url"][0]
+                if is_deep_article_url(candidate):
+                    return candidate
+        except Exception:
+            pass
+
+    m = re.search(r"/(?:rss/)?articles/([A-Za-z0-9_-]+)", gnews_url)
+    art_id = m.group(1) if m else ""
+
+    # Step 1: Legacy base64 decode (if URL is directly embedded in protobuf bytes)
+    if art_id:
+        try:
+            padding = "=" * (-len(art_id) % 4)
+            raw_bytes = base64.urlsafe_b64decode(art_id + padding)
+            decoded_latin = raw_bytes.decode("latin1", errors="ignore")
+            url_match = re.search(r"(https?://[^\x00-\x1f\x7f-\xff\"'<>\\]+)", decoded_latin)
+            if url_match:
+                candidate = url_match.group(1)
+                if "news.google.com" not in candidate and is_deep_article_url(candidate):
+                    return candidate
+        except Exception:
+            pass
+
+    # Step 2: Modern Google News batchexecute (Fbv4je) RPC resolution
+    if art_id:
+        for prefix in ("https://news.google.com/articles/", "https://news.google.com/rss/articles/"):
+            try:
+                page_url = f"{prefix}{art_id}?hl=de&gl=DE&ceid=DE:de"
+                headers = {
+                    **BROWSER_HEADERS,
+                    "Cookie": "CONSENT=YES+cb.20230531-04-p0.de+FX+999; SOCS=CAESHAgBEhJnd3NfMjAyNDA1MjItMF9SQzIaAmRlIAEaBgiA_LyaBg"
+                }
+                req = urllib.request.Request(page_url, headers=headers)
+                with urllib.request.urlopen(req, timeout=8) as resp:
+                    html_str = resp.read().decode("utf-8", errors="ignore")
+
+                # Check if direct data-n-au or canonical external link exists in HTML
+                au_match = re.search(r'data-n-au="([^"]+)"', html_str)
+                if au_match and is_deep_article_url(au_match.group(1)):
+                    return unescape(au_match.group(1))
+
+                ts_match = re.search(r'data-n-a-ts="(\d+)"', html_str)
+                sg_match = re.search(r'data-n-a-sg="([^"]+)"', html_str)
+                id_match = re.search(r'data-n-a-id="([^"]+)"', html_str)
+
+                if ts_match and sg_match:
+                    ts = ts_match.group(1)
+                    sg = sg_match.group(1)
+                    real_id = id_match.group(1) if id_match else art_id
+
+                    inner_req = (
+                        f'["garturlreq",[["X","X",["X","X"],null,null,1,1,"DE:de",null,1,'
+                        f'null,null,null,null,null,0,1],"X","X",1,[1,1,1],1,1,null,0,0,null,0],'
+                        f'"{real_id}",{ts},"{sg}"]'
+                    )
+                    f_req = json.dumps([[["Fbv4je", inner_req, None, "generic"]]])
+                    post_data = urllib.parse.urlencode({"f.req": f_req}).encode("utf-8")
+
+                    rpc_url = "https://news.google.com/_/DotsSplashUi/data/batchexecute?rpcids=Fbv4je"
+                    rpc_headers = {
+                        **headers,
+                        "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8",
+                        "Referer": "https://news.google.com/"
+                    }
+                    rpc_req = urllib.request.Request(rpc_url, data=post_data, headers=rpc_headers, method="POST")
+                    with urllib.request.urlopen(rpc_req, timeout=8) as rpc_resp:
+                        rpc_text = rpc_resp.read().decode("utf-8", errors="ignore")
+
+                    # Unescape JSON string inside batchexecute response
+                    res_match = re.search(r'\["garturlres","(https?:[^"]+)"', rpc_text)
+                    if not res_match:
+                        res_match = re.search(r'\\"garturlres\\",\\"(https?:[^\\"]+)\\"', rpc_text)
+                    if res_match:
+                        resolved = res_match.group(1).replace("\\/", "/").replace("\\u003d", "=").replace("\\u0026", "&")
+                        if is_deep_article_url(resolved):
+                            return resolved
+                    break
+            except Exception as e:
+                print(f"[kasahaberleri] Fbv4je çözümleme uyarısı: {e}")
+
+    # Step 3: Fallback search via Bing News RSS by exact headline to obtain direct deep article URL
+    if title:
+        try:
+            search_q = f'"{title[:80]}" {source}'.strip()
+            b_url = f"https://www.bing.com/news/search?q={urllib.parse.quote(search_q)}&setlang=de-de&cc=DE&format=rss"
+            req = urllib.request.Request(b_url, headers=BROWSER_HEADERS)
+            with urllib.request.urlopen(req, timeout=6) as resp:
+                b_xml = resp.read()
+            b_root = ET.fromstring(b_xml)
+            first_item = b_root.find(".//item")
+            if first_item is not None:
+                b_link = (first_item.findtext("link") or "").strip()
+                if "url=" in b_link:
+                    pq = urllib.parse.parse_qs(urllib.parse.urlparse(b_link).query)
+                    if "url" in pq and pq["url"] and is_deep_article_url(pq["url"][0]):
+                        return pq["url"][0]
+                elif is_deep_article_url(b_link):
+                    return b_link
+        except Exception:
+            pass
+
+    return gnews_url
+
+
+def fetch_raw_rss_items(queries=None, days: int = 30, per_query_limit: int = 8) -> list:
     if queries is None:
         store = load_news_store()
         queries = store.get("queries") or DEFAULT_QUERIES
@@ -435,22 +390,67 @@ def fetch_raw_rss_items(queries=None, days: int = 30, per_query_limit: int = 10)
     seen_urls = set()
     seen_titles = set()
 
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "application/rss+xml, application/xml, text/xml;q=0.9, */*;q=0.8",
-        "Accept-Language": "de-DE,de;q=0.9,en;q=0.8"
-    }
-
     for q_obj in queries:
         q_str = q_obj["query"] if isinstance(q_obj, dict) else str(q_obj)
         default_cat = q_obj.get("category", "sektor") if isinstance(q_obj, dict) else "sektor"
         query_label = q_obj.get("label", q_str) if isinstance(q_obj, dict) else q_str
 
+        # 1. Fetch from Bing News RSS first (provides direct unencrypted deep article URLs in ?url=...)
+        try:
+            b_encoded = urllib.parse.quote(q_str)
+            b_url = f"https://www.bing.com/news/search?q={b_encoded}&setlang=de-de&cc=DE&format=rss"
+            req = urllib.request.Request(b_url, headers=BROWSER_HEADERS)
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                xml_bytes = resp.read()
+            root = ET.fromstring(xml_bytes)
+            for item in root.findall(".//item")[:per_query_limit // 2 + 2]:
+                title = (item.findtext("title") or "").strip()
+                raw_link = (item.findtext("link") or "").strip()
+                pub_date = (item.findtext("pubDate") or "").strip()
+                desc_html = (item.findtext("description") or "").strip()
+                snippet = strip_html(desc_html)
+
+                # Extract direct article URL from Bing's apiclick wrapper
+                deep_link = raw_link
+                if "url=" in raw_link:
+                    pq = urllib.parse.parse_qs(urllib.parse.urlparse(raw_link).query)
+                    if "url" in pq and pq["url"]:
+                        deep_link = pq["url"][0]
+
+                if not title or not is_deep_article_url(deep_link):
+                    continue
+
+                source_name = urllib.parse.urlparse(deep_link).netloc.replace("www.", "")
+                norm_title = re.sub(r"\W+", "", title.lower())
+                if deep_link in seen_urls or norm_title in seen_titles:
+                    continue
+                if is_likely_irrelevant(title, snippet):
+                    continue
+
+                seen_urls.add(deep_link)
+                seen_titles.add(norm_title)
+                dt = parse_rss_date(pub_date)
+                raw_items.append({
+                    "id": make_article_id(deep_link, title),
+                    "original_title": title,
+                    "url": deep_link,
+                    "resolved_url": deep_link,
+                    "source": source_name,
+                    "published_at": dt.isoformat(),
+                    "date_display": dt.strftime("%d.%m.%Y %H:%M"),
+                    "rss_snippet": snippet[:600],
+                    "default_category": default_cat,
+                    "query_label": query_label,
+                })
+        except Exception as e:
+            print(f"[kasahaberleri] Bing RSS uyarısı ({q_str}): {e}")
+
+        # 2. Fetch from Google News RSS
         try:
             encoded_query = urllib.parse.quote(f"{q_str} when:{days}d")
             url = f"https://news.google.com/rss/search?q={encoded_query}&hl=de&gl=DE&ceid=DE:de"
-            req = urllib.request.Request(url, headers=headers)
-            with urllib.request.urlopen(req, timeout=12) as resp:
+            req = urllib.request.Request(url, headers=BROWSER_HEADERS)
+            with urllib.request.urlopen(req, timeout=10) as resp:
                 xml_bytes = resp.read()
 
             root = ET.fromstring(xml_bytes)
@@ -465,14 +465,12 @@ def fetch_raw_rss_items(queries=None, days: int = 30, per_query_limit: int = 10)
                 link = (link_el.text or "").strip() if link_el is not None else ""
                 pub_date = (pub_el.text or "").strip() if pub_el is not None else ""
                 source_name = (source_el.text or "Google News").strip() if source_el is not None else "Google News"
-                source_url = source_el.attrib.get("url", "") if source_el is not None else ""
                 desc_html = (desc_el.text or "").strip() if desc_el is not None else ""
                 snippet = strip_html(desc_html)
 
                 if not title or not link:
                     continue
 
-                # Clean source suffix from title if duplicated
                 clean_title = title
                 if source_name and clean_title.endswith(f" - {source_name}"):
                     clean_title = clean_title[:-len(f" - {source_name}")].strip()
@@ -492,8 +490,8 @@ def fetch_raw_rss_items(queries=None, days: int = 30, per_query_limit: int = 10)
                     "id": make_article_id(link, clean_title),
                     "original_title": clean_title,
                     "url": link,
+                    "resolved_url": "",
                     "source": source_name,
-                    "source_url": source_url,
                     "published_at": dt.isoformat(),
                     "date_display": dt.strftime("%d.%m.%Y %H:%M"),
                     "rss_snippet": snippet[:600],
@@ -501,14 +499,13 @@ def fetch_raw_rss_items(queries=None, days: int = 30, per_query_limit: int = 10)
                     "query_label": query_label,
                 })
         except Exception as e:
-            print(f"[kasahaberleri] RSS hatası ({q_str}): {e}")
+            print(f"[kasahaberleri] Google News RSS hatası ({q_str}): {e}")
 
     raw_items.sort(key=lambda x: x.get("published_at", ""), reverse=True)
     return raw_items
 
 
 def enrich_items_with_gemini(items: list) -> list:
-    """Uses Gemini AI to filter, categorize, summarize in Turkish, and explain impact on POS/Kasse business."""
     if not items:
         return []
 
@@ -525,7 +522,7 @@ def enrich_items_with_gemini(items: list) -> list:
 
     prompt = f"""Sen Almanya'daki yazar kasa sistemleri (Kassensysteme, Registrierkassen, POS), vergi mevzuatı (KassenSichV, GoBD, DSFinV-K, § 146a AO Kassenmeldepflicht, Kassen-Nachschau, E-Rechnung, Bonpflicht), TSE (Technische Sicherheitseinrichtung, BSI, Cloud-TSE, Fiskaly, Swissbit) ve DATEV/ELSTER entegrasyonları konusunda uzman bir danışmansın.
 
-Aşağıda Almanya Google News üzerinden çekilmiş haber başlıkları ve özet kesitleri yer alıyor.
+Aşağıda Almanya haber kaynaklarından çekilmiş haber başlıkları ve özet kesitleri yer alıyor.
 Görevlerin:
 1. Haberin gerçekten **Kasa Sistemleri (POS/Registrierkasse), Ticari Vergi/Muhasebe Mevzuatı (KassenSichV, GoBD, E-Rechnung, Finanzamt denetimi, ELSTER, DATEV), Perakende/Gastronomi Ödeme ve Kasa Teknolojileri** ile alakalı olup olmadığını değerlendir (`relevant`: true/false).
    - Eğer haber sağlık sigortası (Krankenkasse), devlet bütçesi, belediye kasası, spor kulübü veya alakasız genel politika ise `relevant: false` yap.
@@ -542,7 +539,7 @@ Görevlerin:
    - `impact_tr`: **Kasa sağlayıcısı / teknik servis ve işletmeler açısından önemi nedir?** (1-2 cümleyle "Bu gelişme neden önemli / neye dikkat edilmeli?" sorusunun cevabı).
    - `tags`: Konuyla ilgili 2-4 kısa anahtar kelime dizisi (örn: `["KassenSichV", "Meldepflicht", "2026"]`).
 
-JSON formatında bir dizi (array) döndür. Her eleman şu şemada olmalı:
+JSON formatında bir dizi (array) döndür:
 [
   {{
     "idx": 0,
@@ -606,26 +603,40 @@ JSON formatında bir dizi (array) döndür. Her eleman şu şemada olmalı:
             raw["ai_processed"] = False
             enriched.append(raw)
 
+    # Resolve deep article URLs for selected items
+    for item in enriched:
+        if not is_deep_article_url(item.get("resolved_url", "")):
+            resolved = resolve_google_news_url(
+                item.get("url", ""),
+                title=item.get("original_title", ""),
+                source=item.get("source", "")
+            )
+            if is_deep_article_url(resolved) and "news.google.com" not in resolved:
+                item["resolved_url"] = resolved
+                item["url"] = resolved
+
     return enriched
 
 
 def refresh_news(max_new_items: int = 25, days: int = 30) -> dict:
-    """Fetches latest RSS news, processes new items with Gemini AI, and merges into news_data.json."""
     store = load_news_store()
     existing_articles = store.get("articles", [])
     existing_by_id = {a.get("id"): a for a in existing_articles if a.get("id")}
     existing_urls = {a.get("url") for a in existing_articles if a.get("url")}
+    existing_titles = {re.sub(r"\W+", "", (a.get("original_title") or "").lower()) for a in existing_articles}
 
     raw_items = fetch_raw_rss_items(store.get("queries"), days=days, per_query_limit=8)
 
-    new_candidates = [
-        item for item in raw_items
-        if item["id"] not in existing_by_id and item["url"] not in existing_urls
-    ][:max_new_items]
+    new_candidates = []
+    for item in raw_items:
+        norm_t = re.sub(r"\W+", "", (item.get("original_title") or "").lower())
+        if item["id"] not in existing_by_id and item["url"] not in existing_urls and norm_t not in existing_titles:
+            new_candidates.append(item)
+            if len(new_candidates) >= max_new_items:
+                break
 
     added_count = 0
     if new_candidates:
-        # Process in chunks of 15 so Gemini JSON response never truncates
         enriched_new = []
         chunk_size = 15
         for i in range(0, len(new_candidates), chunk_size):
@@ -640,10 +651,8 @@ def refresh_news(max_new_items: int = 25, days: int = 30) -> dict:
             existing_articles.append(item)
             added_count += 1
 
-    # Sort all articles: newest published first
     existing_articles.sort(key=lambda x: x.get("published_at", ""), reverse=True)
 
-    # Keep bookmarked articles + latest 300 articles
     bookmarked = [a for a in existing_articles if a.get("is_bookmarked")]
     non_bookmarked = [a for a in existing_articles if not a.get("is_bookmarked")][:300]
     merged = bookmarked + non_bookmarked
@@ -660,109 +669,140 @@ def refresh_news(max_new_items: int = 25, days: int = 30) -> dict:
     }
 
 
-def _try_extract_url_from_google_news(gnews_url: str) -> str:
-    """Attempts to decode or resolve a Google News RSS link if possible."""
-    if not gnews_url or "news.google.com" not in gnews_url:
-        return gnews_url
+def scrape_webpage_text(url: str, title: str = "", source: str = "") -> tuple:
+    """
+    Resolves the exact deep article URL and extracts the article's full readable text
+    from JSON-LD articleBody, meta description, and <article>/<p> tags.
+    """
+    resolved_url = resolve_google_news_url(url, title=title, source=source)
 
-    # 1. Try base64 decoding if legacy CBMi URL contains direct http string
     try:
-        m = re.search(r"/articles/([A-Za-z0-9_-]+)", gnews_url)
-        if m:
-            b64_part = m.group(1)
-            padding = "=" * (-len(b64_part) % 4)
-            import base64
-            raw_bytes = base64.urlsafe_b64decode(b64_part + padding)
-            decoded_latin = raw_bytes.decode("latin1", errors="ignore")
-            url_match = re.search(r"(https?://[^\x00-\x1f\x7f-\xff\"'<>\\]+)", decoded_latin)
-            if url_match:
-                candidate = url_match.group(1)
-                if "news.google.com" not in candidate and "." in candidate:
-                    return candidate
-    except Exception:
-        pass
-
-    return gnews_url
-
-
-def scrape_webpage_text(url: str) -> tuple:
-    """Tries to fetch webpage HTML and extract readable article paragraphs."""
-    resolved_url = _try_extract_url_from_google_news(url)
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-        "Accept-Language": "de-DE,de;q=0.9,en;q=0.8"
-    }
-    try:
-        req = urllib.request.Request(resolved_url, headers=headers)
-        with urllib.request.urlopen(req, timeout=10) as resp:
+        req = urllib.request.Request(resolved_url, headers=BROWSER_HEADERS)
+        with urllib.request.urlopen(req, timeout=12) as resp:
             final_url = resp.geturl()
-            html_bytes = resp.read(350_000)
+            html_bytes = resp.read(500_000)
             html_str = html_bytes.decode("utf-8", errors="ignore")
 
         if "news.google.com" in final_url or "consent.google.com" in final_url:
-            return "", final_url
+            return "", resolved_url
 
-        # Extract <p> and <article> content
-        paragraphs = re.findall(r"<p[^>]*>(.*?)</p>", html_str, flags=re.IGNORECASE | re.DOTALL)
-        cleaned_paras = []
+        extracted_blocks = []
+
+        # 1. Try JSON-LD (articleBody / description) used by German publishers
+        ld_matches = re.findall(
+            r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+            html_str,
+            flags=re.IGNORECASE | re.DOTALL
+        )
+        for ld_raw in ld_matches:
+            try:
+                ld_obj = json.loads(ld_raw.strip())
+                objs = ld_obj if isinstance(ld_obj, list) else [ld_obj]
+                for o in objs:
+                    if isinstance(o, dict):
+                        body_txt = o.get("articleBody") or o.get("text") or ""
+                        if isinstance(body_txt, str) and len(body_txt.strip()) > 80:
+                            extracted_blocks.append(strip_html(body_txt))
+            except Exception:
+                pass
+
+        # 2. Extract meta description / og:description
+        meta_desc = re.search(
+            r'<meta[^>]+(?:property=["\']og:description["\']|name=["\']description["\'])[^>]+content=["\']([^"\']+)["\']',
+            html_str,
+            flags=re.IGNORECASE
+        )
+        if meta_desc:
+            md_txt = unescape(meta_desc.group(1)).strip()
+            if len(md_txt) > 40:
+                extracted_blocks.append(md_txt)
+
+        # 3. Extract <article> or <main> paragraphs first, fallback to all <p>
+        article_match = re.search(r"<article[^>]*>(.*?)</article>", html_str, flags=re.IGNORECASE | re.DOTALL)
+        if not article_match:
+            article_match = re.search(r"<main[^>]*>(.*?)</main>", html_str, flags=re.IGNORECASE | re.DOTALL)
+        scope_html = article_match.group(1) if article_match else html_str
+
+        paragraphs = re.findall(r"<p[^>]*>(.*?)</p>", scope_html, flags=re.IGNORECASE | re.DOTALL)
         for p in paragraphs:
             txt = strip_html(p).strip()
-            if len(txt) > 45 and not any(skip in txt.lower() for skip in ["cookie", "datenschutz", "impressum", "newsletter abon"]):
-                cleaned_paras.append(txt)
+            if len(txt) > 45 and not any(
+                skip in txt.lower()
+                for skip in ["cookie", "datenschutz", "impressum", "newsletter abon", "alle rechte vorbehalten", "anmelden"]
+            ):
+                if txt not in extracted_blocks:
+                    extracted_blocks.append(txt)
 
-        full_text = "\n\n".join(cleaned_paras[:25])
-        return full_text[:8000], final_url
-    except Exception:
+        full_text = "\n\n".join(extracted_blocks[:30])
+        best_url = final_url if is_deep_article_url(final_url) else resolved_url
+        return full_text[:9000], best_url
+    except Exception as e:
+        print(f"[kasahaberleri] Sayfa okuma uyarısı ({resolved_url}): {e}")
         return "", resolved_url
 
 
 def build_article_reader_content(article_id: str, force_refresh: bool = False) -> dict:
-    """Returns rich Turkish reading content & legal/technical analysis for a specific article."""
     store = load_news_store()
     articles = store.get("articles", [])
     target = next((a for a in articles if a.get("id") == article_id), None)
     if not target:
         return {"error": "Haber bulunamadı."}
 
-    # Mark as read automatically
     target["is_read"] = True
 
-    if target.get("reader_content") and not force_refresh:
+    # Ensure deep URL is resolved even if reader_content was cached earlier
+    current_url = target.get("resolved_url") or target.get("url") or ""
+    if "news.google.com" in current_url or not is_deep_article_url(current_url):
+        resolved = resolve_google_news_url(
+            target.get("url", ""),
+            title=target.get("original_title", ""),
+            source=target.get("source", "")
+        )
+        if is_deep_article_url(resolved) and "news.google.com" not in resolved:
+            target["resolved_url"] = resolved
+            target["url"] = resolved
+
+    if target.get("reader_content") and not force_refresh and target["reader_content"].get("scraped_de"):
         save_news_store(store)
         return {"article": target, "reader": target["reader_content"]}
-
-    scraped_de, final_url = scrape_webpage_text(target.get("url", ""))
-    if final_url and "news.google.com" not in final_url:
-        target["resolved_url"] = final_url
 
     title_de = target.get("original_title", "")
     source = target.get("source", "")
     date_str = target.get("date_display", "")
     snippet_de = target.get("rss_snippet", "")
 
+    scraped_de, final_url = scrape_webpage_text(
+        target.get("resolved_url") or target.get("url", ""),
+        title=title_de,
+        source=source
+    )
+    if is_deep_article_url(final_url) and "news.google.com" not in final_url:
+        target["resolved_url"] = final_url
+        target["url"] = final_url
+
     prompt = f"""Sen Almanya kasa sistemleri (Kassensysteme / POS), KassenSichV, GoBD, TSE, § 146a AO Kassenmeldepflicht, E-Rechnung, Kassen-Nachschau, DATEV ve ELSTER konularında uzman bir eğitmen ve danışmansın.
 
-Kullanıcı Panel içindeki okuma ekranında şu haberi/konuyu açtı:
+Kullanıcı Panel içindeki okuma ekranında şu haberi açtı:
 - Orijinal Başlık (Almanca): {title_de}
 - Kaynak: {source} ({date_str})
+- Haberin Tam Bağlantısı: {target.get("resolved_url") or target.get("url", "")}
 - RSS Özeti / Kesit: {snippet_de}
-- Web Sayfasından Çekilen Metin (varsa): {scraped_de if scraped_de else "(Kaynak site doğrudan bot erişimini kısıtlıyor, başlık ve mevzuat/sektör bağlamına göre kapsamlı analiz üret)"}
+- Haberin Web Sayfasından Çekilen Orijinal Metni:
+{scraped_de if scraped_de else "(Haber sitesinin tam metnine doğrudan erişilemedi, başlık ve RSS özetinden hareketle haberin tam içeriğini açıkla)"}
 
-Lütfen kullanıcıya bu haberi ve ilgili konuyu kasa sistemleri özelinde tam olarak öğretecek, okunaklı ve kapsamlı bir Türkçe içerik hazırla.
-JSON formatında şu alanları döndür:
+Lütfen JSON formatında şu alanları döndür:
 {{
-  "title_tr": "Haberin/Konunun Türkçe Başlığı",
-  "lead_tr": "Haberin 2-3 cümlelik çarpıcı giriş özeti",
-  "article_body_tr": "Eğer web metni varsa tam ve akıcı Türkçe çevirisi/özeti; eğer web metni kısıtlıysa bu haberin konusu olan gelişmenin tüm detaylarıyla 3-4 paragraflık kapsamlı Türkçe anlatımı (paragrafları \\n\\n ile ayır).",
-  "legal_or_tech_context_tr": "Kanuni veya Teknolojik Arka Plan: Bu konu Almanya'daki hangi yasa (örn. § 146a AO, KassenSichV, GoBD, DSFinV-K, E-Rechnung) veya hangi kasa teknolojisi (TSE, Cloud-TSE, SoftPOS, DATEV/ELSTER) ile ilgilidir? Teknik/hukuki olarak ne anlama gelir?",
+  "title_tr": "Haberin Türkçe Başlığı",
+  "lead_tr": "Haberin 2-3 cümlelik net giriş özeti",
+  "article_body_tr": "Haber metninin eksiksiz, akıcı ve anlaşılır Türkçe çevirisi ve detaylı anlatımı (paragrafları \\n\\n ile ayır).",
+  "legal_or_tech_context_tr": "Kanuni veya Teknolojik Arka Plan: Bu haber Almanya'daki hangi yasa (örn. § 146a AO, KassenSichV, GoBD, DSFinV-K, E-Rechnung) veya hangi kasa teknolojisi (TSE, Cloud-TSE, SoftPOS, DATEV/ELSTER) ile ilgilidir?",
   "action_items_tr": [
     "Kasa satışı, kurulumu, teknik servisi veya işletmeler için dikkat edilmesi gereken 1. somut madde",
     "2. somut madde",
     "3. somut madde"
   ],
   "glossary": [
-    {{"term": "Haberde geçen önemli Almanca terim (örn. Kassen-Nachschau)", "meaning_tr": "Kısa ve net Türkçe açıklaması"}}
+    {{"term": "Haberde geçen önemli Almanca terim", "meaning_tr": "Türkçe açıklaması"}}
   ]
 }}
 """
@@ -776,19 +816,19 @@ JSON formatında şu alanları döndür:
             "legal_or_tech_context_tr": parsed.get("legal_or_tech_context_tr") or target.get("impact_tr") or "",
             "action_items_tr": parsed.get("action_items_tr") if isinstance(parsed.get("action_items_tr"), list) else [],
             "glossary": parsed.get("glossary") if isinstance(parsed.get("glossary"), list) else [],
-            "scraped_de": scraped_de[:3000] if scraped_de else "",
+            "scraped_de": scraped_de[:4000] if scraped_de else snippet_de,
             "generated_at": datetime.now().strftime("%d.%m.%Y %H:%M")
         }
     else:
-        translated_body = google_translate_fallback(scraped_de) if scraped_de else (target.get("summary_tr") or google_translate_fallback(title_de))
+        translated_body = google_translate_fallback(scraped_de) if scraped_de else (target.get("summary_tr") or google_translate_fallback(snippet_de or title_de))
         reader_data = {
             "title_tr": target.get("title_tr") or title_de,
             "lead_tr": target.get("summary_tr") or "",
             "article_body_tr": translated_body,
-            "legal_or_tech_context_tr": target.get("impact_tr") or f"Gemini analizi şu an alınamadı ({err}). Orijinal kaynağı aşağıdaki bağlantıdan inceleyebilirsiniz.",
+            "legal_or_tech_context_tr": target.get("impact_tr") or "",
             "action_items_tr": [],
             "glossary": [],
-            "scraped_de": scraped_de[:3000] if scraped_de else "",
+            "scraped_de": scraped_de[:4000] if scraped_de else snippet_de,
             "generated_at": datetime.now().strftime("%d.%m.%Y %H:%M")
         }
 
@@ -798,7 +838,6 @@ JSON formatında şu alanları döndür:
 
 
 def ask_kasa_knowledge_ai(question: str) -> dict:
-    """Allows the user to ask or research any German POS law, regulation, or technology topic in Turkish."""
     if not question or not question.strip():
         return {"error": "Lütfen bir soru veya konu başlığı girin."}
 

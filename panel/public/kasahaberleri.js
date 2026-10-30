@@ -216,6 +216,9 @@ async function loadKasaHaberleri() {
             khState.queries = Array.isArray(data.queries) ? data.queries : [];
             khState.lastUpdated = data.last_updated || '-';
             updateKhUI();
+            if (khState.articles.length === 0 && !khState.loading) {
+                await fetchNewKasaHaberleri();
+            }
         }
     } catch (err) {
         console.error('Kasa haberleri yüklenemedi:', err);
@@ -491,16 +494,26 @@ async function openKasaHaberiReader(articleId, forceRefresh = false) {
             ${catMeta.icon} ${khEscapeHtml(catMeta.name)}
         </span>
     `;
+    const updateModalLinks = (art) => {
+        const fullUrl = art.resolved_url || art.url || '#';
+        extLinkEl.href = fullUrl;
+        subMetaEl.innerHTML = `
+            <div><b>Orijinal Başlık (DE):</b> ${khEscapeHtml(art.original_title)} &nbsp;|&nbsp; <b>Kaynak:</b> ${khEscapeHtml(art.source)} &nbsp;|&nbsp; <b>Tarih:</b> ${khEscapeHtml(art.date_display)}</div>
+            <div style="margin-top:4px; word-break:break-all;"><b>🔗 Haberin Tam Adresi:</b> <a href="${khEscapeHtml(fullUrl)}" target="_blank" rel="noopener noreferrer" style="color:var(--secondary-color); text-decoration:underline;">${khEscapeHtml(fullUrl)}</a></div>
+        `;
+    };
+
     titleEl.textContent = article.title_tr || article.original_title;
-    subMetaEl.innerHTML = `<b>Orijinal Başlık (DE):</b> ${khEscapeHtml(article.original_title)} &nbsp;|&nbsp; <b>Kaynak:</b> ${khEscapeHtml(article.source)} &nbsp;|&nbsp; <b>Tarih:</b> ${khEscapeHtml(article.date_display)}`;
-    extLinkEl.href = article.resolved_url || article.url || '#';
+    updateModalLinks(article);
     bookmarkBtn.innerHTML = article.is_bookmarked ? '★ Favorilerde Kayıtlı' : '☆ Favorilere Ekle';
 
     overlay.style.display = 'flex';
 
-    if (article.reader_content && !forceRefresh) {
+    const currentUrl = article.resolved_url || article.url || '';
+    const needsDeepResolve = currentUrl.includes('news.google.com') || !(article.reader_content && article.reader_content.scraped_de);
+
+    if (article.reader_content && !forceRefresh && !needsDeepResolve) {
         renderReaderBodyContent(article, article.reader_content);
-        // Also mark read on backend quietly
         fetch('/api/kasahaberleri/update-item', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -513,10 +526,10 @@ async function openKasaHaberiReader(articleId, forceRefresh = false) {
         <div style="text-align:center; padding:45px 20px;">
             <div style="font-size:2rem; margin-bottom:12px;">🤖📖</div>
             <div style="font-size:1.1rem; font-weight:600; color:var(--primary-color);">
-                Haber kaynağı inceleniyor ve Türkçe kapsamlı analiz hazırlanıyor...
+                Haberin tam bağlantısı çözümleniyor, makale metni çekiliyor ve Türkçeye çevriliyor...
             </div>
             <div style="font-size:0.9rem; color:var(--text-muted); margin-top:8px;">
-                Makale içeriği, kasa sistemleri mevzuat/teknoloji bağlamı ve dikkat edilmesi gereken maddeler Gemini AI tarafından oluşturuluyor.
+                Haber kaynağındaki tam metin ve kasa sistemleri mevzuat/teknoloji analizi Gemini AI tarafından hazırlanıyor.
             </div>
         </div>
     `;
@@ -530,9 +543,11 @@ async function openKasaHaberiReader(articleId, forceRefresh = false) {
         const data = await res.json();
         if (data && data.success && data.reader) {
             article.reader_content = data.reader;
-            if (data.article && data.article.resolved_url) {
-                article.resolved_url = data.article.resolved_url;
-                extLinkEl.href = article.resolved_url;
+            if (data.article) {
+                if (data.article.resolved_url) article.resolved_url = data.article.resolved_url;
+                if (data.article.url) article.url = data.article.url;
+                updateModalLinks(article);
+                updateKhUI();
             }
             renderReaderBodyContent(article, data.reader);
         } else {
