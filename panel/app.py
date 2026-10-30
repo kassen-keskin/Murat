@@ -2124,7 +2124,11 @@ def manage_kargo_tickets():
 
 @app.route('/api/tse/scan', methods=['GET'])
 def scan_tse():
-    exe_path = os.path.join(app.static_folder, 'TseInfoReader', 'TseInfoReader.exe')
+    candidates = [
+        os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'tools', 'TseInfoReader', 'TseInfoReader.exe')),
+        os.path.join(app.static_folder, 'TseInfoReader', 'TseInfoReader.exe')
+    ]
+    exe_path = next((p for p in candidates if os.path.exists(p)), candidates[0])
     if not os.path.exists(exe_path):
         return jsonify({"error": f"TseInfoReader.exe bulunamadı: {exe_path}"}), 404
          
