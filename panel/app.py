@@ -418,6 +418,40 @@ def get_aylik_fatura():
     finally:
         conn.close()
 
+@app.route('/api/faturasiz-siparisler')
+def get_faturasiz_siparisler():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        cached = get_cached_data('faturasiz_siparisler')
+        if cached is not None:
+            return make_cached_response(cached, 'HIT')
+
+        query = """
+        SELECT *
+        FROM [Custom].[FaturasizSiparisler] WITH (NOLOCK)
+        ORDER BY [AuftragDate] DESC
+        """
+        cursor.execute(query)
+        columns = [column[0] for column in cursor.description]
+        results = []
+        for row in cursor.fetchall():
+            row_dict = dict(zip(columns, row))
+            if isinstance(row_dict.get('AuftragDate'), (datetime.datetime, datetime.date)):
+                row_dict['AuftragDate'] = row_dict['AuftragDate'].strftime('%Y-%m-%d %H:%M:%S') if isinstance(row_dict['AuftragDate'], datetime.datetime) else row_dict['AuftragDate'].strftime('%Y-%m-%d')
+            results.append(row_dict)
+
+        set_cached_data('faturasiz_siparisler', results)
+        return make_cached_response(results, 'MISS')
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
 @app.route('/api/lotus-lisans')
 def get_lotus_lisans():
     conn = get_db_connection()
