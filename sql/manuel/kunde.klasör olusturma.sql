@@ -1,6 +1,34 @@
-﻿--SELECT  * FROM dbo.Kunde_Trigger_Log ORDER BY LogId DESC;
+﻿SELECT  * FROM dbo.Kunde_Trigger_Log ORDER BY LogId DESC;
 
+
+
+/****** Object:  Table [dbo].[Kunde_Trigger_Log]    Script Date: 05.11.2026 13:07:41 ******/
 /*
+SET ANSI_NULLS ON
+GO
+
+SET QUOTED_IDENTIFIER ON
+GO
+
+CREATE TABLE [dbo].[Kunde_Trigger_Log](
+	[LogId] [int] IDENTITY(1,1) NOT NULL,
+	[LogDate] [datetime] NULL,
+	[ActionType] [nvarchar](20) NULL,
+	[kKunde] [int] NULL,
+	[cKundenNr] [nvarchar](100) NULL,
+	[FolderName] [nvarchar](400) NULL,
+	[CmdOutput] [nvarchar](max) NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[LogId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+
+ALTER TABLE [dbo].[Kunde_Trigger_Log] ADD  DEFAULT (getdate()) FOR [LogDate]
+GO
+
+
 EXEC sp_configure 'show advanced options', 1;
 RECONFIGURE;
 EXEC sp_configure 'xp_cmdshell', 1;
