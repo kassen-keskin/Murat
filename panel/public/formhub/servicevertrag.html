@@ -173,9 +173,24 @@
                                 <textarea id="f_info" class="form-control form-control-sm" rows="3" oninput="sync()" placeholder="Kaufoption und zusätzliche Informationen..."></textarea>
                             </div>
                             <div class="custom-box p-2 rounded">
-                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_gew" onchange="sync()"> <label>Gewerbebescheinigung</label></div>
-                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_anm" onchange="sync()"> <label>Anmeldebescheinigung</label></div>
-                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_id" onchange="sync()"> <label>Personalausweis</label></div>
+                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_gew" onchange="sync()"> <label for="check_gew">Gewerbebescheinigung</label></div>
+                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_anm" onchange="sync()"> <label for="check_anm">Anmeldebescheinigung</label></div>
+                                <div class="form-check small"><input class="form-check-input" type="checkbox" id="check_id" onchange="sync()"> <label for="check_id">Personalausweis</label></div>
+                            </div>
+                            <div class="custom-box p-2 rounded mt-2">
+                                <label class="small fw-bold d-block mb-1">Einmalige Zahlung erhalten? (Pflichtfeld)</label>
+                                <div class="form-check small">
+                                    <input class="form-check-input" type="radio" name="aus_status" id="check_aus_ja" value="ja" onchange="sync()">
+                                    <label class="form-check-label" for="check_aus_ja">Erhalten (Alındı)</label>
+                                </div>
+                                <div id="aus_paid_wrap" class="ms-4 my-1" style="display:none;">
+                                    <label class="small text-muted">Wie viel wurde bezahlt? (€)</label>
+                                    <input type="number" id="f_aus_paid" class="form-control form-control-sm" placeholder="Gezahlter Betrag (€)" step="0.01" min="0" oninput="sync()">
+                                </div>
+                                <div class="form-check small">
+                                    <input class="form-check-input" type="radio" name="aus_status" id="check_aus_nein" value="nein" onchange="sync()">
+                                    <label class="form-check-label" for="check_aus_nein">Nicht erhalten (Alınmadı - Bei Kassenübergabe)</label>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -232,7 +247,7 @@
                 </div>
             </div>
 
-            ﻿            <h6 class="fw-bold mt-3">§ 1 Vertragsgegenstand</h6>
+            <h6 class="fw-bold mt-3">§ 1 Vertragsgegenstand</h6>
             <div class="indent-section">
                 Der Anbieter stellt dem Kunden im Zusammenhang mit dem erworbenen Kassensystem die Nutzung der hierfür erforderlichen Kassensoftware sowie die vereinbarten Service- und Pflegeleistungen zur Verfügung.
                 Die Vereinbarung umfasst insbesondere das Nutzungsrecht an der Kassensoftware, Softwarepflege, Updates sowie technische Unterstützung im vereinbarten Umfang.
@@ -272,6 +287,7 @@
                 Die Mindestvertragslaufzeit beträgt <strong id="v_sure">60</strong> Monate.<br>
                 Die Laufzeit beginnt mit dem auf der Vertragsbestätigung angegebenen Vertragsbeginn (<strong id="v_start">--.--.----</strong>).<br>
                 <span id="v_einmalig_line">Einmalige Einrichtungskosten: <strong id="v_aus_val">0,00 €</strong> Netto (inkl TSE für <strong id="v_tse_val">5</strong> Jahre).</span><br>
+                <div id="v_aus_status" style="display:none; margin-bottom: 2px;"></div>
                 Während der Mindestvertragslaufzeit ist eine ordentliche Kündigung durch den Kunden grundsätzlich ausgeschlossen. Das Recht zur außerordentlichen Kündigung aus wichtigem Grund bleibt für beide Vertragsparteien unberührt.
             </div>
 
@@ -408,6 +424,32 @@
         const v_schaden = document.getElementById('v_schaden');
         if (v_schaden) v_schaden.innerText = schaden.toLocaleString('de-DE', {minimumFractionDigits: 2}) + ' €';
 
+        // Einmalige Zahlung Status
+        const ausJa = document.getElementById('check_aus_ja').checked;
+        const ausNein = document.getElementById('check_aus_nein').checked;
+        const ausPaidWrap = document.getElementById('aus_paid_wrap');
+        const vAusStatus = document.getElementById('v_aus_status');
+
+        ausPaidWrap.style.display = ausJa ? 'block' : 'none';
+
+        if (ausJa) {
+            const paidVal = parseFloat(document.getElementById('f_aus_paid').value) || 0;
+            const paidStr = paidVal.toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+            vAusStatus.style.display = 'block';
+            if (aus > paidVal && paidVal > 0) {
+                const restStr = (aus - paidVal).toLocaleString('de-DE', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + ' €';
+                vAusStatus.innerHTML = `Zahlungsstatus (Einmalig): Bereits erhalten in Höhe von <strong>${paidStr}</strong>. Der Restbetrag von <strong>${restStr}</strong> wird bei Übergabe des Kassensystems erhoben.`;
+            } else {
+                vAusStatus.innerHTML = `Zahlungsstatus (Einmalig): Der Betrag wurde erhalten (Gezahlter Betrag: <strong>${paidStr}</strong>).`;
+            }
+        } else if (ausNein) {
+            vAusStatus.style.display = 'block';
+            vAusStatus.innerHTML = `Zahlungsstatus (Einmalig): Der einmalige Betrag wurde noch nicht erhalten und wird bei der Übergabe des Kassensystems erhoben.`;
+        } else {
+            vAusStatus.style.display = 'none';
+            vAusStatus.innerHTML = '';
+        }
+
         // Dokumentenliste aktualisiert
         const gewOk = document.getElementById('check_gew').checked;
         const anmOk = document.getElementById('check_anm').checked;
@@ -459,7 +501,18 @@
     function exportData() {
         const data = {
             mieter: { knd: f_knd.value, firma: f_firma.value, inhaber: f_inhaber.value, adr_gew: f_adr_gew.value, adr_priv: f_adr_priv.value, ust: f_ust.value, tel: f_tel.value },
-            finanz: { netto: f_netto.value, aus: f_aus.value, start: f_start.value, sure: f_sure.value, sonder: f_sonder.value, info: f_info.value, schaden: f_schaden.value, tse: f_tse.value },
+            finanz: {
+                netto: f_netto.value,
+                aus: f_aus.value,
+                aus_status: check_aus_ja.checked ? 'ja' : (check_aus_nein.checked ? 'nein' : ''),
+                aus_paid: f_aus_paid.value,
+                start: f_start.value,
+                sure: f_sure.value,
+                sonder: f_sonder.value,
+                info: f_info.value,
+                schaden: f_schaden.value,
+                tse: f_tse.value
+            },
             items: Array.from(document.querySelectorAll('.item-row')).map(r => ({
                 anz: r.querySelector('.in-anz').value, typ: r.querySelector('.in-typ').value, mar: r.querySelector('.in-mar').value, mod: r.querySelector('.in-mod').value, sn: r.querySelector('.in-sn').value
             }))
@@ -481,36 +534,49 @@
             f_knd.value = m.knd||''; f_firma.value = m.firma||''; f_inhaber.value = m.inhaber||''; f_adr_gew.value = m.adr_gew||''; f_adr_priv.value = m.adr_priv||''; f_ust.value = m.ust||''; f_tel.value = m.tel||'';
             const f = data.finanz || {}; 
             f_netto.value = f.netto||0; f_aus.value = f.aus||0; f_start.value = f.start||''; f_sure.value = f.sure||24; f_sonder.value = f.sonder||''; f_info.value = f.info||''; f_schaden.value = f.schaden||'5455.00'; f_tse.value = f.tse||5;
+            check_aus_ja.checked = (f.aus_status === 'ja');
+            check_aus_nein.checked = (f.aus_status === 'nein');
+            f_aus_paid.value = f.aus_paid !== undefined ? f.aus_paid : '';
             document.getElementById('item-container').innerHTML = ''; (data.items || []).forEach(i => addItem(i)); sync();
         };
         reader.readAsText(e.target.files[0]);
     }
 
     function handlePrint() { 
-        if(!check_id.checked || !check_gew.checked || !check_anm.checked) alert("Bitte bestätigen Sie die Unterlagen.");
-        else {
-            const firmaName = f_firma.value ? f_firma.value.trim() : "";
-            const searchInput = document.getElementById("kundenSearchInput");
-            const kndNr = (searchInput && searchInput.value.trim() !== "") ? searchInput.value.trim() : (f_knd.value ? f_knd.value.trim() : "");
-            const prefix = kndNr ? `${kndNr} - ` : "";
-            const newTitle = firmaName ? `${prefix}${firmaName} - Servicevertrag` : "Servicevertrag";
-            
-            const origTitle = document.title;
-            let origTopTitle = null;
-            try { if (window.top) origTopTitle = window.top.document.title; } catch(e) {}
-            
-            document.title = newTitle;
-            try { if (window.top) window.top.document.title = newTitle; } catch(e) {}
+        if(!check_id.checked || !check_gew.checked || !check_anm.checked) {
+            alert("Bitte bestätigen Sie die Unterlagen.");
+            return;
+        }
+        if(!check_aus_ja.checked && !check_aus_nein.checked) {
+            alert("Bitte wählen Sie aus, ob die einmalige Zahlung erhalten wurde oder nicht.");
+            return;
+        }
+        if(check_aus_ja.checked && (f_aus_paid.value.trim() === "" || isNaN(parseFloat(f_aus_paid.value)))) {
+            alert("Bitte geben Sie an, wie viel von der einmaligen Zahlung bezahlt wurde.");
+            return;
+        }
+
+        const firmaName = f_firma.value ? f_firma.value.trim() : "";
+        const searchInput = document.getElementById("kundenSearchInput");
+        const kndNr = (searchInput && searchInput.value.trim() !== "") ? searchInput.value.trim() : (f_knd.value ? f_knd.value.trim() : "");
+        const prefix = kndNr ? `${kndNr} - ` : "";
+        const newTitle = firmaName ? `${prefix}${firmaName} - Servicevertrag` : "Servicevertrag";
+        
+        const origTitle = document.title;
+        let origTopTitle = null;
+        try { if (window.top) origTopTitle = window.top.document.title; } catch(e) {}
+        
+        document.title = newTitle;
+        try { if (window.top) window.top.document.title = newTitle; } catch(e) {}
+        
+        setTimeout(() => {
+            window.print();
             
             setTimeout(() => {
-                window.print();
-                
-                setTimeout(() => {
-                    document.title = origTitle;
-                    try { if (window.top && origTopTitle !== null) window.top.document.title = origTopTitle; } catch(e) {}
-                }, 3000);
-            }, 50);
-        }
+                document.title = origTitle;
+                try { if (window.top && origTopTitle !== null) window.top.document.title = origTopTitle; } catch(e) {}
+            }, 3000);
+        }, 50);
     }
 
     new Sortable(document.getElementById('item-container'), { animation: 150, handle: '.drag-handle', onEnd: sync });
