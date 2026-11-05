@@ -1,0 +1,6 @@
+{
+    "base_url": "http://192.168.178.82:3000",
+    "locale": "de",
+    "api_key": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGkiOjEsImdycCI6MSwiaWF0IjoxNzkzNzk5MTAxLCJleHAiOjE4ODg0NzE5MDEsImF1ZCI6InVybjp3aWtpLmpzIiwiaXNzIjoidXJuOndpa2kuanMifQ.SHJ6eH1R-SX0ssuTLuOoVu6X6XJVRRFE7VK73JCBNM_FatrmMxbF4fM9b3bvpywWUI94ukKU93MNGZiM5ZGA2JSPj94eccI3heMnZAyu8TVrX86GbNeCpxm4LSRHgPMbD4PaPZhv3cySXUlh4fCQvDdRNj065CgPHR_LXcmZ7AHf26jr9nO6f3HotM968YbCBmoOwFAGcY5xKRnGshUjwyFxT30_w7ny2-l4YwFZ-ywZfY5zy742KQzNgwWc6p-0p8_jja3QAgb5uYxtizT_jUOzlXrz6V5qZWR2XsKE6qqWZgLomau7MYaCT9dGbLG3ic6inayj-uFu47LSFOSIGQ",
+    "default_folder": "cozumler"
+}

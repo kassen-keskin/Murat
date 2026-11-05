@@ -340,6 +340,9 @@ function renderTicketChat(data) {
     const ticketInListForTitle = ticketsData.find(t => t.kTicket == data.kTicket);
     const titleStr = (ticketInListForTitle && ticketInListForTitle.cTitelErsteNachricht) ? ticketInListForTitle.cTitelErsteNachricht : 'Başlıksız Bilet';
 
+    window.currentTicketDetailData = data;
+    window.currentTicketTitle = titleStr;
+
     const dueDateLabel = formatRawDateTimeLabel(data.dFaelligAm);
     const dueDateJson = data.dFaelligAm ? JSON.stringify(data.dFaelligAm) : 'null';
     const headerHtml = `
@@ -350,7 +353,7 @@ function renderTicketChat(data) {
                     <button type="button" class="btn-s secondary mobile-ticket-back-btn" onclick="mobileBackToTicketList()" title="Bilet Listesine Dön">← Biletler</button>
                     <div>
                         <h2 class="ticket-detail-title" style="margin:0;">${displayId}</h2>
-                        <div style="margin-top: 4px; font-size: 1.05rem; color: var(--text-color); font-weight: 500;">${titleStr}</div>
+                        <div style="margin-top: 4px; font-size: 1.05rem; color: var(--text-color); font-weight: 500;">${escapeHtml(titleStr)}</div>
                     </div>
                 </div>
                 <div class="ticket-detail-actions">
@@ -359,10 +362,12 @@ function renderTicketChat(data) {
                         <option value="2" ${data.nPrioritaet == 2 ? 'selected' : ''}>Normal</option>
                         <option value="3" ${data.nPrioritaet == 3 ? 'selected' : ''}>Yüksek</option>
                     </select>
+                    <button type="button" class="btn-s wiki-ask-btn" onclick="openWikiSearchModal()" title="Wiki Bilgi Bankasında Benzer Konu ve Çözüm Ara">📚 Wiki'ye Sor</button>
                     ${data.kStatus == 1 ? `<button class="btn-s warning" onclick="changeTicketStatus(${data.kTicket}, 2)">⏳ Beklemeye Al</button>` : ''}
                     ${data.kStatus == 2 ? `<button class="btn-s success" onclick="changeTicketStatus(${data.kTicket}, 1)">🟢 Yeniden Aç</button>` : ''}
                     ${data.kStatus != 3 && isOwner ? `<button class="btn-s secondary" onclick="changeTicketStatus(${data.kTicket}, 3)">❌ Kapat</button>` : ''}
                     ${data.kStatus != 3 && !isOwner ? `<button class="btn-s secondary" style="opacity:0.5;cursor:not-allowed;" title="Sadece bilet sahibi kapatabilir" disabled>❌ Kapat</button>` : ''}
+                    ${data.kStatus == 3 ? `<button type="button" class="btn-s secondary" onclick="openTicketCloseWikiModal(${data.kTicket}, true)" title="Bu biletin çözümünü Wiki'ye yeni sayfa olarak ekle">📝 Wiki'ye Yaz</button>` : ''}
                     ${data.kStatus == 3 ? `<span style="color:#4caf50;font-weight:bold;margin-right:10px;align-self:center;">✅ Kapalı</span>` : ''}
                     ${data.kStatus == 3 && isOwner ? `<button class="btn-s success" onclick="changeTicketStatus(${data.kTicket}, 1)">🟢 Tekrar Aç</button>` : ''}
                 </div>
@@ -373,6 +378,7 @@ function renderTicketChat(data) {
                 <span><strong>Takip Tarihi:</strong> <span class="ticket-due-label editable" onclick='startDueDateEdit(${data.kTicket}, ${dueDateJson})' title="Düzenlemek için tıklayın">${dueDateLabel}</span></span>
             </div>
             <div id="ticketDueDateEditor" class="ticket-due-editor" style="display:none; margin-top:12px; gap:10px; align-items:center;"></div>
+            <div id="ticketHeaderWikiBanner" class="ticket-wiki-inline-banner" style="display:none;"></div>
         </div>
     `;
 
@@ -486,6 +492,9 @@ function renderTicketChat(data) {
     // Scroll chat to bottom
     const chatContainer = document.getElementById('ticketChatContainer');
     chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    // Check Wiki for matching articles based on ticket title
+    checkTicketHeaderWikiSuggestions(titleStr);
 }
 
 function attachTicketReplyDropzone() {
@@ -580,15 +589,18 @@ function attachTicketReplyDropzone() {
 }
 
 async function changeTicketStatus(id, newStatus) {
+    if (newStatus == 3) {
+        openTicketCloseWikiModal(id, false);
+        return;
+    }
     const statusNames = {1: "Açık", 2: "Beklemede", 3: "Kapalı"};
-    const promptMsg = newStatus == 3 ? "Bu bileti kapatmak istediğinize emin misiniz?" : 
-                      `Bilet durumunu '${statusNames[newStatus]}' olarak değiştirmek istediğinize emin misiniz?`;
-                      
+    const promptMsg = `Bilet durumunu '${statusNames[newStatus]}' olarak değiştirmek istediğinize emin misiniz?`;
     if (!confirm(promptMsg)) return;
-    
-    // Use logged in user
+    await executeTicketStatusChange(id, newStatus);
+}
+
+async function executeTicketStatusChange(id, newStatus) {
     const kBenutzer = loggedInTicketUser ? loggedInTicketUser.kBenutzer : 1;
-    
     try {
         const res = await fetch(`/api/tickets/${id}/status`, {
             method: 'PATCH',
@@ -599,13 +611,16 @@ async function changeTicketStatus(id, newStatus) {
         if (res.ok) {
             await fetchTickets(); // Refresh list to update status
             selectTicket(id); // Refresh chat to show closed status
+            return true;
         } else {
             const err = await res.json();
             alert("Hata: " + (err.error || "Bilinmeyen hata"));
+            return false;
         }
     } catch (e) {
         console.error("Hata:", e);
         alert("Bilet durumu değiştirilemedi.");
+        return false;
     }
 }
 
@@ -842,8 +857,12 @@ async function showNewTicketForm(defaultDateStr = null) {
             </div>
 
             <div class="form-grp">
-                <label>Bilet Başlığı / Konu</label>
-                <input type="text" id="newTicketTitle" class="form-ctrl" placeholder="Örn: Teknik Destek Talebi">
+                <div style="display:flex; justify-content:space-between; align-items:center; gap:8px;">
+                    <label style="margin:0;">Bilet Başlığı / Konu</label>
+                    <button type="button" class="btn-s wiki-ask-btn" style="min-height:28px; padding:3px 10px; font-size:0.8rem;" onclick="openWikiSearchModal(document.getElementById('newTicketTitle')?.value || '')">📚 Wiki'de Ara</button>
+                </div>
+                <input type="text" id="newTicketTitle" class="form-ctrl" placeholder="Örn: TSE Bağlantı Hatası, Teknik Destek Talebi..." oninput="onNewTicketTitleInput(this.value)" style="margin-top:6px;">
+                <div id="newTicketWikiSuggestions" class="wiki-inline-suggestions" style="display:none;"></div>
             </div>
 
             <div class="form-grp">
@@ -1423,3 +1442,739 @@ function backToTicketSource() {
 function backToTicketRapor() {
     backToTicketSource();
 }
+
+// =========================================================
+// WIKI.JS BİLGİ BANKASI ENTEGRASYONU
+// =========================================================
+let _wikiSearchDebounceTimer = null;
+let _wikiCachedConfig = {
+    base_url: "http://192.168.178.82:3000",
+    locale: "de",
+    default_folder: "cozumler",
+    folders: ["cozumler"]
+};
+let _currentViewedWikiPage = null;
+
+function slugifyWikiClient(text) {
+    if (!text) return "cozum";
+    const trMap = { 'ç':'c','ğ':'g','ı':'i','ö':'o','ş':'s','ü':'u','Ç':'c','Ğ':'g','İ':'i','Ö':'o','Ş':'s','Ü':'u','ä':'a','ö':'o','ü':'u','ß':'ss','Ä':'a','Ö':'o','Ü':'u' };
+    const clean = String(text).replace(/[çğıöşüÇĞİÖŞÜäöüßÄÖÜ]/g, ch => trMap[ch] || ch).toLowerCase();
+    return clean.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 80) || "cozum";
+}
+
+function renderSimpleWikiMarkdown(md) {
+    if (!md) return '<em style="color:var(--text-muted);">İçerik boş.</em>';
+    let html = escapeHtml(md);
+    html = html.replace(/^### (.*$)/gim, '<h4 style="margin:12px 0 6px;color:var(--secondary-color);">$1</h4>');
+    html = html.replace(/^## (.*$)/gim, '<h3 style="margin:14px 0 8px;color:var(--primary-color);border-bottom:1px solid var(--border-color);padding-bottom:4px;">$1</h3>');
+    html = html.replace(/^# (.*$)/gim, '<h2 style="margin:16px 0 10px;color:var(--primary-color);">$1</h2>');
+    html = html.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(255,255,255,0.08);padding:2px 6px;border-radius:4px;">$1</code>');
+    html = html.replace(/\n/g, '<br>');
+    return html;
+}
+
+function ensureWikiModalDom() {
+    let overlay = document.getElementById('ticketWikiModalOverlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.id = 'ticketWikiModalOverlay';
+        overlay.className = 'ticket-wiki-modal-overlay';
+        overlay.style.display = 'none';
+        overlay.addEventListener('click', (e) => {
+            if (e.target === overlay) closeTicketWikiModal();
+        });
+        document.body.appendChild(overlay);
+    }
+    return overlay;
+}
+
+function closeTicketWikiModal() {
+    const overlay = document.getElementById('ticketWikiModalOverlay');
+    if (overlay) {
+        overlay.style.display = 'none';
+        overlay.innerHTML = '';
+    }
+}
+
+// 1. Yeni Bilet Oluştururken Başlık Yazıldığında Canlı Wiki Önerisi
+function onNewTicketTitleInput(value) {
+    clearTimeout(_wikiSearchDebounceTimer);
+    const box = document.getElementById('newTicketWikiSuggestions');
+    if (!box) return;
+
+    const q = String(value || '').trim();
+    if (q.length < 2) {
+        box.style.display = 'none';
+        box.innerHTML = '';
+        return;
+    }
+
+    _wikiSearchDebounceTimer = setTimeout(async () => {
+        try {
+            const res = await fetch(`/api/wiki/search?q=${encodeURIComponent(q)}`);
+            if (!res.ok) return;
+            const data = await res.json();
+            if (data.base_url) _wikiCachedConfig.base_url = data.base_url;
+            if (data.locale) _wikiCachedConfig.locale = data.locale;
+            if (Array.isArray(data.folders)) _wikiCachedConfig.folders = data.folders;
+
+            const results = data.results || [];
+            if (results.length === 0) {
+                box.style.display = 'none';
+                box.innerHTML = '';
+                return;
+            }
+
+            let html = `
+                <div class="wiki-suggestion-header">
+                    <span>💡 <strong>Wiki'de Benzer Çözümler Bulundu (${results.length})</strong> — Bilet açmadan önce inceleyebilirsiniz:</span>
+                    <button type="button" class="wiki-mini-btn" onclick="document.getElementById('newTicketWikiSuggestions').style.display='none'">Gizle ✕</button>
+                </div>
+                <div class="wiki-suggestion-list">
+            `;
+            results.slice(0, 5).forEach(item => {
+                const folderBadge = item.folder ? `<span class="wiki-folder-badge">📁 ${escapeHtml(item.folder)}</span>` : '';
+                html += `
+                    <div class="wiki-suggestion-item">
+                        <div class="wiki-suggestion-main" onclick="openWikiSearchModal('${escapeHtml(q)}', ${item.id})">
+                            <div class="wiki-suggestion-title">${folderBadge} ${escapeHtml(item.title)}</div>
+                            ${item.description ? `<div class="wiki-suggestion-desc">${escapeHtml(item.description)}</div>` : ''}
+                        </div>
+                        <div class="wiki-suggestion-actions">
+                            <button type="button" class="btn-s secondary" style="min-height:28px;padding:3px 8px;font-size:0.78rem;" onclick="openWikiSearchModal('${escapeHtml(q)}', ${item.id})">👁️ Oku</button>
+                            <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" class="btn-s wiki-ask-btn" style="min-height:28px;padding:3px 8px;font-size:0.78rem;text-decoration:none;">🔗 Wiki</a>
+                        </div>
+                    </div>
+                `;
+            });
+            html += `</div>`;
+            box.innerHTML = html;
+            box.style.display = 'block';
+        } catch (err) {
+            console.warn('Wiki live search error:', err);
+        }
+    }, 350);
+}
+
+// 2. Mevcut Bilet Açıldığında Üst Barda Benzer Çözüm Uyarısı
+async function checkTicketHeaderWikiSuggestions(titleStr) {
+    const banner = document.getElementById('ticketHeaderWikiBanner');
+    if (!banner) return;
+    const q = String(titleStr || '').trim();
+    if (!q || q === 'Başlıksız Bilet') {
+        banner.style.display = 'none';
+        return;
+    }
+
+    try {
+        const res = await fetch(`/api/wiki/search?q=${encodeURIComponent(q)}`);
+        if (!res.ok) return;
+        const data = await res.json();
+        if (data.base_url) _wikiCachedConfig.base_url = data.base_url;
+        if (data.locale) _wikiCachedConfig.locale = data.locale;
+        if (Array.isArray(data.folders)) _wikiCachedConfig.folders = data.folders;
+
+        const results = data.results || [];
+        if (results.length === 0) {
+            banner.style.display = 'none';
+            return;
+        }
+
+        const topTitles = results.slice(0, 2).map(r => `"${escapeHtml(r.title)}"`).join(', ');
+        banner.innerHTML = `
+            <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;width:100%;">
+                <span>💡 <strong>Wiki Çözüm Önerisi:</strong> Bu konuyla eşleşen <strong>${results.length}</strong> kayıt bulundu (${topTitles}${results.length > 2 ? ' vb.' : ''}).</span>
+                <div style="display:flex;gap:6px;align-items:center;">
+                    <button type="button" class="btn-s wiki-ask-btn" style="min-height:28px;padding:4px 10px;font-size:0.82rem;" onclick="openWikiSearchModal()">📚 Çözümleri Gör</button>
+                    <button type="button" class="wiki-mini-btn" onclick="this.closest('#ticketHeaderWikiBanner').style.display='none'">✕</button>
+                </div>
+            </div>
+        `;
+        banner.style.display = 'flex';
+    } catch (e) {
+        banner.style.display = 'none';
+    }
+}
+
+// 3. "Wiki'ye Sor" Arama & Okuma Modalı
+async function openWikiSearchModal(initialQuery = null, autoOpenPageId = null) {
+    const overlay = ensureWikiModalDom();
+    const defaultQ = initialQuery !== null ? initialQuery : (window.currentTicketTitle && window.currentTicketTitle !== 'Başlıksız Bilet' ? window.currentTicketTitle : '');
+    const wikiHomeUrl = `${_wikiCachedConfig.base_url}/${_wikiCachedConfig.locale}/home`;
+
+    overlay.innerHTML = `
+        <div class="ticket-wiki-modal">
+            <div class="ticket-wiki-modal-header">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.4rem;">📚</span>
+                    <div>
+                        <h3 style="margin:0;color:var(--primary-color);">Wiki Bilgi Bankası & Çözüm Arama</h3>
+                        <small style="color:var(--text-muted);">Geçmiş çözümleri arayın, okuyun veya tek tıkla bilete yanıt olarak ekleyin</small>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <a href="${escapeHtml(wikiHomeUrl)}" target="_blank" rel="noopener" class="btn-s secondary" style="text-decoration:none;min-height:32px;padding:4px 10px;font-size:0.82rem;">🌐 Wiki'yi Yeni Sekmede Aç</a>
+                    <button type="button" class="btn-s secondary" style="min-height:32px;padding:4px 10px;font-size:0.82rem;" onclick="openWikiConfigModal()">⚙️ API Ayarları</button>
+                    <button type="button" class="wiki-modal-close-btn" onclick="closeTicketWikiModal()">✕</button>
+                </div>
+            </div>
+            <div class="ticket-wiki-modal-body">
+                <div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;">
+                    <input type="text" id="wikiModalSearchInput" class="form-ctrl" style="flex:1;min-width:220px;" placeholder="Konu başlığı, hata kodu veya klasör adı yazın..." value="${escapeHtml(defaultQ)}" onkeydown="if(event.key==='Enter') executeWikiModalSearch()">
+                    <select id="wikiModalFolderFilter" class="form-ctrl" style="width:auto;min-width:160px;" onchange="executeWikiModalSearch()">
+                        <option value="">📁 Tüm Klasörler</option>
+                    </select>
+                    <button type="button" class="btn-s wiki-ask-btn" onclick="executeWikiModalSearch()">🔍 Wiki'de Ara</button>
+                    <button type="button" class="btn-s secondary" onclick="document.getElementById('wikiModalSearchInput').value='';document.getElementById('wikiModalFolderFilter').value='';executeWikiModalSearch();">Tüm Sayfalar</button>
+                </div>
+                <div id="wikiModalStatusNotice" style="display:none;margin-bottom:12px;"></div>
+                <div class="wiki-modal-split">
+                    <div id="wikiModalResultsList" class="wiki-modal-results-pane">
+                        <div style="text-align:center;padding:24px;color:var(--text-muted);">Aranıyor...</div>
+                    </div>
+                    <div id="wikiModalPageReader" class="wiki-modal-reader-pane">
+                        <div style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+                            Sol listeden bir çözüm sayfasına tıklayarak içeriğini burada görüntüleyebilir ve bilet yanıtına aktarabilirsiniz.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    overlay.style.display = 'flex';
+
+    await executeWikiModalSearch(autoOpenPageId);
+}
+
+async function executeWikiModalSearch(autoOpenPageId = null) {
+    const input = document.getElementById('wikiModalSearchInput');
+    const folderSelect = document.getElementById('wikiModalFolderFilter');
+    const listEl = document.getElementById('wikiModalResultsList');
+    const noticeEl = document.getElementById('wikiModalStatusNotice');
+    if (!listEl) return;
+
+    const q = input ? input.value.trim() : '';
+    const selectedFolder = folderSelect ? folderSelect.value : '';
+    listEl.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-muted);">🔄 Wiki taranıyor...</div>';
+
+    try {
+        const res = await fetch(`/api/wiki/search?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+
+        if (data.base_url) _wikiCachedConfig.base_url = data.base_url;
+        if (data.locale) _wikiCachedConfig.locale = data.locale;
+        if (Array.isArray(data.folders)) {
+            _wikiCachedConfig.folders = data.folders;
+            if (folderSelect && folderSelect.options.length <= 1) {
+                data.folders.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f;
+                    opt.textContent = `📁 ${f}`;
+                    if (f === selectedFolder) opt.selected = true;
+                    folderSelect.appendChild(opt);
+                });
+            }
+        }
+
+        if (noticeEl) {
+            if (data.warning) {
+                const directSearchUrl = `${_wikiCachedConfig.base_url}/${_wikiCachedConfig.locale}/home`;
+                noticeEl.innerHTML = `
+                    <div class="wiki-warning-box">
+                        <div>⚠️ <strong>Bilgi:</strong> ${escapeHtml(data.warning)}</div>
+                        <div style="display:flex;gap:8px;margin-top:6px;">
+                            <button type="button" class="btn-s secondary" style="min-height:28px;padding:3px 10px;font-size:0.8rem;" onclick="openWikiConfigModal()">🔑 API Anahtarı Gir</button>
+                            <a href="${escapeHtml(directSearchUrl)}" target="_blank" rel="noopener" class="btn-s wiki-ask-btn" style="min-height:28px;padding:3px 10px;font-size:0.8rem;text-decoration:none;">🌐 Wiki'yi Tarayıcıda Aç</a>
+                        </div>
+                    </div>
+                `;
+                noticeEl.style.display = 'block';
+            } else {
+                noticeEl.style.display = 'none';
+            }
+        }
+
+        let results = data.results || [];
+        if (selectedFolder) {
+            results = results.filter(r => r.folder === selectedFolder || (r.path && r.path.startsWith(selectedFolder + '/')));
+        }
+
+        if (results.length === 0) {
+            listEl.innerHTML = `
+                <div style="text-align:center;padding:24px;color:var(--text-muted);">
+                    <div style="font-size:1.8rem;margin-bottom:8px;">🔍</div>
+                    <div>Eşleşen Wiki sayfası bulunamadı.</div>
+                    ${q ? `<button type="button" class="btn-s secondary" style="margin-top:10px;" onclick="document.getElementById('wikiModalSearchInput').value='';executeWikiModalSearch();">Tüm Sayfaları Listele</button>` : ''}
+                </div>
+            `;
+            return;
+        }
+
+        listEl.innerHTML = '';
+        results.forEach((item, idx) => {
+            const card = document.createElement('div');
+            card.className = 'wiki-result-card';
+            card.dataset.pageId = item.id;
+            const folderBadge = item.folder ? `<span class="wiki-folder-badge">📁 ${escapeHtml(item.folder)}</span>` : `<span class="wiki-folder-badge">📄 Kök Dizin</span>`;
+            card.innerHTML = `
+                <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;">
+                    ${folderBadge}
+                    <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener" onclick="event.stopPropagation();" style="font-size:0.78rem;color:var(--secondary-color);text-decoration:none;" title="Yeni sekmede aç">🔗 Aç</a>
+                </div>
+                <div class="wiki-result-card-title">${escapeHtml(item.title)}</div>
+                ${item.description ? `<div class="wiki-result-card-desc">${escapeHtml(item.description)}</div>` : ''}
+                <div style="font-size:0.74rem;color:var(--text-muted);margin-top:4px;">/${escapeHtml(item.locale)}/${escapeHtml(item.path)}</div>
+            `;
+            card.onclick = () => viewWikiPageInModal(item.id);
+            listEl.appendChild(card);
+
+            if ((autoOpenPageId && item.id == autoOpenPageId) || (!autoOpenPageId && idx === 0)) {
+                viewWikiPageInModal(item.id);
+            }
+        });
+    } catch (e) {
+        listEl.innerHTML = `<div style="color:#ef5350;padding:16px;">Hata: ${escapeHtml(e.message)}</div>`;
+    }
+}
+
+async function viewWikiPageInModal(pageId) {
+    const readerEl = document.getElementById('wikiModalPageReader');
+    if (!readerEl) return;
+
+    document.querySelectorAll('.wiki-result-card').forEach(el => {
+        el.classList.toggle('active', String(el.dataset.pageId) === String(pageId));
+    });
+
+    readerEl.innerHTML = '<div style="text-align:center;padding:30px;color:var(--text-muted);">📖 Sayfa içeriği yükleniyor...</div>';
+
+    try {
+        const res = await fetch(`/api/wiki/page/${pageId}`);
+        const data = await res.json();
+        if (!res.ok || !data.page) {
+            throw new Error(data.error || 'Sayfa okunamadı');
+        }
+
+        const page = data.page;
+        _currentViewedWikiPage = page;
+        const hasReplyBox = Boolean(document.getElementById('replyContent') || document.getElementById('newTicketContent'));
+
+        readerEl.innerHTML = `
+            <div class="wiki-reader-header">
+                <div>
+                    <div style="font-size:0.8rem;color:var(--secondary-color);margin-bottom:4px;">📁 /${escapeHtml(page.locale)}/${escapeHtml(page.path)}</div>
+                    <h3 style="margin:0;color:var(--text-color);">${escapeHtml(page.title)}</h3>
+                    ${page.description ? `<div style="font-size:0.88rem;color:var(--text-muted);margin-top:4px;">${escapeHtml(page.description)}</div>` : ''}
+                </div>
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                    ${hasReplyBox ? `<button type="button" class="btn-s success" style="min-height:32px;padding:5px 10px;font-size:0.82rem;" onclick="insertCurrentWikiPageToTicket()">📥 Çözümü Mesaja Aktar</button>` : ''}
+                    <button type="button" class="btn-s secondary" style="min-height:32px;padding:5px 10px;font-size:0.82rem;" onclick="copyCurrentWikiPageContent()">📋 Kopyala</button>
+                    <a href="${escapeHtml(page.url)}" target="_blank" rel="noopener" class="btn-s wiki-ask-btn" style="min-height:32px;padding:5px 10px;font-size:0.82rem;text-decoration:none;">🔗 Wiki'de Aç</a>
+                </div>
+            </div>
+            <div class="wiki-reader-content">${renderSimpleWikiMarkdown(page.content)}</div>
+        `;
+    } catch (e) {
+        readerEl.innerHTML = `<div style="color:#ef5350;padding:20px;">Sayfa içeriği alınamadı: ${escapeHtml(e.message)}</div>`;
+    }
+}
+
+function insertCurrentWikiPageToTicket() {
+    if (!_currentViewedWikiPage) return;
+    const replyEl = document.getElementById('replyContent') || document.getElementById('newTicketContent');
+    if (!replyEl) return;
+
+    const textToInsert = `📚 Wiki Çözümü (${_currentViewedWikiPage.title}):\n${_currentViewedWikiPage.content}\n\nDetaylı Bağlantı: ${_currentViewedWikiPage.url}`;
+    replyEl.value = replyEl.value ? `${replyEl.value}\n\n${textToInsert}` : textToInsert;
+    closeTicketWikiModal();
+    replyEl.focus();
+}
+
+async function copyCurrentWikiPageContent() {
+    if (!_currentViewedWikiPage) return;
+    try {
+        await navigator.clipboard.writeText(_currentViewedWikiPage.content || '');
+        alert("Çözüm metni panoya kopyalandı!");
+    } catch (e) {
+        alert("Kopyalama başarısız oldu.");
+    }
+}
+
+// 4. Ticket Kapatılırken Wiki'ye Çözüm Yazma & Hatırlatma Modalı
+async function openTicketCloseWikiModal(ticketId, onlyWriteMode = false) {
+    const overlay = ensureWikiModalDom();
+    const ticketData = window.currentTicketDetailData || {};
+    const titleStr = (window.currentTicketTitle && window.currentTicketTitle !== 'Başlıksız Bilet')
+        ? window.currentTicketTitle
+        : `Ticket #${ticketId} Çözümü`;
+
+    // Son giden (destek) mesajlarını varsayılan çözüm taslağı olarak birleştir
+    let draftSolution = '';
+    if (Array.isArray(ticketData.messages)) {
+        const agentMsgs = ticketData.messages
+            .filter(m => m.cInhalt && !String(m.cInhalt).startsWith('Sistem Bilgisi:'))
+            .map(m => {
+                const role = m.nRichtung == 0 ? 'Çözüm / Destek' : 'Müşteri Notu';
+                return `### ${role}\n${String(m.cInhalt).trim()}`;
+            });
+        draftSolution = agentMsgs.join('\n\n');
+    }
+    if (!draftSolution) {
+        draftSolution = `## 🔍 Sorun / Konu\n${titleStr}\n\n## 🛠️ Uygulanan Çözüm\n- Çözüm adımlarını buraya yazın...`;
+    }
+
+    const defaultSlug = slugifyWikiClient(titleStr);
+    const defaultFolder = _wikiCachedConfig.default_folder || 'cozumler';
+
+    overlay.innerHTML = `
+        <div class="ticket-wiki-modal" style="max-width:780px;">
+            <div class="ticket-wiki-modal-header">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.5rem;">${onlyWriteMode ? '📝' : '💡'}</span>
+                    <div>
+                        <h3 style="margin:0;color:var(--primary-color);">${onlyWriteMode ? "Çözümü Wiki'ye Yeni Sayfa Olarak Ekle" : "Bileti Kapat & Çözümü Wiki'ye Kaydet"}</h3>
+                        <small style="color:var(--text-muted);">Bu konunun çözümü gelecekte benzer sorun yaşayan müşteriler için Wiki'de referans olur</small>
+                    </div>
+                </div>
+                <button type="button" class="wiki-modal-close-btn" onclick="closeTicketWikiModal()">✕</button>
+            </div>
+            <div class="ticket-wiki-modal-body">
+                ${!onlyWriteMode ? `
+                <div class="wiki-reminder-banner">
+                    <div>
+                        <strong>📌 Hatırlatma:</strong> Bu biletteki çözüm önemli bir bilgi içeriyorsa kapatmadan önce Wiki'ye yeni sayfa olarak ekleyebilir veya doğrudan sadece bileti kapatabilirsiniz.
+                    </div>
+                </div>
+                ` : ''}
+
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;gap:10px;flex-wrap:wrap;">
+                    <span style="font-weight:600;color:var(--text-color);">📄 Yeni Wiki Çözüm Sayfası Bilgileri</span>
+                    <button type="button" id="wikiAiSummarizeBtn" class="btn-s wiki-ask-btn" onclick="generateWikiSolutionWithAI(${ticketId})">
+                        ✨ AI ile Mesajlardan Temiz Çözüm Hazırla
+                    </button>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                    <div class="form-grp" style="margin:0;">
+                        <label>📁 Wiki Klasörü Seçin veya Yazın</label>
+                        <div style="display:flex;gap:6px;">
+                            <select id="wikiNewPageFolderSelect" class="form-ctrl" onchange="if(this.value!=='__custom__') document.getElementById('wikiNewPageFolderInput').value=this.value;">
+                                <option value="${escapeHtml(defaultFolder)}">📁 ${escapeHtml(defaultFolder)}</option>
+                            </select>
+                            <input type="text" id="wikiNewPageFolderInput" class="form-ctrl" value="${escapeHtml(defaultFolder)}" placeholder="Örn: kasa/tse">
+                        </div>
+                    </div>
+                    <div class="form-grp" style="margin:0;">
+                        <label>🔗 Sayfa Kısa Adı (URL Slug)</label>
+                        <input type="text" id="wikiNewPageSlug" class="form-ctrl" value="${escapeHtml(defaultSlug)}" placeholder="ornek-cozum-adi">
+                    </div>
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+                    <div class="form-grp" style="margin:0;">
+                        <label>📌 Wiki Sayfa Başlığı</label>
+                        <input type="text" id="wikiNewPageTitle" class="form-ctrl" value="${escapeHtml(titleStr)}" oninput="document.getElementById('wikiNewPageSlug').value = slugifyWikiClient(this.value)">
+                    </div>
+                    <div class="form-grp" style="margin:0;">
+                        <label>📝 Kısa Açıklama (Özet)</label>
+                        <input type="text" id="wikiNewPageDesc" class="form-ctrl" value="${escapeHtml(titleStr + ' için çözüm adımları')}" placeholder="Kısa açıklama...">
+                    </div>
+                </div>
+
+                <div class="form-grp" style="margin-bottom:14px;">
+                    <label>🛠️ Çözüm İçeriği (Markdown destekler)</label>
+                    <textarea id="wikiNewPageContent" class="reply-textarea" style="min-height:190px;font-family:inherit;">${escapeHtml(draftSolution)}</textarea>
+                </div>
+
+                <div id="wikiCreateStatusMsg" style="display:none;margin-bottom:12px;"></div>
+
+                <div class="ticket-wiki-modal-footer">
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                        <button type="button" class="btn-s secondary" onclick="copyWikiSolutionAndOpenBrowser()">
+                            📋 Çözümü Kopyala & Wiki'yi Aç
+                        </button>
+                    </div>
+                    <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                        <button type="button" class="btn-s secondary" onclick="closeTicketWikiModal()">İptal</button>
+                        ${!onlyWriteMode ? `
+                        <button type="button" class="btn-s warning" onclick="justCloseTicketWithoutWiki(${ticketId})">
+                            ❌ Wiki'ye Yazmadan Sadece Bileti Kapat
+                        </button>
+                        ` : ''}
+                        <button type="button" id="wikiSaveAndCloseBtn" class="btn-s success" onclick="saveWikiAndCloseTicket(${ticketId}, ${onlyWriteMode ? 'true' : 'false'})">
+                            📚 ${onlyWriteMode ? "Wiki'ye Yeni Sayfa Olarak Kaydet" : "Wiki'ye Kaydet ve Bileti Kapat"}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    overlay.style.display = 'flex';
+
+    // Klasör listesini arka planda doldur
+    try {
+        const fRes = await fetch('/api/wiki/folders');
+        if (fRes.ok) {
+            const fData = await fRes.json();
+            if (fData.base_url) _wikiCachedConfig.base_url = fData.base_url;
+            if (fData.locale) _wikiCachedConfig.locale = fData.locale;
+            const sel = document.getElementById('wikiNewPageFolderSelect');
+            if (sel && Array.isArray(fData.folders)) {
+                sel.innerHTML = '';
+                fData.folders.forEach(f => {
+                    const opt = document.createElement('option');
+                    opt.value = f;
+                    opt.textContent = `📁 ${f}`;
+                    if (f === (fData.default_folder || defaultFolder)) opt.selected = true;
+                    sel.appendChild(opt);
+                });
+            }
+        }
+    } catch (e) {
+        console.warn('Wiki folders load warning:', e);
+    }
+}
+
+async function generateWikiSolutionWithAI(ticketId) {
+    const btn = document.getElementById('wikiAiSummarizeBtn');
+    const statusBox = document.getElementById('wikiCreateStatusMsg');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = '⏳ AI Çözümü Özetliyor...';
+    }
+
+    try {
+        const res = await fetch('/api/wiki/summarize-ticket', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                ticket_id: ticketId,
+                title: document.getElementById('wikiNewPageTitle')?.value || window.currentTicketTitle || ''
+            })
+        });
+        const data = await res.json();
+        if (res.ok && data.success) {
+            if (data.title) document.getElementById('wikiNewPageTitle').value = data.title;
+            if (data.slug) document.getElementById('wikiNewPageSlug').value = data.slug;
+            if (data.folder) document.getElementById('wikiNewPageFolderInput').value = data.folder;
+            if (data.description) document.getElementById('wikiNewPageDesc').value = data.description;
+            if (data.content) document.getElementById('wikiNewPageContent').value = data.content;
+
+            if (statusBox) {
+                statusBox.innerHTML = `<div style="color:#81c784;font-size:0.88rem;">✨ Çözüm metni ${data.ai_generated ? 'yapay zeka tarafından müşteri bilgilerinden arındırılarak' : 'şablon olarak'} hazırlandı. İnceleyip kaydedebilirsiniz.</div>`;
+                statusBox.style.display = 'block';
+            }
+        }
+    } catch (e) {
+        if (statusBox) {
+            statusBox.innerHTML = `<div style="color:#ffb74d;font-size:0.88rem;">⚠️ AI özeti alınamadı: ${escapeHtml(e.message)}</div>`;
+            statusBox.style.display = 'block';
+        }
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = '✨ AI ile Mesajlardan Temiz Çözüm Hazırla';
+        }
+    }
+}
+
+async function justCloseTicketWithoutWiki(ticketId) {
+    closeTicketWikiModal();
+    await executeTicketStatusChange(ticketId, 3);
+}
+
+async function copyWikiSolutionAndOpenBrowser() {
+    const folder = (document.getElementById('wikiNewPageFolderInput')?.value || _wikiCachedConfig.default_folder || 'cozumler').trim().replace(/^\/+|\/+$/g, '');
+    const slug = slugifyWikiClient(document.getElementById('wikiNewPageSlug')?.value || document.getElementById('wikiNewPageTitle')?.value || 'cozum');
+    const content = document.getElementById('wikiNewPageContent')?.value || '';
+
+    try {
+        await navigator.clipboard.writeText(content);
+    } catch (e) {
+        console.warn('Clipboard copy failed:', e);
+    }
+
+    const targetUrl = `${_wikiCachedConfig.base_url}/${_wikiCachedConfig.locale}/${folder ? folder + '/' : ''}${slug}`;
+    window.open(targetUrl, '_blank', 'noopener');
+}
+
+async function saveWikiAndCloseTicket(ticketId, onlyWriteMode = false) {
+    const title = document.getElementById('wikiNewPageTitle')?.value.trim();
+    const folder = document.getElementById('wikiNewPageFolderInput')?.value.trim();
+    const slug = document.getElementById('wikiNewPageSlug')?.value.trim();
+    const description = document.getElementById('wikiNewPageDesc')?.value.trim();
+    const content = document.getElementById('wikiNewPageContent')?.value.trim();
+    const statusBox = document.getElementById('wikiCreateStatusMsg');
+    const saveBtn = document.getElementById('wikiSaveAndCloseBtn');
+
+    if (!title || !content) {
+        alert("Lütfen sayfa başlığı ve çözüm içeriğini doldurun.");
+        return;
+    }
+
+    if (saveBtn) {
+        saveBtn.disabled = true;
+        saveBtn.textContent = "⏳ Wiki'ye Kaydediliyor...";
+    }
+
+    try {
+        const res = await fetch('/api/wiki/pages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                title,
+                folder,
+                slug,
+                description,
+                content,
+                ticket_id: ticketId
+            })
+        });
+        const data = await res.json();
+
+        if (res.ok && data.success) {
+            closeTicketWikiModal();
+            if (!onlyWriteMode) {
+                await executeTicketStatusChange(ticketId, 3);
+            }
+            alert(`✅ Çözüm başarıyla Wiki'ye kaydedildi!\nSayfa: ${data.page?.url || ''}`);
+        } else {
+            if (statusBox) {
+                statusBox.innerHTML = `
+                    <div class="wiki-warning-box">
+                        <div>⚠️ <strong>Wiki Kayıt Uyarısı:</strong> ${escapeHtml(data.error || 'Sayfa oluşturulamadı.')}</div>
+                        <div style="margin-top:6px;font-size:0.84rem;">Wiki.js üzerinden yeni sayfa oluşturmak için API Anahtarı gereklidir. Çözümü panoya kopyalayıp Wiki'de açabilir veya API anahtarınızı tanımlayabilirsiniz:</div>
+                        <div style="display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;">
+                            <button type="button" class="btn-s secondary" style="min-height:28px;padding:3px 10px;font-size:0.8rem;" onclick="openWikiConfigModal()">🔑 API Anahtarı Tanımla</button>
+                            <button type="button" class="btn-s wiki-ask-btn" style="min-height:28px;padding:3px 10px;font-size:0.8rem;" onclick="copyWikiSolutionAndOpenBrowser()">📋 Çözümü Kopyala & Wiki'de Aç</button>
+                        </div>
+                    </div>
+                `;
+                statusBox.style.display = 'block';
+            }
+        }
+    } catch (e) {
+        if (statusBox) {
+            statusBox.innerHTML = `<div style="color:#ef5350;">Bağlantı hatası: ${escapeHtml(e.message)}</div>`;
+            statusBox.style.display = 'block';
+        }
+    } finally {
+        if (saveBtn) {
+            saveBtn.disabled = false;
+            saveBtn.textContent = `📚 ${onlyWriteMode ? "Wiki'ye Yeni Sayfa Olarak Kaydet" : "Wiki'ye Kaydet ve Bileti Kapat"}`;
+        }
+    }
+}
+
+// 5. Wiki.js API & Bağlantı Ayarları Modalı
+async function openWikiConfigModal() {
+    const overlay = ensureWikiModalDom();
+    let cfg = {
+        base_url: _wikiCachedConfig.base_url || "http://192.168.178.82:3000",
+        locale: _wikiCachedConfig.locale || "de",
+        default_folder: _wikiCachedConfig.default_folder || "cozumler",
+        has_api_key: false
+    };
+
+    try {
+        const res = await fetch('/api/wiki/config?test=1');
+        if (res.ok) cfg = await res.json();
+    } catch (e) {}
+
+    overlay.innerHTML = `
+        <div class="ticket-wiki-modal" style="max-width:560px;">
+            <div class="ticket-wiki-modal-header">
+                <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-size:1.4rem;">⚙️</span>
+                    <div>
+                        <h3 style="margin:0;color:var(--primary-color);">Wiki.js Bağlantı & API Ayarları</h3>
+                        <small style="color:var(--text-muted);">Wiki arama ve otomatik sayfa oluşturma yapılandırması</small>
+                    </div>
+                </div>
+                <button type="button" class="wiki-modal-close-btn" onclick="closeTicketWikiModal()">✕</button>
+            </div>
+            <div class="ticket-wiki-modal-body">
+                <div style="margin-bottom:14px;padding:10px 12px;border-radius:8px;background:rgba(255,255,255,0.04);border:1px solid var(--border-color);font-size:0.86rem;">
+                    <strong>Durum:</strong>
+                    ${cfg.connected
+                        ? `<span style="color:#81c784;font-weight:600;">✅ Bağlantı Başarılı (${cfg.page_count || 0} sayfa erişilebilir)</span>`
+                        : `<span style="color:#ffb74d;font-weight:600;">⚠️ ${escapeHtml(cfg.connection_error || 'API Anahtarı bekleniyor')}</span>`
+                    }
+                </div>
+
+                <div class="form-grp">
+                    <label>Wiki Sunucu Adresi (URL)</label>
+                    <input type="text" id="wikiCfgBaseUrl" class="form-ctrl" value="${escapeHtml(cfg.base_url)}" placeholder="http://192.168.178.82:3000">
+                </div>
+
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div class="form-grp">
+                        <label>Dil Kodu (Locale)</label>
+                        <input type="text" id="wikiCfgLocale" class="form-ctrl" value="${escapeHtml(cfg.locale)}" placeholder="de">
+                    </div>
+                    <div class="form-grp">
+                        <label>Varsayılan Çözüm Klasörü</label>
+                        <input type="text" id="wikiCfgDefaultFolder" class="form-ctrl" value="${escapeHtml(cfg.default_folder)}" placeholder="cozumler">
+                    </div>
+                </div>
+
+                <div class="form-grp">
+                    <label>Wiki.js API Anahtarı (Bearer Token)</label>
+                    <input type="password" id="wikiCfgApiKey" class="form-ctrl" placeholder="${cfg.has_api_key ? '•••••••• (Kayıtlı anahtar var - değiştirmek için yeni girin)' : 'Wiki.js -> Yönetim -> API Erişimi bölümünden aldığınız anahtarı yapıştırın'}">
+                    <small style="color:var(--text-muted);display:block;margin-top:4px;">
+                        Wiki.js'te <strong>Yönetim (Administration) &rarr; API Erişimi (API Access)</strong> menüsünden bir API anahtarı oluşturup buraya kaydedebilirsiniz.
+                    </small>
+                </div>
+
+                <div id="wikiCfgSaveStatus" style="display:none;margin-bottom:12px;"></div>
+
+                <div class="ticket-wiki-modal-footer">
+                    <button type="button" class="btn-s secondary" onclick="openWikiSearchModal()">← Arama Ekranına Dön</button>
+                    <button type="button" class="btn-s success" onclick="saveWikiConfigFromModal()">💾 Kaydet ve Bağlantıyı Test Et</button>
+                </div>
+            </div>
+        </div>
+    `;
+    overlay.style.display = 'flex';
+}
+
+async function saveWikiConfigFromModal() {
+    const base_url = document.getElementById('wikiCfgBaseUrl')?.value.trim();
+    const locale = document.getElementById('wikiCfgLocale')?.value.trim();
+    const default_folder = document.getElementById('wikiCfgDefaultFolder')?.value.trim();
+    const apiKeyInput = document.getElementById('wikiCfgApiKey')?.value.trim();
+    const statusEl = document.getElementById('wikiCfgSaveStatus');
+
+    const payload = { base_url, locale, default_folder };
+    if (apiKeyInput) payload.api_key = apiKeyInput;
+
+    if (statusEl) {
+        statusEl.innerHTML = '<span style="color:var(--text-muted);">🔄 Test ediliyor...</span>';
+        statusEl.style.display = 'block';
+    }
+
+    try {
+        const res = await fetch('/api/wiki/config', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        _wikiCachedConfig.base_url = data.base_url || base_url;
+        _wikiCachedConfig.locale = data.locale || locale;
+        _wikiCachedConfig.default_folder = data.default_folder || default_folder;
+
+        if (statusEl) {
+            if (data.connected) {
+                statusEl.innerHTML = `<div style="color:#81c784;font-weight:600;">✅ Kaydedildi ve bağlantı doğrulandı! (${data.page_count || 0} Wiki sayfası bulundu)</div>`;
+            } else {
+                statusEl.innerHTML = `<div style="color:#ffb74d;">💾 Ayarlar kaydedildi ancak sunucu yanıtı: ${escapeHtml(data.connection_error || 'Bağlantı kurulamadı')}</div>`;
+            }
+        }
+    } catch (e) {
+        if (statusEl) {
+            statusEl.innerHTML = `<div style="color:#ef5350;">Hata: ${escapeHtml(e.message)}</div>`;
+        }
+    }
+}
+

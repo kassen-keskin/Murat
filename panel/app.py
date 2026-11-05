@@ -2404,6 +2404,7 @@ from news_service import (
     refresh_news,
     build_article_reader_content,
     ask_kasa_knowledge_ai,
+    call_gemini_json,
     CATEGORY_META,
     DEFAULT_QUERIES
 )
@@ -2530,6 +2531,593 @@ def api_save_kasahaberleri_queries():
         return jsonify({"success": True, "queries": store["queries"]})
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
+
+# =========================================================
+# WIKI.JS INTEGRATION FOR TICKETS
+# =========================================================
+import urllib.request as _urllib_req
+import urllib.error as _urllib_err
+import urllib.parse as _urllib_parse
+
+WIKI_CONFIG_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'wiki_config.json')
+WIKI_DEFAULT_CONFIG = {
+    "base_url": os.getenv("WIKI_BASE_URL", "http://192.168.178.82:3000").rstrip("/"),
+    "locale": os.getenv("WIKI_LOCALE", "de").strip("/"),
+    "api_key": os.getenv("WIKI_API_KEY", "").strip(),
+    "default_folder": os.getenv("WIKI_DEFAULT_FOLDER", "cozumler").strip("/")
+}
+_wiki_pages_cache = {"timestamp": 0, "pages": []}
+WIKI_CACHE_TTL = 45  # seconds
+
+
+def load_wiki_config():
+    cfg = load_json_file(WIKI_CONFIG_FILE, WIKI_DEFAULT_CONFIG)
+    if not isinstance(cfg, dict):
+        cfg = dict(WIKI_DEFAULT_CONFIG)
+    base_url = str(cfg.get("base_url") or WIKI_DEFAULT_CONFIG["base_url"]).strip().rstrip("/")
+    locale = str(cfg.get("locale") or WIKI_DEFAULT_CONFIG["locale"]).strip().strip("/") or "de"
+    api_key = str(cfg.get("api_key") or os.getenv("WIKI_API_KEY") or "").strip()
+    default_folder = str(cfg.get("default_folder") or "cozumler").strip().strip("/")
+    return {
+        "base_url": base_url,
+        "locale": locale,
+        "api_key": api_key,
+        "default_folder": default_folder
+    }
+
+
+def normalize_wiki_text(text: str) -> str:
+    if not text:
+        return ""
+    tr_map = str.maketrans("çğıöşüÇĞİÖŞÜäöüßÄÖÜ", "cgiosuCGIOSUaousAOU")
+    cleaned = str(text).translate(tr_map).lower()
+    return re.sub(r"[^a-z0-9\s/_-]", " ", cleaned)
+
+
+def slugify_wiki_Segment(text: str) -> str:
+    norm = normalize_wiki_text(text)
+    slug = re.sub(r"[^a-z0-9]+", "-", norm).strip("-")
+    return slug[:80] or "cozum"
+
+
+def wiki_graphql_request(query: str, variables: dict = None, timeout: int = 8):
+    cfg = load_wiki_config()
+    gql_url = f"{cfg['base_url']}/graphql"
+    headers = {
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+        "User-Agent": "PanelTicketWikiIntegration/1.0"
+    }
+    if cfg["api_key"]:
+        headers["Authorization"] = f"Bearer {cfg['api_key']}"
+
+    payload = {"query": query}
+    if variables is not None:
+        payload["variables"] = variables
+
+    req = _urllib_req.Request(
+        gql_url,
+        data=json.dumps(payload).encode("utf-8"),
+        headers=headers,
+        method="POST"
+    )
+    try:
+        with _urllib_req.urlopen(req, timeout=timeout) as resp:
+            raw = resp.read().decode("utf-8", errors="ignore")
+            parsed = json.loads(raw)
+            if "errors" in parsed and parsed["errors"]:
+                err_msg = parsed["errors"][0].get("message", "GraphQL Hatası")
+                return parsed.get("data"), err_msg
+            return parsed.get("data"), None
+    except _urllib_err.HTTPError as he:
+        err_body = ""
+        try:
+            err_body = he.read().decode("utf-8", errors="ignore")[:300]
+        except Exception:
+            pass
+        if he.code in (401, 403):
+            return None, f"Wiki API yetkilendirme hatası (HTTP {he.code}). Lütfen Wiki API Anahtarını kontrol edin."
+        return None, f"Wiki sunucu hatası (HTTP {he.code}): {err_body}"
+    except Exception as e:
+        return None, f"Wiki sunucusuna ({cfg['base_url']}) bağlanılamadı: {str(e)}"
+
+
+def fetch_all_wiki_pages(force_refresh: bool = False):
+    now = time.time()
+    if not force_refresh and _wiki_pages_cache["pages"] and (now - _wiki_pages_cache["timestamp"] < WIKI_CACHE_TTL):
+        return _wiki_pages_cache["pages"], None
+
+    query = """
+    query ListAllPages {
+      pages {
+        list(orderBy: TITLE) {
+          id
+          path
+          locale
+          title
+          description
+          updatedAt
+        }
+      }
+    }
+    """
+    data, err = wiki_graphql_request(query)
+    if data and "pages" in data and isinstance(data["pages"].get("list"), list):
+        pages = data["pages"]["list"]
+        _wiki_pages_cache["pages"] = pages
+        _wiki_pages_cache["timestamp"] = now
+        return pages, None
+    return _wiki_pages_cache["pages"] or [], err
+
+
+def extract_wiki_folders(pages: list, default_folder: str = "cozumler") -> list:
+    folders = set()
+    if default_folder:
+        folders.add(default_folder.strip("/"))
+    for p in pages:
+        path_str = str(p.get("path") or "").strip("/")
+        if "/" in path_str:
+            parts = path_str.split("/")[:-1]
+            curr = ""
+            for part in parts:
+                curr = f"{curr}/{part}" if curr else part
+                folders.add(curr)
+    sorted_folders = sorted(f for f in folders if f)
+    return sorted_folders
+
+
+@app.route('/api/wiki/config', methods=['GET', 'POST'])
+def api_wiki_config():
+    if request.method == 'POST':
+        payload = request.get_json(silent=True) or {}
+        current = load_wiki_config()
+        base_url = str(payload.get("base_url") or current["base_url"]).strip().rstrip("/")
+        locale = str(payload.get("locale") or current["locale"]).strip().strip("/") or "de"
+        default_folder = str(payload.get("default_folder") or current["default_folder"]).strip().strip("/") or "cozumler"
+        api_key = current["api_key"]
+        if "api_key" in payload:
+            new_key = str(payload.get("api_key") or "").strip()
+            if new_key != "***" and not new_key.endswith("..."):
+                api_key = new_key
+
+        updated = {
+            "base_url": base_url,
+            "locale": locale,
+            "api_key": api_key,
+            "default_folder": default_folder
+        }
+        save_json_file(WIKI_CONFIG_FILE, updated)
+        _wiki_pages_cache["timestamp"] = 0
+        pages, err = fetch_all_wiki_pages(force_refresh=True)
+        return jsonify({
+            "success": True,
+            "base_url": updated["base_url"],
+            "locale": updated["locale"],
+            "default_folder": updated["default_folder"],
+            "has_api_key": bool(updated["api_key"]),
+            "connected": err is None,
+            "page_count": len(pages),
+            "connection_error": err
+        })
+
+    cfg = load_wiki_config()
+    test_conn = request.args.get("test") == "1"
+    pages = []
+    err = None
+    if test_conn:
+        pages, err = fetch_all_wiki_pages(force_refresh=True)
+    return jsonify({
+        "success": True,
+        "base_url": cfg["base_url"],
+        "locale": cfg["locale"],
+        "default_folder": cfg["default_folder"],
+        "has_api_key": bool(cfg["api_key"]),
+        "connected": (err is None) if test_conn else None,
+        "page_count": len(pages) if test_conn else None,
+        "connection_error": err
+    })
+
+
+@app.route('/api/wiki/folders', methods=['GET'])
+def api_wiki_folders():
+    cfg = load_wiki_config()
+    pages, err = fetch_all_wiki_pages()
+    folders = extract_wiki_folders(pages, cfg["default_folder"])
+    return jsonify({
+        "success": True,
+        "folders": folders,
+        "default_folder": cfg["default_folder"],
+        "base_url": cfg["base_url"],
+        "locale": cfg["locale"],
+        "has_api_key": bool(cfg["api_key"]),
+        "warning": err
+    })
+
+
+@app.route('/api/wiki/search', methods=['GET'])
+def api_wiki_search():
+    q = (request.args.get("q") or "").strip()
+    cfg = load_wiki_config()
+    pages, list_err = fetch_all_wiki_pages()
+    folders = extract_wiki_folders(pages, cfg["default_folder"])
+
+    def format_page_item(p, score=1):
+        loc = p.get("locale") or cfg["locale"]
+        path_clean = str(p.get("path") or "").lstrip("/")
+        folder = "/".join(path_clean.split("/")[:-1]) if "/" in path_clean else ""
+        return {
+            "id": p.get("id"),
+            "title": p.get("title") or path_clean,
+            "description": p.get("description") or "",
+            "path": path_clean,
+            "folder": folder,
+            "locale": loc,
+            "url": f"{cfg['base_url']}/{loc}/{path_clean}",
+            "updatedAt": p.get("updatedAt") or "",
+            "score": score
+        }
+
+    # If query is empty, return recent/all pages (up to 25)
+    if not q:
+        sorted_pages = sorted(pages, key=lambda x: x.get("updatedAt") or "", reverse=True)[:25]
+        return jsonify({
+            "success": True,
+            "query": "",
+            "results": [format_page_item(p) for p in sorted_pages],
+            "folders": folders,
+            "base_url": cfg["base_url"],
+            "locale": cfg["locale"],
+            "has_api_key": bool(cfg["api_key"]),
+            "warning": list_err
+        })
+
+    # 1. Keyword scoring on all pages (title, path/folder, description)
+    norm_q = normalize_wiki_text(q)
+    stop_words = {"ve", "ile", "icin", "bir", "bu", "su", "mi", "mu", "de", "da", "den", "dan", "var", "yok", "olan", "und", "der", "die", "das", "mit", "bei", "von"}
+    tokens = [t for t in norm_q.split() if len(t) >= 2 and t not in stop_words]
+    if not tokens and norm_q.strip():
+        tokens = [norm_q.strip()]
+
+    scored_by_id = {}
+    for p in pages:
+        pid = p.get("id")
+        title_norm = normalize_wiki_text(p.get("title") or "")
+        desc_norm = normalize_wiki_text(p.get("description") or "")
+        path_norm = normalize_wiki_text(p.get("path") or "")
+
+        score = 0
+        if norm_q and norm_q in title_norm:
+            score += 15
+        if norm_q and norm_q in path_norm:
+            score += 10
+        if norm_q and norm_q in desc_norm:
+            score += 8
+
+        for tok in tokens:
+            if tok in title_norm:
+                score += 6
+            if tok in path_norm:
+                score += 4
+            if tok in desc_norm:
+                score += 2
+
+        if score > 0:
+            scored_by_id[pid] = format_page_item(p, score=score)
+
+    # 2. Also run Wiki.js full-text search (matches inside page body content!)
+    search_query = """
+    query SearchPages($query: String!) {
+      pages {
+        search(query: $query) {
+          results {
+            id
+            title
+            description
+            path
+            locale
+          }
+        }
+      }
+    }
+    """
+    s_data, s_err = wiki_graphql_request(search_query, {"query": q}, timeout=6)
+    if s_data and "pages" in s_data and isinstance(s_data["pages"].get("search", {}).get("results"), list):
+        for sp in s_data["pages"]["search"]["results"]:
+            sp_id = sp.get("id")
+            if sp_id in scored_by_id:
+                scored_by_id[sp_id]["score"] += 10
+            else:
+                scored_by_id[sp_id] = format_page_item(sp, score=10)
+
+    results = sorted(scored_by_id.values(), key=lambda x: x["score"], reverse=True)[:15]
+    return jsonify({
+        "success": True,
+        "query": q,
+        "results": results,
+        "folders": folders,
+        "base_url": cfg["base_url"],
+        "locale": cfg["locale"],
+        "has_api_key": bool(cfg["api_key"]),
+        "warning": list_err or s_err
+    })
+
+
+@app.route('/api/wiki/page/<int:page_id>', methods=['GET'])
+def api_wiki_get_page(page_id):
+    cfg = load_wiki_config()
+    query = """
+    query GetSinglePage($id: Int!) {
+      pages {
+        single(id: $id) {
+          id
+          path
+          locale
+          title
+          description
+          content
+          updatedAt
+        }
+      }
+    }
+    """
+    data, err = wiki_graphql_request(query, {"id": page_id})
+    if err or not data or not data.get("pages", {}).get("single"):
+        return jsonify({"error": err or "Wiki sayfası bulunamadı."}), 404
+
+    page = data["pages"]["single"]
+    loc = page.get("locale") or cfg["locale"]
+    path_clean = str(page.get("path") or "").lstrip("/")
+    return jsonify({
+        "success": True,
+        "page": {
+            "id": page.get("id"),
+            "title": page.get("title") or path_clean,
+            "description": page.get("description") or "",
+            "path": path_clean,
+            "locale": loc,
+            "content": page.get("content") or "",
+            "updatedAt": page.get("updatedAt") or "",
+            "url": f"{cfg['base_url']}/{loc}/{path_clean}"
+        }
+    })
+
+
+@app.route('/api/wiki/summarize-ticket', methods=['POST'])
+def api_wiki_summarize_ticket():
+    payload = request.get_json(silent=True) or {}
+    ticket_id = payload.get("ticket_id")
+    title = str(payload.get("title") or "").strip()
+    messages = payload.get("messages") or []
+
+    cfg = load_wiki_config()
+    pages, _ = fetch_all_wiki_pages()
+    folders = extract_wiki_folders(pages, cfg["default_folder"])
+
+    # If ticket_id is given and messages not passed, fetch from DB
+    if ticket_id and not messages:
+        conn = get_db_connection()
+        if conn:
+            try:
+                cursor = conn.cursor()
+                cursor.execute("""
+                    SELECT e.cTitelErsteNachricht
+                    FROM [Ticketsystem].[tTicketEckdaten] e WITH (NOLOCK)
+                    WHERE e.kTicket = ?
+                """, (ticket_id,))
+                r = cursor.fetchone()
+                if r and r[0] and not title:
+                    title = r[0]
+
+                cursor.execute("""
+                    SELECT cInhalt, nRichtung, dErstellung
+                    FROM [Ticketsystem].[tNachricht] WITH (NOLOCK)
+                    WHERE kTicket = ?
+                    ORDER BY dErstellung ASC
+                """, (ticket_id,))
+                for m_row in cursor.fetchall():
+                    txt = (m_row[0] or "").strip()
+                    if txt and not txt.startswith("Sistem Bilgisi:"):
+                        messages.append({
+                            "role": "Destek Ekibi" if m_row[1] == 0 else "Müşteri",
+                            "text": txt
+                        })
+            except Exception as e:
+                print(f"[wiki] Ticket mesajları okunamadı: {e}")
+            finally:
+                conn.close()
+
+    conv_lines = []
+    for m in messages:
+        if isinstance(m, dict):
+            txt = str(m.get("text") or m.get("cInhalt") or "").strip()
+            role = m.get("role") or ("Destek" if m.get("nRichtung") == 0 else "Müşteri")
+        else:
+            txt = str(m).strip()
+            role = "Mesaj"
+        if txt and not txt.startswith("Sistem Bilgisi:"):
+            conv_lines.append(f"[{role}]: {txt}")
+
+    conversation_text = "\n".join(conv_lines)
+    clean_title = title or "Teknik Destek Çözümü"
+    default_slug = slugify_wiki_Segment(clean_title)
+
+    # Try AI summary via Gemini
+    prompt = f"""Sen teknik destek ekibinin iç bilgi bankası (Wiki) yazarısın.
+Aşağıdaki destek biletinin (Ticket) başlığını ve mesaj geçmişini inceleyerek, gelecekte benzer bir sorun başka bir müşteride yaşandığında ekip arkadaşlarımızın hızlıca uygulayabileceği **genel, net ve müşteri özel bilgilerinden (firma adı, telefon, müşteri no vb.) arındırılmış** bir Wiki çözüm sayfası hazırla.
+
+Mevcut Wiki Klasörleri: {json.dumps(folders, ensure_ascii=False)}
+
+Bilet Başlığı: {clean_title}
+Mesaj Geçmişi:
+{conversation_text[:4000]}
+
+Lütfen aşağıdaki JSON formatında yanıt ver:
+{{
+  "title": "Wiki sayfası için net ve anlaşılır başlık",
+  "slug": "url-uyumlu-kisa-sayfa-adi",
+  "folder": "Mevcut klasörlerden en uygunu veya yeni mantıklı klasör adı (örn: {cfg['default_folder']})",
+  "description": "Sorun ve çözümün 1 cümlelik kısa özeti",
+  "tags": ["etiket1", "etiket2"],
+  "content": "## 🔍 Sorun / Belirti\\n...\\n\\n## 🛠️ Çözüm Adımları\\n1. ...\\n\\n## 💡 Önemli Notlar\\n..."
+}}
+"""
+    parsed, err = call_gemini_json(prompt, temperature=0.2, max_tokens=2500)
+    if parsed and isinstance(parsed, dict) and parsed.get("content"):
+        return jsonify({
+            "success": True,
+            "ai_generated": True,
+            "title": str(parsed.get("title") or clean_title).strip(),
+            "slug": slugify_wiki_Segment(parsed.get("slug") or clean_title),
+            "folder": str(parsed.get("folder") or cfg["default_folder"]).strip().strip("/"),
+            "description": str(parsed.get("description") or f"{clean_title} için çözüm rehberi").strip(),
+            "tags": parsed.get("tags") if isinstance(parsed.get("tags"), list) else ["ticket-cozum"],
+            "content": str(parsed.get("content")).strip()
+        })
+
+    # Fallback template if Gemini is unavailable
+    fallback_md = f"""## 🔍 Konu / Sorun
+**{clean_title}**
+
+## 🛠️ Uygulanan Çözüm
+{conversation_text if conversation_text else 'Çözüm detaylarını buraya yazın...'}
+
+## 💡 Ek Notlar
+- Bilet üzerinden kaydedilmiştir.
+"""
+    return jsonify({
+        "success": True,
+        "ai_generated": False,
+        "ai_warning": err,
+        "title": clean_title,
+        "slug": default_slug,
+        "folder": cfg["default_folder"],
+        "description": f"{clean_title} konusu için çözüm notları",
+        "tags": ["ticket-cozum"],
+        "content": fallback_md
+    })
+
+
+@app.route('/api/wiki/pages', methods=['POST'])
+def api_wiki_create_page():
+    payload = request.get_json(silent=True) or {}
+    cfg = load_wiki_config()
+
+    title = str(payload.get("title") or "").strip()
+    folder = str(payload.get("folder") or cfg["default_folder"]).strip().strip("/")
+    slug = slugify_wiki_Segment(payload.get("slug") or title)
+    description = str(payload.get("description") or f"{title} çözüm sayfası").strip()
+    content = str(payload.get("content") or "").strip()
+    tags_raw = payload.get("tags")
+    locale = str(payload.get("locale") or cfg["locale"]).strip().strip("/") or "de"
+
+    if not title or not content:
+        return jsonify({"error": "Sayfa başlığı ve çözüm içeriği zorunludur."}), 400
+
+    if isinstance(tags_raw, list):
+        tags = [str(t).strip() for t in tags_raw if str(t).strip()]
+    elif isinstance(tags_raw, str) and tags_raw.strip():
+        tags = [t.strip() for t in tags_raw.split(",") if t.strip()]
+    else:
+        tags = ["ticket-cozum"]
+
+    full_path = f"{folder}/{slug}" if folder else slug
+    full_path = re.sub(r"/+", "/", full_path).strip("/")
+
+    mutation = """
+    mutation CreateWikiPage(
+      $content: String!,
+      $description: String!,
+      $editor: String!,
+      $isPublished: Boolean!,
+      $isPrivate: Boolean!,
+      $locale: String!,
+      $path: String!,
+      $tags: [String]!,
+      $title: String!
+    ) {
+      pages {
+        create(
+          content: $content,
+          description: $description,
+          editor: $editor,
+          isPublished: $isPublished,
+          isPrivate: $isPrivate,
+          locale: $locale,
+          path: $path,
+          tags: $tags,
+          title: $title
+        ) {
+          responseResult {
+            succeeded
+            errorCode
+            slug
+            message
+          }
+          page {
+            id
+            path
+            title
+          }
+        }
+      }
+    }
+    """
+
+    variables = {
+        "content": content,
+        "description": description,
+        "editor": "markdown",
+        "isPublished": True,
+        "isPrivate": False,
+        "locale": locale,
+        "path": full_path,
+        "tags": tags,
+        "title": title
+    }
+
+    data, err = wiki_graphql_request(mutation, variables, timeout=12)
+    if err:
+        return jsonify({
+            "error": err,
+            "fallback_url": f"{cfg['base_url']}/{locale}/{full_path}"
+        }), 502
+
+    create_res = (data or {}).get("pages", {}).get("create", {})
+    resp_result = create_res.get("responseResult") or {}
+
+    # If duplicate path error, append short timestamp suffix and retry once
+    if not resp_result.get("succeeded"):
+        err_slug = str(resp_result.get("slug") or "")
+        if "Duplicate" in err_slug or resp_result.get("errorCode") == 6002:
+            full_path = f"{full_path}-{int(time.time()) % 10000}"
+            variables["path"] = full_path
+            data, err = wiki_graphql_request(mutation, variables, timeout=12)
+            if not err and data:
+                create_res = data.get("pages", {}).get("create", {})
+                resp_result = create_res.get("responseResult") or {}
+
+    if not resp_result.get("succeeded"):
+        msg = resp_result.get("message") or "Wiki sayfası oluşturulamadı (Yetki veya API anahtarı eksik olabilir)."
+        return jsonify({
+            "error": msg,
+            "fallback_url": f"{cfg['base_url']}/{locale}/{full_path}"
+        }), 400
+
+    # Clear page cache so new page is immediately searchable
+    _wiki_pages_cache["timestamp"] = 0
+    created_page = create_res.get("page") or {}
+    final_path = created_page.get("path") or full_path
+
+    return jsonify({
+        "success": True,
+        "page": {
+            "id": created_page.get("id"),
+            "title": created_page.get("title") or title,
+            "path": final_path,
+            "url": f"{cfg['base_url']}/{locale}/{final_path}"
+        }
+    })
 
 
 if __name__ == '__main__':
