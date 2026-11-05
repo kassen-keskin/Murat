@@ -1,4 +1,4 @@
-﻿SELECT  * FROM dbo.Kunde_Trigger_Log ORDER BY LogId DESC;
+﻿--SELECT  * FROM dbo.Kunde_Trigger_Log ORDER BY LogId DESC;
 
 /*
 EXEC sp_configure 'show advanced options', 1;
@@ -87,12 +87,13 @@ BEGIN
             SET @FolderName = REPLACE(@FolderName, '>', '');
             SET @FolderName = REPLACE(@FolderName, '|', '');
 
-            -- 3. Klasör henüz yoksa oluştur
+            -- 3. Klasör henüz yoksa oluştur 
             SET @Cmd = 'net use \\fileserver\Ortak_Alan ' + @SambaPass + ' /user:' + @SambaUser + ' & '
                 + 'if not exist "' + @BasePath + '\' + @FolderName + '" '
                 + 'mkdir '
                 + '"' + @BasePath + '\' + @FolderName + '\Artikel" '
                 + '"' + @BasePath + '\' + @FolderName + '\Backup" '
+                + '"' + @BasePath + '\' + @FolderName + '\Dokumente" '
                 + '"' + @BasePath + '\' + @FolderName + '\Ec-Gerät" '
                 + '"' + @BasePath + '\' + @FolderName + '\Elster" '
                 + '"' + @BasePath + '\' + @FolderName + '\Lastschrift" '
@@ -127,5 +128,4 @@ BEGIN
     DROP TABLE #CmdResult;
 END;
 GO
-
 */
