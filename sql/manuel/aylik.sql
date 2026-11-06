@@ -10,8 +10,8 @@ from tZahlung							as Z  with(nolock)
 INNER JOIN Rechnung.tRechnung			as R  with(nolock) on R.kRechnung	= Z.kRechnung
 INNER JOIN Kunde.lvKunde				as K  with(nolock) on R.kKunde		= K.kKunde
 INNER JOIN tZahlungsart					as ZA  with(nolock) on ZA.kZahlungsart = Z.kZahlungsart
-where  Z.dDatum between cast('2026-08-01 00:00:00.000' as date)  and cast('2026-09-01 00:00:00.000' as date)
-and  R.dErstellt < cast('2026-08-01 00:00:00.000' as date)
+where  Z.dDatum between cast('2026-09-01 00:00:00.000' as date)  and cast('2026-10-01 00:00:00.000' as date)
+and  R.dErstellt < cast('2026-09-01 00:00:00.000' as date)
 --and ZA.cName = 'Bar'
 --and R.cRechnungsnr <> 'EK-2025-11505'
 group by R.cRechnungsnr,Z.dDatum,R.cKundennr, K.cFirma, ZA.cName,R.dErstellt
