@@ -1497,7 +1497,7 @@
                             <option value="rental">📌 Takiptekiler</option>
                             <option value="custom">👥 Müşteriler</option>
                             <option value="aylik">🧾 Aylık Fatura</option>
-                            <option value="faturasizlar">📝 Faturasız Siparişler</option>
+                            <option value="faturasizlar">📝 AF / FS</option>
                         </optgroup>
                         <optgroup label="SATIŞ &amp; BELGELER">
                             <option value="satis">🛒 Satış</option>
@@ -1545,7 +1545,7 @@
                             </div>
                             <div id="tabFaturasizlar" class="tab-item module-menu-item" data-tab="faturasizlar" onclick="selectModule('faturasizlar')">
                                 <span class="item-icon">📝</span>
-                                <span class="item-name">Faturasız Siparişler</span>
+                                <span class="item-name">AF / FS</span>
                                 <span class="item-check">✓</span>
                             </div>
 
@@ -1655,6 +1655,14 @@
                 <button id="btnRefreshData" class="filter-btn"
                     style="background-color: var(--card-bg); border: 1px solid var(--border-color); color: var(--text-color); padding: 6px 12px; margin-left: 10px;"
                     onclick="refreshCurrentTabData()">Yenile</button>
+            </div>
+
+            <div id="faturasizTypeToggle" class="view-toggle" style="display: none; margin-left: 0;">
+                <input type="radio" id="modeFaturasiz" name="faturasizMode" value="faturasiz" class="toggle-option" checked onchange="switchFaturasizMode(this.value)">
+                <label for="modeFaturasiz" class="toggle-label">Faturasız Siparişler</label>
+
+                <input type="radio" id="modeAcikFatura" name="faturasizMode" value="acikfatura" class="toggle-option" onchange="switchFaturasizMode(this.value)">
+                <label for="modeAcikFatura" class="toggle-label">Açık Faturalar</label>
             </div>
 
             <div class="filter-group">
@@ -2571,6 +2579,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
         };
         let currentTab = 'tickets';
         let currentViewMode = 'listgrid';
+        let faturasizSubMode = 'faturasiz'; // 'faturasiz' | 'acikfatura'
 
         // Aylik Fatura state
         let aylikLastFiltered = [];
@@ -2610,9 +2619,18 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 return;
             }
             if (tab === 'faturasizlar') {
-                await fetchData('faturasizlar', '/api/faturasiz-siparisler');
+                const url = faturasizSubMode === 'acikfatura' ? '/api/acik-faturalar' : '/api/faturasiz-siparisler';
+                await fetchData('faturasizlar', url);
                 return;
             }
+        }
+
+        async function switchFaturasizMode(mode) {
+            faturasizSubMode = mode;
+            columnFilters = {};
+            currentSort = { column: 'BelgeTarigi', direction: 'desc' };
+            await loadTabDataIfNeeded('faturasizlar');
+            applyFilters();
         }
 
         async function refreshCurrentTabData() {
@@ -2630,7 +2648,8 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             } else if (currentTab === 'aylik') {
                 await fetchAylikData();
             } else if (currentTab === 'faturasizlar') {
-                await fetchData('faturasizlar', '/api/faturasiz-siparisler');
+                const url = faturasizSubMode === 'acikfatura' ? '/api/acik-faturalar' : '/api/faturasiz-siparisler';
+                await fetchData('faturasizlar', url);
             } else if (currentTab === 'elster') {
                 await refreshElsterData();
             } else if (currentTab === 'kasahaberleri') {
@@ -2719,14 +2738,14 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                             row['TSEBitisTarihi'] = `${dd}-${mm}-${yyyy}`;
                         }
                     }
-                    if (row['AuftragDate']) {
-                        const d = new Date(row['AuftragDate']);
+                    if (row['BelgeTarigi']) {
+                        const d = new Date(row['BelgeTarigi']);
                         if (d && !isNaN(d)) {
-                            row[`_AuftragDate_Sort`] = d.getTime();
+                            row[`_BelgeTarigi_Sort`] = d.getTime();
                             const dd = String(d.getDate()).padStart(2, '0');
                             const mm = String(d.getMonth() + 1).padStart(2, '0');
                             const yyyy = d.getFullYear();
-                            row['AuftragDate'] = `${dd}-${mm}-${yyyy}`;
+                            row['BelgeTarigi'] = `${dd}-${mm}-${yyyy}`;
                         }
                     }
                 });
@@ -2741,7 +2760,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             'rental':   { icon: '📌', label: 'Takiptekiler' },
             'custom':   { icon: '👥', label: 'Müşteriler' },
             'aylik':    { icon: '🧾', label: 'Aylık Fatura' },
-            'faturasizlar': { icon: '📝', label: 'Faturasız Siparişler' },
+            'faturasizlar': { icon: '📝', label: 'AF / FS' },
             'satis':    { icon: '🛒', label: 'Satış' },
             'teslimat': { icon: '📦', label: 'Kasa Teslimat' },
             'formhub':  { icon: '📄', label: 'Dokümanlar' },
@@ -2887,10 +2906,15 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
             if (prevTab !== tab) {
                 columnFilters = {};
                 if (tab === 'faturasizlar') {
-                    currentSort = { column: 'AuftragDate', direction: 'desc' };
+                    currentSort = { column: 'BelgeTarigi', direction: 'desc' };
                 } else if (tab === 'custom' || tab === 'rental') {
                     currentSort = { column: 'KundenNr', direction: 'desc' };
                 }
+            }
+
+            const faturasizToggle = document.getElementById('faturasizTypeToggle');
+            if (faturasizToggle) {
+                faturasizToggle.style.display = tab === 'faturasizlar' ? 'flex' : 'none';
             }
 
             // Update Combobox UI
@@ -3325,8 +3349,8 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 const nr = String(row['KundenNr'] || row['Kundennummer'] || row['KundenNo'] || '').toLowerCase();
                 const firma = String(row['Firma'] || row['K_Firma'] || '').toLowerCase();
                 const inhabe = row['InhabeName'] ? String(row['InhabeName']).toLowerCase() : '';
-                const auftrag = row['Auftrag'] ? String(row['Auftrag']).toLowerCase() : '';
-                if (kundenNrVal && !nr.includes(kundenNrVal) && !firma.includes(kundenNrVal) && !inhabe.includes(kundenNrVal) && !auftrag.includes(kundenNrVal)) return false;
+                const belgeNo = String(row['BelgeNo'] || row['Auftrag'] || '').toLowerCase();
+                if (kundenNrVal && !nr.includes(kundenNrVal) && !firma.includes(kundenNrVal) && !inhabe.includes(kundenNrVal) && !belgeNo.includes(kundenNrVal)) return false;
                 if (kundenKategorieVal && row['KundenKategorie'] != kundenKategorieVal) return false;
 
                 // Elster Filter: Only if checked, filter for Elster == 1
@@ -3473,7 +3497,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                 return ordered.filter(key => keys.includes(key));
             }
             if (currentTab === 'faturasizlar') {
-                return ['Auftrag', 'AuftragDate', 'KundenNo', 'Firma', 'InhabeName', 'FirmaAdress', 'BorcToplami'];
+                return ['BelgeNo', 'BelgeTarigi', 'KundenNo', 'Firma', 'InhabeName', 'FirmaAdress', 'BorcToplami'];
             }
             if (currentTab === 'custom') {
                 return ['KundenNr', 'Firma', 'InhabeName', 'KundenKategorie', 'KundenGruppe', 'TamKontrolTarihi', 'TSEBitisTarihi', 'EcCihazi', 'Servis', 'KasaSayisi', 'SeriKodluKasaSayisi', 'ElsterSayisi', 'BorcToplami', 'BorcTarihi', 'BorcTarihiGunSayisi', 'AuftragSayisi'];
@@ -3895,7 +3919,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
                     if (key === 'BorcToplami') {
                         td.style.textAlign = 'right';
                     }
-                    if (key === 'Auftrag' || key === 'AuftragDate') {
+                    if (key === 'BelgeNo' || key === 'BelgeTarigi') {
                         td.style.whiteSpace = 'nowrap';
                     }
                     if (key === 'TamKontrolTarihi') {
@@ -4595,7 +4619,7 @@ Vielen Dank für eine kurze Rückmeldung zum weiteren Vorgehen.</textarea>
 
             // Reset Excel-style states
             columnFilters = {};
-            currentSort = currentTab === 'faturasizlar' ? { column: 'AuftragDate', direction: 'desc' } : { column: 'KundenNr', direction: 'desc' };
+            currentSort = currentTab === 'faturasizlar' ? { column: 'BelgeTarigi', direction: 'desc' } : { column: 'KundenNr', direction: 'desc' };
 
             // Optional: You could update UI for columnFilterDropdown if it's currently open
             closeColumnFilter();

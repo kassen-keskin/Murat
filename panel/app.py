@@ -431,7 +431,15 @@ def get_faturasiz_siparisler():
             return make_cached_response(cached, 'HIT')
 
         query = """
-        SELECT *
+        SELECT [Rechnung]
+              ,[Auftrag] AS [BelgeNo]
+              ,[AuftragDate] AS [BelgeTarigi]
+              ,[BorcToplami]
+              ,[KundenNo]
+              ,[kKunde]
+              ,[Firma]
+              ,[FirmaAdress]
+              ,[InhabeName]
         FROM [Custom].[FaturasizSiparisler] WITH (NOLOCK)
         ORDER BY [AuftragDate] DESC
         """
@@ -440,11 +448,45 @@ def get_faturasiz_siparisler():
         results = []
         for row in cursor.fetchall():
             row_dict = dict(zip(columns, row))
-            if isinstance(row_dict.get('AuftragDate'), (datetime.datetime, datetime.date)):
-                row_dict['AuftragDate'] = row_dict['AuftragDate'].strftime('%Y-%m-%d %H:%M:%S') if isinstance(row_dict['AuftragDate'], datetime.datetime) else row_dict['AuftragDate'].strftime('%Y-%m-%d')
+            if isinstance(row_dict.get('BelgeTarigi'), (datetime.datetime, datetime.date)):
+                row_dict['BelgeTarigi'] = row_dict['BelgeTarigi'].strftime('%Y-%m-%d %H:%M:%S') if isinstance(row_dict['BelgeTarigi'], datetime.datetime) else row_dict['BelgeTarigi'].strftime('%Y-%m-%d')
             results.append(row_dict)
 
         set_cached_data('faturasiz_siparisler', results)
+        return make_cached_response(results, 'MISS')
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/acik-faturalar')
+def get_acik_faturalar():
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+
+    cursor = conn.cursor()
+    try:
+        cached = get_cached_data('acik_faturalar')
+        if cached is not None:
+            return make_cached_response(cached, 'HIT')
+
+        query = """
+        SELECT *
+        FROM [Custom].[AcikFaturalar] WITH (NOLOCK)
+        ORDER BY [BelgeTarigi] DESC
+        """
+        cursor.execute(query)
+        columns = [column[0] for column in cursor.description]
+        results = []
+        for row in cursor.fetchall():
+            row_dict = dict(zip(columns, row))
+            if isinstance(row_dict.get('BelgeTarigi'), (datetime.datetime, datetime.date)):
+                row_dict['BelgeTarigi'] = row_dict['BelgeTarigi'].strftime('%Y-%m-%d %H:%M:%S') if isinstance(row_dict['BelgeTarigi'], datetime.datetime) else row_dict['BelgeTarigi'].strftime('%Y-%m-%d')
+            results.append(row_dict)
+
+        set_cached_data('acik_faturalar', results)
         return make_cached_response(results, 'MISS')
     except Exception as e:
         print(f"Query failed: {e}")
