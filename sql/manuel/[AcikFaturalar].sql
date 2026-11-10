@@ -1,4 +1,4 @@
-CREATE VIEW [Custom].[AcikFaturalar] AS
+--ALTER VIEW [Custom].[AcikFaturalar] AS
 select 
 	RE.kRechnung as Rechnung,
 	R.cRechnungsnr as BelgeNo,
@@ -9,13 +9,13 @@ select
 	K.Firma,
 	K.FirmaAdress,
 	K.InhabeName
-	
 from Rechnung.tRechnung			as R with(nolock) 
 INNER JOIN [Custom].[Kunde] as K with(nolock) ON K.kKunde = R.kKunde
 INNER JOIN Rechnung.tRechnungEckdaten as RE with(nolock) on RE.kRechnung = R.kRechnung
 where 1 = 1
 and R.cKundenNr > 10
 and RE.fOffenerWert > 0
+and K.kKundenGruppe = 1
 group by 
 	RE.kRechnung,
 	R.cRechnungsnr,
