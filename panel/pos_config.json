@@ -1,4 +1,26 @@
 {
+    "models": [
+        {
+            "id": 1,
+            "name": "Base Next"
+        },
+        {
+            "id": 2,
+            "name": "Desk/3500"
+        },
+        {
+            "id": 3,
+            "name": "Move/3500"
+        },
+        {
+            "id": 4,
+            "name": "Move/5000"
+        },
+        {
+            "id": 5,
+            "name": "Desk/5000"
+        }
+    ],
     "pos_user_id": null,
     "statuses": [
         {
@@ -40,24 +62,6 @@
         {
             "id": 2,
             "name": "Elavon"
-        }
-    ],
-    "models": [
-        {
-            "id": 1,
-            "name": "Base Next"
-        },
-        {
-            "id": 2,
-            "name": "Desk/3500"
-        },
-        {
-            "id": 3,
-            "name": "Move/3500"
-        },
-        {
-            "id": 4,
-            "name": "Move/5000"
         }
     ]
 }

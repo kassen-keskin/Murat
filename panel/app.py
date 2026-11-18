@@ -368,16 +368,20 @@ def get_pos_customers():
             return make_cached_response(cached, 'HIT')
 
         query = """
-        SELECT [kKunde]
-              ,[KundenNr]
-              ,[Firma]
-              ,[InhabeName]
-              ,[Ort]
+        SELECT *
           FROM [Custom].[Kunde] WITH (NOLOCK)
         """
         cursor.execute(query)
         columns = [column[0] for column in cursor.description]
-        results = [dict(zip(columns, row)) for row in cursor.fetchall()]
+        results = []
+        for row in cursor.fetchall():
+            row_dict = dict(zip(columns, row))
+            for k, v in row_dict.items():
+                if isinstance(v, (datetime.datetime, datetime.date)):
+                    row_dict[k] = v.isoformat()
+                elif isinstance(v, Decimal):
+                    row_dict[k] = float(v)
+            results.append(row_dict)
 
         set_cached_data('pos_customers', results)
         return make_cached_response(results, 'MISS')
@@ -578,7 +582,7 @@ def get_kunde(kunden_nr):
     
     cursor = conn.cursor()
     try:
-        query = "SELECT * FROM [Custom].[Kunde] WHERE KundenNr = ?"
+        query = "SELECT * FROM [Custom].[Kunde] WITH (NOLOCK) WHERE KundenNr = ?"
         cursor.execute(query, (kunden_nr,))
         
         columns = [column[0] for column in cursor.description]
@@ -586,6 +590,42 @@ def get_kunde(kunden_nr):
         
         if row:
             result = dict(zip(columns, row))
+            for k, v in result.items():
+                if isinstance(v, (datetime.datetime, datetime.date)):
+                    result[k] = v.isoformat()
+                elif isinstance(v, Decimal):
+                    result[k] = float(v)
+            return jsonify(result)
+        else:
+            return jsonify({"error": "Not found"}), 404
+            
+    except Exception as e:
+        print(f"Query failed: {e}")
+        return jsonify({"error": str(e)}), 500
+    finally:
+        conn.close()
+
+@app.route('/api/kunde-by-id/<int:k_kunde>')
+def get_kunde_by_id(k_kunde):
+    conn = get_db_connection()
+    if not conn:
+        return jsonify({"error": "Database connection failed"}), 500
+    
+    cursor = conn.cursor()
+    try:
+        query = "SELECT * FROM [Custom].[Kunde] WITH (NOLOCK) WHERE kKunde = ?"
+        cursor.execute(query, (k_kunde,))
+        
+        columns = [column[0] for column in cursor.description]
+        row = cursor.fetchone()
+        
+        if row:
+            result = dict(zip(columns, row))
+            for k, v in result.items():
+                if isinstance(v, (datetime.datetime, datetime.date)):
+                    result[k] = v.isoformat()
+                elif isinstance(v, Decimal):
+                    result[k] = float(v)
             return jsonify(result)
         else:
             return jsonify({"error": "Not found"}), 404

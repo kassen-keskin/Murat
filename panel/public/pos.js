@@ -3,6 +3,26 @@ let posTickets = [];
 let posRecords = {};
 let allCustomersPos = [];
 
+const KASSEN_KESKIN_LIEFERADRESSE = "Kassen Keskin, Erol Keskin, Stülpnagelstraße 3, 14059 Berlin";
+
+const ELAVON_DEFAULTS = {
+    rechtsform: "Einzelunternehmen",
+    miete: "0",
+    transaktionspreis: "0,05 €",
+    simKarte: "Nein",
+    masterVisaCredit: "0,89 %",
+    masterVisaDebit: "0,89 %",
+    maestroVpay: "0,89 %",
+    nonEwr: "2,50 %",
+    diners: "2,50 %",
+    dcc: "1 % Cashback",
+    laufzeit: "2 Jahre",
+    sonderkuendigung: "Bei Gewerbeabmeldung",
+    adminFee: "0",
+    pec: "43886",
+    lieferadresseType: "Kunde"
+};
+
 async function initPosTab() {
     await fetchPosConfig();
     await fetchPosRecords();
@@ -49,10 +69,17 @@ function renderPosBoard() {
     const container = document.getElementById('posContainer');
     if (!container) return;
 
+    const firstStatusId = (posConfig.statuses && posConfig.statuses.length > 0)
+        ? [...posConfig.statuses].sort((a, b) => a.order - b.order)[0].id
+        : 100;
+
     let html = `
         <div class="pos-header">
             <h2>💳 POS Takip Sistemi</h2>
-            <button class="pos-admin-btn" onclick="openPosAdmin()">⚙️ Yönetim Paneli</button>
+            <div style="display:flex; gap:10px; align-items:center;">
+                <button class="btn-save" onclick="openNewPosTicketModal(${firstStatusId})" title="Yeni POS Ticket Oluştur">➕ Yeni POS Talebi</button>
+                <button class="pos-admin-btn" onclick="openPosAdmin()">⚙️ Yönetim Paneli</button>
+            </div>
         </div>
         <div class="pos-board" id="posBoard">
     `;
@@ -77,6 +104,7 @@ function renderPosBoard() {
     html += `</div>`;
     html += getPosAdminModalHtml();
     html += getNewPosTicketModalHtml();
+    html += getPosElavonPrintPreviewHtml();
 
     container.innerHTML = html;
 
@@ -362,39 +390,246 @@ let currentNewPosStatusId = null;
 function getNewPosTicketModalHtml() {
     return `
     <div class="pos-modal-overlay" id="newPosModal">
-        <div class="pos-modal" style="width: 500px;">
-            <h3>➕ Yeni POS Cihazı Ekle</h3>
+        <div class="pos-modal" style="width: 1000px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-color); padding-bottom:10px; margin-bottom:12px;">
+                <h3 style="margin:0;">➕ Yeni POS Cihazı Ekle</h3>
+                <button type="button" onclick="document.getElementById('newPosModal').style.display='none'" style="background:none; border:none; color:var(--text-muted); font-size:1.4rem; cursor:pointer; line-height:1;">&times;</button>
+            </div>
             
-            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 5px; margin-top: 15px;">
-                <div style="flex:1; margin-right: 10px;">
-                    <label>Müşteri Ara:</label>
-                    <input type="text" id="newPosCustomerSearch" oninput="updateNewPosCustomerOptions()" placeholder="Firma veya müşteri numarası ara..." style="width: 100%; box-sizing: border-box; padding: 8px; border: 1px solid var(--border-color); border-radius: 4px; background: var(--bg-color); color: var(--text-color);">
+            <!-- Üst Seçim Satırı: Müşteri Arama + Seçim + Tedarikçi + Model -->
+            <div class="pos-form-box" style="margin-bottom: 14px;">
+                <div class="pos-inline-grid-2">
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="margin:0;">Müşteri Ara:</label>
+                            <span style="font-size: 0.8rem; color: var(--text-muted); line-height: 1.25;">Sonuç: <strong id="newPosCustomerCount">0</strong></span>
+                        </div>
+                        <input type="text" id="newPosCustomerSearch" oninput="updateNewPosCustomerOptions()" placeholder="Firma veya müşteri numarası ara...">
+                    </div>
+                    <div>
+                        <label>Müşteri Seçin *</label>
+                        <select id="newPosKunde" onchange="onPosCustomerChange()">
+                            <option value="">-- Müşteri Seçin --</option>
+                        </select>
+                    </div>
                 </div>
-                <div style="white-space: nowrap; margin-bottom: 8px;">
-                    <label>Sonuç: <span id="newPosCustomerCount" style="font-weight: bold;">0</span></label>
+
+                <div class="pos-inline-grid-2">
+                    <div>
+                        <label>Tedarikçi Firma *</label>
+                        <select id="newPosSupplier">
+                            <option value="">-- Tedarikçi Seçin --</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>POS Cihazı Marka / Model</label>
+                        <select id="newPosModel">
+                            <option value="">-- Model Seçin --</option>
+                        </select>
+                    </div>
                 </div>
             </div>
-            <select id="newPosKunde">
-                <option value="">-- Müşteri Seçin --</option>
-            </select>
 
-            <label style="margin-top: 15px; display:block;">Tedarikçi Firma:</label>
-            <select id="newPosSupplier">
-                <option value="">-- Tedarikçi Seçin --</option>
-            </select>
-            
-            <label style="margin-top: 15px; display:block;">POS Cihazı Marka/Modeli:</label>
-            <select id="newPosModel">
-                <option value="">-- Model Seçin --</option>
-            </select>
-            
-            <label style="margin-top: 15px; display:block;">Not / Açıklama:</label>
-            <textarea id="newPosNot" placeholder="Gerekli açıklamaları girin..."></textarea>
+            <!-- İki Sütunlu Detay Alanları -->
+            <div class="pos-form-grid">
+                <!-- Sol Sütun: Müşteri / İşletme Bilgileri -->
+                <div class="pos-form-box">
+                    <div class="pos-form-box-title">🏢 Müşteri & İşletme Bilgileri</div>
+                    
+                    <div class="pos-field-row">
+                        <label>Name vom Geschäft (İşletme Adı):</label>
+                        <input type="text" id="elavonFirma" oninput="onElavonCustomerFieldEdit()" placeholder="Örn: Mustermann">
+                    </div>
+
+                    <div class="pos-inline-grid-2">
+                        <div>
+                            <label>Straße (Cadde / Sokak):</label>
+                            <input type="text" id="elavonStrasse" oninput="onElavonCustomerFieldEdit()" placeholder="Örn: Muster str 1">
+                        </div>
+                        <div>
+                            <label>PLZ, Ort (Posta Kodu, Şehir):</label>
+                            <input type="text" id="elavonPlzOrt" oninput="onElavonCustomerFieldEdit()" placeholder="Örn: 12049 Berlin">
+                        </div>
+                    </div>
+
+                    <div class="pos-field-row">
+                        <label>Inhaber (İşletme Sahibi):</label>
+                        <input type="text" id="elavonInhaber" oninput="onElavonCustomerFieldEdit()" placeholder="Örn: Müslüm Muster">
+                    </div>
+
+                    <div class="pos-inline-grid-2">
+                        <div>
+                            <label>E-Mail:</label>
+                            <input type="text" id="elavonEmail" placeholder="Örn: Muster@gmail.com">
+                        </div>
+                        <div>
+                            <label>Telefon:</label>
+                            <input type="text" id="elavonTelefon" placeholder="Örn: +49 178 ...">
+                        </div>
+                    </div>
+
+                    <div class="pos-inline-grid-2">
+                        <div>
+                            <label>Rechtsform (Şirket Türü):</label>
+                            <input type="text" id="elavonRechtsform" list="elavonRechtsformList" placeholder="Einzelunternehmen">
+                            <datalist id="elavonRechtsformList">
+                                <option value="Einzelunternehmen">
+                                <option value="GbR">
+                                <option value="GmbH">
+                                <option value="UG (haftungsbeschränkt)">
+                                <option value="GmbH & Co. KG">
+                                <option value="e.K.">
+                            </datalist>
+                        </div>
+                        <div>
+                            <label>Steuer Nr. (Vergi No):</label>
+                            <input type="text" id="elavonSteuerNr" placeholder="Örn: DE123456789">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sağ Sütun: Sözleşme & Oran Bilgileri -->
+                <div class="pos-form-box">
+                    <div class="pos-form-box-title">💳 Kondisyon & Sözleşme Bilgileri</div>
+
+                    <div class="pos-inline-grid-3">
+                        <div>
+                            <label>Miete:</label>
+                            <input type="text" id="elavonMiete" placeholder="0">
+                        </div>
+                        <div>
+                            <label>SIM Karte:</label>
+                            <select id="elavonSimKarte">
+                                <option value="Nein">Yok (Nein)</option>
+                                <option value="Ja">Var (Ja)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Admin Fee (monatlich):</label>
+                            <input type="text" id="elavonAdminFee" placeholder="0">
+                        </div>
+                    </div>
+
+                    <div class="pos-inline-grid-3">
+                        <div>
+                            <label>Master/Visa Credit:</label>
+                            <input type="text" id="elavonMasterVisaCredit" placeholder="0,89 %">
+                        </div>
+                        <div>
+                            <label>Master/Visa Debit:</label>
+                            <input type="text" id="elavonMasterVisaDebit" placeholder="0,89 %">
+                        </div>
+                        <div>
+                            <label>Maestro/Vpay:</label>
+                            <input type="text" id="elavonMaestroVpay" placeholder="0,89 %">
+                        </div>
+                    </div>
+
+                    <div class="pos-inline-grid-3">
+                        <div>
+                            <label>Diners/JCB/CUP:</label>
+                            <input type="text" id="elavonDiners" placeholder="2,50 %">
+                        </div>
+                        <div>
+                            <label>DCC:</label>
+                            <input type="text" id="elavonDcc" placeholder="1 % Cashback">
+                        </div>
+                        <div>
+                            <label>Laufzeit:</label>
+                            <input type="text" id="elavonLaufzeit" placeholder="2 Jahre">
+                        </div>
+                    </div>
+
+                    <div class="pos-inline-grid-2">
+                        <div>
+                            <label title="Transaktionspreis inkl. Clearing">Transaktionspreis inkl. Clearing:</label>
+                            <input type="text" id="elavonTransaktionspreis" placeholder="0,05 €">
+                        </div>
+                        <div>
+                            <label title="Non EWR Karten / Business Cards">Non EWR Karten / Business Cards:</label>
+                            <input type="text" id="elavonNonEwr" placeholder="2,50 %">
+                        </div>
+                    </div>
+
+                    <div class="pos-inline-grid-2">
+                        <div>
+                            <label>Sonderkündigungsrecht:</label>
+                            <input type="text" id="elavonSonderkuendigung" placeholder="Bei Gewerbeabmeldung">
+                        </div>
+                        <div>
+                            <label>PEC:</label>
+                            <input type="text" id="elavonPec" placeholder="43886">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Alt Bölüm: Lieferadresse & Bemerkung -->
+            <div class="pos-form-box" style="margin-top: 14px;">
+                <div class="pos-inline-grid-2">
+                    <div>
+                        <label>Lieferadresse (Teslimat Adresi Seçimi):</label>
+                        <select id="elavonLieferadresseType" onchange="updateElavonLieferadresse()">
+                            <option value="Kunde">Müşteri Adresi (Kunde)</option>
+                            <option value="KassenKeskin">Kassen Keskin Adresi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Lieferadresse (PDF ve Ticket'ta Görünecek Adres):</label>
+                        <input type="text" id="elavonLieferadresse" placeholder="Teslimat adresi...">
+                    </div>
+                </div>
+
+                <div class="pos-field-row" style="margin-top: 10px;">
+                    <label>Bemerkung (Not / Açıklama):</label>
+                    <textarea id="newPosNot" placeholder="Varsa ek açıklamaları girin..."></textarea>
+                </div>
+            </div>
 
             <div class="pos-modal-actions">
-                <button class="btn-danger" onclick="document.getElementById('newPosModal').style.display='none'">İptal</button>
-                <button class="btn-save" id="btnCreateNewPos">Oluştur</button>
+                <button type="button" class="btn-danger" onclick="document.getElementById('newPosModal').style.display='none'">İptal</button>
+                <button type="button" class="btn-pdf-secondary" onclick="downloadPosElavonPdfOnly()">📄 Sadece PDF İndir</button>
+                <button type="button" class="btn-save" id="btnCreateNewPos">✅ Ticket Oluştur & PDF İndir</button>
             </div>
+        </div>
+    </div>
+    `;
+}
+
+function getPosElavonPrintPreviewHtml() {
+    return `
+    <!-- Gizli A4 Elavon PDF Yazdırma Alanı (Tek Sayfa A4) -->
+    <div id="posElavonPrintPreview" style="position: absolute; left: -9999px; width: 210mm; background: white; color: black; font-family: 'Times New Roman', serif; padding: 0; box-sizing: border-box; overflow: hidden;">
+        <img src="/a4.ust.siyah.jpg" style="width: 100%; display: block; margin: 0; padding: 0;" alt="Header">
+
+        <div style="padding: 7mm 18mm 8mm 18mm;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                <div style="width: 55%;">
+                    <h3 style="margin: 0 0 4px 0; font-size: 12pt; font-weight: bold;">Kunde / Geschäft:</h3>
+                    <p id="elavonPrintCustomerBlock" style="margin: 0; font-size: 10.5pt; white-space: pre-wrap; line-height: 1.25;"></p>
+                </div>
+                <div style="width: 42%; text-align: left;">
+                    <p style="margin: 0 0 5px 0; font-size: 10.5pt; font-weight: bold; line-height: 1.25;">Berlin, <span id="elavonPrintDate"></span></p>
+                    <p style="margin: 0 0 2px 0; font-size: 10.5pt; line-height: 1.25;"><strong>Kunden-Nr.:</strong> <span id="elavonPrintKundenNr"></span></p>
+                    <p style="margin: 0 0 2px 0; font-size: 10.5pt; line-height: 1.25;"><strong>Terminal:</strong> <span id="elavonPrintModel"></span></p>
+                    <p style="margin: 0; font-size: 10.5pt; line-height: 1.25;"><strong>PEC:</strong> <span id="elavonPrintPecTop"></span></p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 8px; border-bottom: 1.5px solid #000; padding-bottom: 3px;">
+                <h2 id="elavonPrintTitle" style="margin: 0; font-size: 12.5pt; font-weight: bold; letter-spacing: 0.3px;">Terminal Auftrag & Konditionen</h2>
+            </div>
+
+            <table style="width: 100%; border-collapse: collapse; font-size: 10pt; line-height: 1.22;">
+                <thead>
+                    <tr style="background-color: #f0f0f0;">
+                        <th id="elavonPrintThLeft" style="border: 1px solid #222; padding: 4px 8px; text-align: left; width: 48%; font-weight: bold;">Bezeichnung</th>
+                        <th style="border: 1px solid #222; padding: 4px 8px; text-align: left; width: 52%; font-weight: bold;">Info</th>
+                    </tr>
+                </thead>
+                <tbody id="elavonPrintTableBody">
+                </tbody>
+            </table>
         </div>
     </div>
     `;
@@ -429,15 +664,127 @@ function updateNewPosCustomerOptions() {
 
     select.innerHTML = customerOptions;
     if (countLabel) countLabel.innerText = customers.length;
+
+    onPosCustomerChange();
+}
+
+async function onPosCustomerChange() {
+    const select = document.getElementById('newPosKunde');
+    if (!select) return;
+    const kKunde = select.value;
+
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val || '';
+    };
+
+    if (!kKunde) {
+        setVal('elavonFirma', '');
+        setVal('elavonStrasse', '');
+        setVal('elavonPlzOrt', '');
+        setVal('elavonInhaber', '');
+        setVal('elavonEmail', '');
+        setVal('elavonTelefon', '');
+        setVal('elavonSteuerNr', '');
+        updateElavonLieferadresse();
+        return;
+    }
+
+    let customer = allCustomersPos.find(c => String(c.kKunde) === String(kKunde));
+    if (!customer) return;
+
+    // Ensure full [Custom].[Kunde] columns are loaded if cached before upgrade
+    if (customer.FirmaAdress === undefined && customer.Mail === undefined && customer.SteuerNr === undefined) {
+        try {
+            const res = await fetch(`/api/kunde-by-id/${encodeURIComponent(kKunde)}`);
+            if (res.ok) {
+                const fullData = await res.json();
+                Object.assign(customer, fullData);
+            } else if (customer.KundenNr) {
+                const res2 = await fetch(`/api/kunde/${encodeURIComponent(customer.KundenNr)}`);
+                if (res2.ok) {
+                    const fullData = await res2.json();
+                    Object.assign(customer, fullData);
+                }
+            }
+        } catch (e) {
+            console.error('Kunde detayları alınamadı:', e);
+        }
+    }
+
+    const firma = customer.Firma || '';
+    const strasse = customer.FirmaAdress || [customer.FirmaStrasse, customer.FirmaNo].filter(Boolean).join(' ') || customer.Strasse || '';
+    const plzOrt = [customer.PLZ, customer.Ort].filter(Boolean).join(' ');
+    const inhaber = customer.InhabeName || [customer.cVorname, customer.cName].filter(Boolean).join(' ') || '';
+    const email = customer.Mail || customer.EMail || customer.cMail || '';
+    const telefon = customer.Tel || customer.Mobil || '';
+    const steuerNr = customer.SteuerNr || customer.IDNr || '';
+
+    setVal('elavonFirma', firma);
+    setVal('elavonStrasse', strasse);
+    setVal('elavonPlzOrt', plzOrt);
+    setVal('elavonInhaber', inhaber);
+    setVal('elavonEmail', email);
+    setVal('elavonTelefon', telefon);
+    setVal('elavonSteuerNr', steuerNr);
+
+    updateElavonLieferadresse();
+}
+
+function onElavonCustomerFieldEdit() {
+    const typeSelect = document.getElementById('elavonLieferadresseType');
+    if (typeSelect && typeSelect.value === 'Kunde') {
+        updateElavonLieferadresse();
+    }
+}
+
+function updateElavonLieferadresse() {
+    const typeSelect = document.getElementById('elavonLieferadresseType');
+    const addrInput = document.getElementById('elavonLieferadresse');
+    if (!typeSelect || !addrInput) return;
+
+    if (typeSelect.value === 'KassenKeskin') {
+        addrInput.value = KASSEN_KESKIN_LIEFERADRESSE;
+    } else {
+        const firma = (document.getElementById('elavonFirma')?.value || '').trim();
+        const inhaber = (document.getElementById('elavonInhaber')?.value || '').trim();
+        const strasse = (document.getElementById('elavonStrasse')?.value || '').trim();
+        const plzOrt = (document.getElementById('elavonPlzOrt')?.value || '').trim();
+        const parts = [firma, inhaber, strasse, plzOrt].filter(Boolean);
+        addrInput.value = parts.length > 0 ? parts.join(', ') : 'Kundenadresse (Wie Geschäftsadresse)';
+    }
+}
+
+function resetElavonDefaults() {
+    const setVal = (id, val) => {
+        const el = document.getElementById(id);
+        if (el) el.value = val;
+    };
+    setVal('elavonRechtsform', ELAVON_DEFAULTS.rechtsform);
+    setVal('elavonMiete', ELAVON_DEFAULTS.miete);
+    setVal('elavonTransaktionspreis', ELAVON_DEFAULTS.transaktionspreis);
+    setVal('elavonSimKarte', ELAVON_DEFAULTS.simKarte);
+    setVal('elavonMasterVisaCredit', ELAVON_DEFAULTS.masterVisaCredit);
+    setVal('elavonMasterVisaDebit', ELAVON_DEFAULTS.masterVisaDebit);
+    setVal('elavonMaestroVpay', ELAVON_DEFAULTS.maestroVpay);
+    setVal('elavonNonEwr', ELAVON_DEFAULTS.nonEwr);
+    setVal('elavonDiners', ELAVON_DEFAULTS.diners);
+    setVal('elavonDcc', ELAVON_DEFAULTS.dcc);
+    setVal('elavonLaufzeit', ELAVON_DEFAULTS.laufzeit);
+    setVal('elavonSonderkuendigung', ELAVON_DEFAULTS.sonderkuendigung);
+    setVal('elavonAdminFee', ELAVON_DEFAULTS.adminFee);
+    setVal('elavonPec', ELAVON_DEFAULTS.pec);
+    setVal('elavonLieferadresseType', ELAVON_DEFAULTS.lieferadresseType);
 }
 
 function openNewPosTicketModal(statusId) {
-    currentNewPosStatusId = statusId;
+    currentNewPosStatusId = statusId || 100;
     document.getElementById('newPosModal').style.display = 'flex';
     
     const custSearch = document.getElementById('newPosCustomerSearch');
     if (custSearch) custSearch.value = '';
 
+    resetElavonDefaults();
     updateNewPosCustomerOptions();
     
     const supSelect = document.getElementById('newPosSupplier');
@@ -456,52 +803,293 @@ function openNewPosTicketModal(statusId) {
 
     document.getElementById('btnCreateNewPos').onclick = async function() {
         this.disabled = true;
-        this.innerText = "Lütfen bekleyin...";
+        this.innerText = "⏳ Lütfen bekleyin...";
         await createNewPosTicket();
         this.disabled = false;
-        this.innerText = "Oluştur";
+        this.innerText = "✅ Ticket Oluştur & PDF İndir";
     };
 }
 
-async function createNewPosTicket() {
-    const kKunde = document.getElementById('newPosKunde').value;
-    const supplier = document.getElementById('newPosSupplier').value;
-    const model = document.getElementById('newPosModel').value;
-    const notTxt = document.getElementById('newPosNot').value;
+function collectPosElavonFormData() {
+    const kKunde = document.getElementById('newPosKunde')?.value || '';
+    const customer = allCustomersPos.find(c => String(c.kKunde) === String(kKunde));
+    const kundenNr = customer ? (customer.KundenNr || '') : '';
+    const supplier = (document.getElementById('newPosSupplier')?.value || '').trim();
+    const model = (document.getElementById('newPosModel')?.value || '').trim();
 
-    if (!kKunde || !supplier) {
+    const firma = (document.getElementById('elavonFirma')?.value || (customer ? customer.Firma : '') || '').trim();
+    const strasse = (document.getElementById('elavonStrasse')?.value || '').trim();
+    const plzOrt = (document.getElementById('elavonPlzOrt')?.value || '').trim();
+    const inhaber = (document.getElementById('elavonInhaber')?.value || '').trim();
+    const email = (document.getElementById('elavonEmail')?.value || '').trim();
+    const telefon = (document.getElementById('elavonTelefon')?.value || '').trim();
+    const rechtsform = (document.getElementById('elavonRechtsform')?.value || '').trim();
+    const steuerNr = (document.getElementById('elavonSteuerNr')?.value || '').trim();
+    const miete = (document.getElementById('elavonMiete')?.value || '0').trim();
+    const transaktionspreis = (document.getElementById('elavonTransaktionspreis')?.value || '').trim();
+    const simKarte = (document.getElementById('elavonSimKarte')?.value || 'Nein').trim();
+    const masterVisaCredit = (document.getElementById('elavonMasterVisaCredit')?.value || '').trim();
+    const masterVisaDebit = (document.getElementById('elavonMasterVisaDebit')?.value || '').trim();
+    const maestroVpay = (document.getElementById('elavonMaestroVpay')?.value || '').trim();
+    const nonEwr = (document.getElementById('elavonNonEwr')?.value || '').trim();
+    const diners = (document.getElementById('elavonDiners')?.value || '').trim();
+    const dcc = (document.getElementById('elavonDcc')?.value || '').trim();
+    const laufzeit = (document.getElementById('elavonLaufzeit')?.value || '').trim();
+    const sonderkuendigung = (document.getElementById('elavonSonderkuendigung')?.value || '').trim();
+    const adminFee = (document.getElementById('elavonAdminFee')?.value || '0').trim();
+    const pec = (document.getElementById('elavonPec')?.value || '43886').trim();
+    const lieferadresseType = (document.getElementById('elavonLieferadresseType')?.value || 'Kunde').trim();
+    const lieferadresse = (document.getElementById('elavonLieferadresse')?.value || '').trim();
+    const bemerkung = (document.getElementById('newPosNot')?.value || '').trim();
+
+    return {
+        kKunde,
+        kundenNr,
+        supplier,
+        model,
+        firma,
+        strasse,
+        plzOrt,
+        inhaber,
+        email,
+        telefon,
+        rechtsform,
+        steuerNr,
+        miete,
+        transaktionspreis,
+        simKarte,
+        masterVisaCredit,
+        masterVisaDebit,
+        maestroVpay,
+        nonEwr,
+        diners,
+        dcc,
+        laufzeit,
+        sonderkuendigung,
+        adminFee,
+        pec,
+        lieferadresseType,
+        lieferadresse,
+        bemerkung
+    };
+}
+
+async function generatePosElavonPdfDoc(formData) {
+    const d = formData || collectPosElavonFormData();
+
+    if (!d.kKunde) {
+        alert("Lütfen bir müşteri seçin.");
+        return null;
+    }
+
+    const today = new Date();
+    const dateStr = `${String(today.getDate()).padStart(2, '0')}.${String(today.getMonth() + 1).padStart(2, '0')}.${today.getFullYear()}`;
+    document.getElementById('elavonPrintDate').textContent = dateStr;
+    document.getElementById('elavonPrintKundenNr').textContent = d.kundenNr || '-';
+    document.getElementById('elavonPrintModel').textContent = d.model || '-';
+    document.getElementById('elavonPrintPecTop').textContent = d.pec || '43886';
+
+    const titleEl = document.getElementById('elavonPrintTitle');
+    if (titleEl) {
+        titleEl.textContent = d.supplier
+            ? `${d.supplier} – Terminal Auftrag & Konditionen`
+            : 'Terminal Auftrag & Konditionen';
+    }
+
+    const customerBlockLines = [
+        d.firma,
+        d.inhaber ? `Inh.: ${d.inhaber}` : '',
+        d.strasse,
+        d.plzOrt
+    ].filter(Boolean);
+    document.getElementById('elavonPrintCustomerBlock').textContent = customerBlockLines.join('\n');
+
+    const mieteLabel = d.model
+        ? `Miete (${d.model}):`
+        : 'Miete:';
+
+    const rows = [
+        ['Name vom Geschäft:', d.firma || '-'],
+        ['Straße:', d.strasse || '-'],
+        ['PLZ, Ort:', d.plzOrt || '-'],
+        ['Inhaber:', d.inhaber || '-'],
+        ['E-Mail:', d.email || '-'],
+        ['Telefon:', d.telefon || '-'],
+        ['Rechtsform:', d.rechtsform || '-'],
+        ['Steuer Nr.:', d.steuerNr || '-'],
+        [mieteLabel, d.miete || '0'],
+        ['Transaktionspreis inkl. Clearing:', d.transaktionspreis || '-'],
+        ['SIM Karte:', d.simKarte || 'Nein'],
+        ['Master/Visa Credit:', d.masterVisaCredit || '-'],
+        ['Master/Visa Debit:', d.masterVisaDebit || '-'],
+        ['Maestro/Vpay:', d.maestroVpay || '-'],
+        ['Non EWR Karten (nicht europäisches Ausland / Business Cards):', d.nonEwr || '-'],
+        ['Diners/JCB/CUP:', d.diners || '-'],
+        ['DCC:', d.dcc || '-'],
+        ['Laufzeit:', d.laufzeit || '-'],
+        ['Sonderkündigungsrecht:', d.sonderkuendigung || '-'],
+        ['Admin Fee (monatlich):', d.adminFee || '0'],
+        ['PEC:', d.pec || '43886'],
+        ['Lieferadresse:', d.lieferadresse || '-'],
+        ['Bemerkung:', d.bemerkung || '-']
+    ];
+
+    const tbody = document.getElementById('elavonPrintTableBody');
+    tbody.innerHTML = '';
+    rows.forEach(([label, val], idx) => {
+        const tr = document.createElement('tr');
+        if (idx % 2 === 1) {
+            tr.style.backgroundColor = '#fafafa';
+        }
+        const tdLabel = document.createElement('td');
+        tdLabel.style.cssText = 'border: 1px solid #333; padding: 3.5px 8px; font-weight: bold; vertical-align: top;';
+        tdLabel.textContent = label;
+
+        const tdVal = document.createElement('td');
+        tdVal.style.cssText = 'border: 1px solid #333; padding: 3.5px 8px; white-space: pre-wrap; vertical-align: top;';
+        tdVal.textContent = val;
+
+        tr.appendChild(tdLabel);
+        tr.appendChild(tdVal);
+        tbody.appendChild(tr);
+    });
+
+    const printArea = document.getElementById('posElavonPrintPreview');
+    printArea.style.width = '210mm';
+    printArea.style.minHeight = '0';
+    printArea.style.left = '0';
+    printArea.style.visibility = 'visible';
+    printArea.style.position = 'absolute';
+    printArea.style.top = '0';
+    printArea.style.zIndex = '9999';
+
+    try {
+        const canvas = await html2canvas(printArea, { scale: 2, useCORS: true, backgroundColor: '#ffffff' });
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF({
+            orientation: 'portrait',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pageHeight = pdf.internal.pageSize.getHeight();
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        // Her zaman tek bir A4 sayfasına sığdır (2. sayfa oluşturma)
+        if (imgHeight <= pageHeight) {
+            pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight);
+        } else {
+            const scaledWidth = (canvas.width * pageHeight) / canvas.height;
+            const offsetX = (pdfWidth - scaledWidth) / 2;
+            pdf.addImage(imgData, 'JPEG', offsetX, 0, scaledWidth, pageHeight);
+        }
+
+        const safeFirma = (d.firma || d.inhaber || 'Musteri').replace(/[\\/:*?"<>|]/g, '').trim();
+        const safeKundenNr = (d.kundenNr || d.kKunde || '').toString().replace(/[\\/:*?"<>|]/g, '').trim();
+        const safeSupplier = (d.supplier || 'POS').replace(/[\\/:*?"<>|]/g, '').trim();
+        const filename = `${safeKundenNr} - ${safeFirma} - ${safeSupplier} - ${dateStr}.pdf`;
+
+        return { pdf, filename, dateStr };
+    } finally {
+        printArea.style.left = '-9999px';
+        printArea.style.top = 'auto';
+        printArea.style.zIndex = 'auto';
+    }
+}
+
+async function downloadPosElavonPdfOnly() {
+    try {
+        const docInfo = await generatePosElavonPdfDoc();
+        if (!docInfo) return;
+        docInfo.pdf.save(docInfo.filename);
+    } catch (e) {
+        console.error('POS PDF oluşturma hatası:', e);
+        alert('PDF oluşturulurken hata oluştu: ' + (e.message || e));
+    }
+}
+
+function buildPosElavonTicketContent(d) {
+    const lines = [
+        `POS Cihazı Talebi`,
+        `Tedarikçi: ${d.supplier || '-'}`,
+        d.model ? `Model: ${d.model}` : null,
+        `----------------------------------------`,
+        `Name vom Geschäft: ${d.firma || '-'}`,
+        `Straße: ${d.strasse || '-'}`,
+        `PLZ, Ort: ${d.plzOrt || '-'}`,
+        `Inhaber: ${d.inhaber || '-'}`,
+        `E-Mail: ${d.email || '-'}`,
+        `Telefon: ${d.telefon || '-'}`,
+        `Rechtsform: ${d.rechtsform || '-'}`,
+        `Steuer Nr.: ${d.steuerNr || '-'}`,
+        `Miete: ${d.miete || '0'}`,
+        `Transaktionspreis inkl. Clearing: ${d.transaktionspreis || '-'}`,
+        `SIM Karte: ${d.simKarte || 'Nein'}`,
+        `Master/Visa Credit: ${d.masterVisaCredit || '-'}`,
+        `Master/Visa Debit: ${d.masterVisaDebit || '-'}`,
+        `Maestro/Vpay: ${d.maestroVpay || '-'}`,
+        `Non EWR Karten / Business Cards: ${d.nonEwr || '-'}`,
+        `Diners/JCB/CUP: ${d.diners || '-'}`,
+        `DCC: ${d.dcc || '-'}`,
+        `Laufzeit: ${d.laufzeit || '-'}`,
+        `Sonderkündigungsrecht: ${d.sonderkuendigung || '-'}`,
+        `Admin Fee (monatlich): ${d.adminFee || '0'}`,
+        `PEC: ${d.pec || '43886'}`,
+        `Lieferadresse: ${d.lieferadresse || '-'}`,
+        `Bemerkung: ${d.bemerkung || '-'}`
+    ];
+    return lines.filter(l => l !== null).join('\n');
+}
+
+async function createNewPosTicket() {
+    const d = collectPosElavonFormData();
+
+    if (!d.kKunde || !d.supplier) {
         alert("Lütfen müşteri ve tedarikçi seçiniz.");
         return;
     }
 
-    const customer = allCustomersPos.find(c => c.kKunde == kKunde);
-    const kundeName = customer ? customer.Firma : 'Bilinmiyor';
-
-    const cTitel = model ? `POS: [${supplier}] [${model}] ${kundeName}` : `POS: [${supplier}] ${kundeName}`;
-    let cInhalt = `POS Cihazı Talebi\nTedarikçi: ${supplier}`;
-    if (model) cInhalt += `\nModel: ${model}`;
-    cInhalt += `\nNot: ${notTxt}`;
+    const kundeName = d.firma || 'Bilinmiyor';
+    const cTitel = d.model ? `POS: [${d.supplier}] [${d.model}] ${kundeName}` : `POS: [${d.supplier}] ${kundeName}`;
+    const cInhalt = buildPosElavonTicketContent(d);
     const kBenutzer = posConfig.pos_user_id || 1;
 
     try {
+        // 1. Generate A4 PDF and download it
+        const docInfo = await generatePosElavonPdfDoc(d);
+        let pdfBlob = null;
+        let pdfFilename = 'POS_Form.pdf';
+        if (docInfo && docInfo.pdf) {
+            pdfFilename = docInfo.filename;
+            docInfo.pdf.save(pdfFilename);
+            pdfBlob = docInfo.pdf.output('blob');
+        }
+
+        // 2. Create ticket with PDF attached via multipart/form-data
+        const formData = new FormData();
+        formData.append('kKunde', parseInt(d.kKunde));
+        formData.append('cTitel', cTitel);
+        formData.append('cInhalt', cInhalt);
+        formData.append('kBenutzer', kBenutzer);
+        formData.append('kBenutzer_Bearbeiter', kBenutzer);
+        formData.append('nPrioritaet', 2);
+        if (pdfBlob) {
+            formData.append('file', pdfBlob, pdfFilename);
+        }
+
         const res = await fetch('/api/tickets', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                kKunde: parseInt(kKunde),
-                cTitel: cTitel,
-                cInhalt: cInhalt,
-                kBenutzer: kBenutzer,
-                kBenutzer_Bearbeiter: kBenutzer,
-                nPrioritaet: 2
-            })
+            body: formData
         });
 
         if (res.ok) {
             const respData = await res.json();
             const newTicketId = respData.kTicket;
             
-            // Set the pos status explicitly since we no longer pass it in POST /api/tickets
+            // Set the pos status explicitly
             const payload = {};
             payload[newTicketId] = currentNewPosStatusId;
             await fetch('/api/pos-tickets', {
@@ -514,7 +1102,7 @@ async function createNewPosTicket() {
             await initPosTab();
         } else {
             const err = await res.json();
-            alert('Hata: ' + err.error);
+            alert('Hata: ' + (err.error || 'Ticket oluşturulamadı'));
         }
     } catch(e) {
         console.error(e);
