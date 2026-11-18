@@ -3,9 +3,13 @@ SELECT [kBenutzer],[cLogin],[cPasswort],[cName] FROM [eazybusiness].[dbo].[tBenu
 SELECT *
 --delete
 FROM [Ticketsystem].[tTicket]
-where kTicket in (2438,2439,2440 )
+where cEindeutigeId in (
+ 'T26-03KASIM1' 
+)
 
 SELECT *
 --delete
 FROM [Ticketsystem].[tTicketEckdaten]
-where kTicket in (2438,2439,2440 )
+where kTicket in (
+2507
+)

@@ -50,8 +50,13 @@ async function fetchPosTickets() {
         const res = await fetch('/api/tickets');
         if (res.ok) {
             const allTickets = await res.json();
-            // Filter tickets belonging to POS
-            posTickets = allTickets.filter(t => t.cTitelErsteNachricht && t.cTitelErsteNachricht.startsWith('POS:'));
+            // Filter tickets belonging to POS (exclude resolved/closed tickets: kStatus 3 or 4)
+            posTickets = allTickets.filter(t =>
+                t.cTitelErsteNachricht &&
+                t.cTitelErsteNachricht.startsWith('POS:') &&
+                Number(t.kStatus) !== 3 &&
+                Number(t.kStatus) !== 4
+            );
         }
     } catch (e) { console.error(e); }
 }
