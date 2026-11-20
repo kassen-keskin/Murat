@@ -398,6 +398,14 @@
         <p data-i18n="footerText">&copy; 2026 Kassen Keskin | Ihr Partner für moderne Geschäftslösungen.</p>
     </footer>
 
+    <!-- Welcome Promo Popup Modal -->
+    <div id="welcomePopupModal" class="welcome-popup-overlay active" role="dialog" aria-modal="true" aria-label="Kassen Keskin Angebot" onclick="handleWelcomePopupOverlayClick(event)">
+        <div class="welcome-popup-box">
+            <button type="button" class="welcome-popup-close-btn" onclick="closeWelcomePopup()" aria-label="Schließen">&times;</button>
+            <img src="assets/pop-up.png" alt="Kassen Keskin – Alte Kasse bringen, neue Kasse mitnehmen" class="welcome-popup-img">
+        </div>
+    </div>
+
     <!-- Catalog Auth Modal -->
     <div id="catalogAuthModal" class="catalog-auth-modal-overlay" onclick="handleCatalogOverlayClick(event)">
         <div class="catalog-auth-modal-box">

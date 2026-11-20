@@ -558,5 +558,78 @@ html{overflow-x:hidden}
     transform: none;
 }
 
+/* Welcome Promo Popup Modal */
+.welcome-popup-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1000000;
+    background: rgba(5, 8, 15, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.25s ease, visibility 0.25s ease;
+}
+.welcome-popup-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+.welcome-popup-box {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 92vw;
+    max-height: 92vh;
+    border-radius: 18px;
+    border: 1px solid rgba(0, 232, 240, 0.35);
+    box-shadow: 0 25px 70px rgba(0, 0, 0, 0.8), 0 0 40px rgba(0, 232, 240, 0.2);
+    transform: scale(0.95);
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+}
+.welcome-popup-overlay.active .welcome-popup-box {
+    transform: scale(1);
+}
+.welcome-popup-img {
+    display: block;
+    max-width: 92vw;
+    max-height: 90vh;
+    width: auto;
+    height: auto;
+    object-fit: contain;
+    border-radius: 18px;
+}
+.welcome-popup-close-btn {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 2;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: rgba(10, 14, 24, 0.82);
+    border: 1.5px solid rgba(255, 255, 255, 0.35);
+    color: #ffffff;
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.welcome-popup-close-btn:hover {
+    background: rgba(0, 232, 240, 0.25);
+    border-color: var(--cyan);
+    transform: scale(1.06);
+}
+
 
 

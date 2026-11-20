@@ -23,7 +23,7 @@ const translations = {
         infoCard3Title: 'Regelmäßige Wartungsdienste',
         infoCard3Text: 'Halten Sie Ihre Systeme mit unseren Wartungsdienstleistungen in Topform. Regelmäßige Kontrollen verhindern unerwartete Ausfälle, verlängern die Lebensdauer Ihrer Geräte und sorgen für optimale Leistung.',
         reviewScoreLabel: 'Ausgezeichnet',
-        reviewText: '5,0/5 · basierend auf <b>259 Bewertungen</b>',
+        reviewText: '5,0/5 · basierend auf <b>262 Bewertungen</b>',
         reviewLink: 'Alle ansehen',
         appointEyebrow: 'Persönlich sprechen',
         appointTitleA: 'Jetzt Ihren',
@@ -163,7 +163,7 @@ const translations = {
         infoCard3Title: 'Düzenli bakım hizmetleri',
         infoCard3Text: 'Bakım hizmetlerimizle sistemlerinizi en iyi durumda tutun. Düzenli kontroller beklenmedik arızaları önler, cihazlarınızın kullanım ömrünü uzatır ve optimum performans sağlar.',
         reviewScoreLabel: 'Mükemmel',
-        reviewText: '5,0/5 · <b>259 değerlendirme</b> üzerinden',
+        reviewText: '5,0/5 · <b>262 değerlendirme</b> üzerinden',
         reviewLink: 'Tümünü görüntüle',
         appointEyebrow: 'Kişisel görüşme',
         appointTitleA: 'Randevunuzu',
@@ -303,7 +303,7 @@ const translations = {
         infoCard3Title: 'Regular maintenance services',
         infoCard3Text: 'Keep your systems in top shape with our maintenance services. Regular checks prevent unexpected breakdowns, extend the lifespan of your equipment, and ensure optimal performance.',
         reviewScoreLabel: 'Excellent',
-        reviewText: '5,0/5 · based on <b>259 reviews</b>',
+        reviewText: '5,0/5 · based on <b>262 reviews</b>',
         reviewLink: 'View all',
         appointEyebrow: 'Talk to us',
         appointTitleA: 'Book your',
@@ -423,45 +423,51 @@ let currentLanguage = 'de';
 
 const reviewData = {
     de: [
-        ['Samir Sulaiman', 'vor 19 Stunden', 'Wir vom Simo Barber Salon arbeiten schon seit vielen Jahren mit diesem Team zusammen und sind rundum zufrieden. Hervorragender Service, schnelle Hilfe und absolute Zuverlässigkeit. Vielen Dank an Keskin Kassensysteme!'],
-        ['Ramazan Erol', 'vor 23 Stunden', 'Sehr zufrieden, guter Service, sehr freundliches Personal und zuverlässig!'],
-        ['Tugay Koc', 'vor 3 Tagen', 'Top Service, schnelle Abwicklung und immer sehr hilfsbereit. Sehr empfehlenswert!'],
-        ['Mustafa Yorganci', 'vor 1 Woche', 'Alles war sehr gut, exzellenter Service, wir waren sehr zufrieden.'],
-        ['Renate Peter', 'vor 1 Monat', 'Ich kann diese Firma wirklich nur weiterempfehlen! Am Wochenende wurde meine Kasse von einem Gast beschädigt. Trotz des Wochenendes wurde mir schnell und professionell geholfen und die Kasse zuverlässig repariert. Vielen Dank für die unkomplizierte Unterstützung!'],
-        ['Ricardo Quaresma', 'vor 1 Monat', 'Ein Unternehmen mit einem sehr freundlichen und kompetenten Mitarbeiterteam. Selbst wenn man absolut keine Ahnung von der Kasse hat, wird einem alles bis ins kleinste Detail erklärt und beigebracht. Alle Angestellten sind äußerst hilfsbereit. Man kann hier mit gutem Gewissen den Service in Anspruch nehmen.'],
-        ['Peter Khalil', 'vor 3 Monaten', 'Super hilfreich und sehr freundliche Mitarbeiter! Bei Fragen oder Anliegen immer erreichbar und eine absolut zuverlässige Unterstützung.'],
-        ['Marwan Bln', 'vor 4 Monaten', 'Ich bin sehr zufrieden mit dem Kassensystem von Keskin. Die komplette Friseurkasse wurde professionell eingerichtet und perfekt auf meinen Salon angepasst. Bei Fragen bekommt man sofort Hilfe und merkt, dass dort Leute arbeiten, die Ahnung haben! Vielen Dank an das Keskin Team!']
+        ['Funda Ay', 'vor 1 Tag', 'Ich möchte Herrn Erol und Herrn Hasan herzlich danken; sie haben mir bei jedem Problem geholfen. Ich bin sehr zufrieden und kann sie uneingeschränkt weiterempfehlen.'],
+        ['Tahir Ipeklidag', 'vor 2 Wochen', 'Bedanke mich für die gute interpretierte Schulung, sehr gute Dienstleistung.'],
+        ['Samir Sulaiman', 'vor 1 Monat', 'Wir vom Simo Barber Salon arbeiten schon seit vielen Jahren mit diesem Unternehmen zusammen und sind rundum zufrieden! Das Kassensystem funktioniert hervorragend, ist zuverlässig und einfach zu bedienen. Besonders hervorheben möchten wir den ausgezeichneten Kundenservice. Wir können dieses Unternehmen zu 100 % weiterempfehlen!'],
+        ['Ramazan Erol', 'vor 1 Monat', 'Sehr zufrieden, guter Service, sehr freundliches Personal und zuverlässig.'],
+        ['Mustafa Yorganci', 'vor 1 Monat', 'Alles war sehr gut, exzellenter Service, wir waren sehr zufrieden.'],
+        ['Halil Yorgancı', 'vor 1 Monat', 'Exzellenter Service, sehr empfehlenswert.'],
+        ['İbrahim Ari', 'vor 2 Monaten', 'Vielen Dank, tolles Team, gute Arbeit!'],
+        ['Renate Peter', 'vor 2 Monaten', 'Ich kann diese Firma wirklich nur weiterempfehlen! Am Wochenende wurde meine Kasse von einem Gast beschädigt. Trotz des Wochenendes wurde mir schnell und professionell geholfen und die Kasse zuverlässig repariert. Vielen lieben Dank für die schnelle Hilfe, den tollen Service und die unkomplizierte Unterstützung.'],
+        ['Mahmut Altan', 'vor 2 Monaten', 'Es ist ein wirklich hervorragendes Unternehmen, nicht nur in Bezug auf den Verkauf, sondern auch in Bezug auf Support.'],
+        ['Abdullah Kocaoglu', 'vor 2 Monaten', 'Einwandfrei.']
     ],
     tr: [
-        ['Samir Sulaiman', '19 saat önce', 'Simo Barber Salon olarak uzun yıllardır bu ekiple çalışıyoruz ve çok memnunuz. Harika servis, hızlı destek ve tam güvenilirlik. Keskin Kassensysteme ekibine çok teşekkürler!'],
-        ['Ramazan Erol', '23 saat önce', 'Çok memnunum, harika bir servis, çok güler yüzlü personel ve güvenilir!'],
-        ['Tugay Koc', '3 gün önce', 'Harika servis, hızlı işlem ve her zaman çok yardımseverler. Kesinlikle tavsiye ederim!'],
-        ['Mustafa Yorganci', '1 hafta önce', 'Her şey çok iyiydi, mükemmel servis, çok memnun kaldık.'],
-        ['Renate Peter', '1 ay önce', 'Bu firmayı kesinlikle tavsiye ederim! Hafta sonu kasamız hasar görmüştü – hafta sonu olmasına rağmen hızlı ve son derece profesyonelce tamir edildi. Hızlı yardım ve harika servis için çok teşekkürler!'],
-        ['Ricardo Quaresma', '1 ay önce', 'Çok güler yüzlü ve yetkin bir ekibe sahip bir işletme. Kasa hakkında hiçbir bilginiz olmasa bile her şeyi en ince ayrıntısına kadar anlatıp öğretiyorlar. Tüm çalışanlar son derece yardımsever. Gönül rahatlığıyla tercih edebilirsiniz.'],
-        ['Peter Khalil', '3 ay önce', 'Son derece yardımsever ve güler yüzlü çalışanlar! Her soruda her zaman ulaşılabilir ve kesinlikle güvenilir bir destek sunuyorlar.'],
-        ['Marwan Bln', '4 ay önce', 'Keskin kasa sisteminden çok memnunum. Kuaför kasamız profesyonelce kuruldu ve salonuma mükemmel şekilde uyarlandı. Sorularda hemen yardım alınıyor. Ekibe çok teşekkürler!']
+        ['Funda Ay', '1 gün önce', 'Erol Bey ve Hasan Bey\'e çok teşekkür ederim, her bir problemde yardımcı oldular. Çok memnunum ve herkese tavsiye ediyorum.'],
+        ['Tahir Ipeklidag', '2 hafta önce', 'İyi anlatılan eğitim için teşekkür ederim, çok iyi bir hizmet.'],
+        ['Samir Sulaiman', '1 ay önce', 'Simo Barber Salon olarak uzun yıllardır bu firma ile çalışıyoruz ve her açıdan çok memnunuz! Kasa sistemi harika çalışıyor, güvenilir ve kullanımı kolay. Özellikle mükemmel müşteri hizmetlerini vurgulamak isteriz. Bu firmayı %100 tavsiye edebiliriz!'],
+        ['Ramazan Erol', '1 ay önce', 'Çok memnunum, iyi hizmet, çok güler yüzlü personel ve güvenilir.'],
+        ['Mustafa Yorganci', '1 ay önce', 'Her şey çok iyi, mükemmel hizmet, çok memnun kaldık.'],
+        ['Halil Yorgancı', '1 ay önce', 'Çok iyi hizmet memnuniyeti, tavsiye edilir.'],
+        ['İbrahim Ari', '2 ay önce', 'Çok teşekkürler, harika ekip, güzel iş!'],
+        ['Renate Peter', '2 ay önce', 'Bu firmayı gerçekten sadece tavsiye edebilirim! Hafta sonu kasam bir misafir tarafından hasar gördü. Hafta sonu olmasına rağmen hızlı ve profesyonelce yardım edildi ve kasa güvenilir şekilde tamir edildi. Hızlı yardım, harika hizmet ve sorunsuz destek için çok teşekkürler.'],
+        ['Mahmut Altan', '2 ay önce', 'Sadece satış konusunda değil, destek konusunda da gerçekten mükemmel bir firma.'],
+        ['Abdullah Kocaoglu', '2 ay önce', 'Kusursuz.']
     ],
     en: [
-        ['Samir Sulaiman', '19 hours ago', 'We at Simo Barber Salon have been working with this team for many years and are completely satisfied. Outstanding service, fast support, and absolute reliability. Many thanks to Keskin Kassensysteme!'],
-        ['Ramazan Erol', '23 hours ago', 'Very satisfied, great service, very friendly staff, and reliable!'],
-        ['Tugay Koc', '3 days ago', 'Top service, fast handling, and always very helpful. Highly recommended!'],
-        ['Mustafa Yorganci', '1 week ago', 'Everything was very good, excellent service, we were very satisfied.'],
-        ['Renate Peter', '1 month ago', 'I can truly recommend this company! Over the weekend our cash register was damaged – despite the weekend, they helped quickly and repaired it reliably. Thank you for the great service!'],
-        ['Ricardo Quaresma', '1 month ago', 'A company with a very friendly and competent team. Even if you have no prior knowledge of POS systems, everything is explained and taught down to the smallest detail. Highly recommended!'],
-        ['Peter Khalil', '3 months ago', 'Super helpful and very friendly staff! Always accessible for any questions and providing completely reliable support.'],
-        ['Marwan Bln', '4 months ago', 'I am very satisfied with the POS system from Keskin. The salon checkout was professionally set up and tailored to my salon. Immediate help with any questions. Many thanks to the team!']
+        ['Funda Ay', '1 day ago', 'I would like to sincerely thank Mr. Erol and Mr. Hasan; they helped with every single problem. I am very satisfied and recommend them to everyone.'],
+        ['Tahir Ipeklidag', '2 weeks ago', 'Thank you for the well-explained training, very good service.'],
+        ['Samir Sulaiman', '1 month ago', 'We at Simo Barber Salon have been working with this company for many years and are completely satisfied! The POS system works wonderfully, is reliable and easy to use. We especially want to highlight the outstanding customer service. We can 100% recommend this company!'],
+        ['Ramazan Erol', '1 month ago', 'Very satisfied, good service, very friendly staff and reliable.'],
+        ['Mustafa Yorganci', '1 month ago', 'Everything was very good, excellent service, we were very satisfied.'],
+        ['Halil Yorgancı', '1 month ago', 'Excellent service and satisfaction, highly recommended.'],
+        ['İbrahim Ari', '2 months ago', 'Thank you very much, great team, great work!'],
+        ['Renate Peter', '2 months ago', 'I can truly recommend this company! Over the weekend my cash register was damaged by a guest. Despite the weekend, I was helped quickly and professionally and the cash register was reliably repaired. Thank you so much for the quick help, great service, and uncomplicated support.'],
+        ['Mahmut Altan', '2 months ago', 'It is a truly outstanding company, not only in terms of sales, but also in terms of support.'],
+        ['Abdullah Kocaoglu', '2 months ago', 'Flawless.']
     ]
 };
 
 const videos = [{
+    url: 'https://youtube.com/shorts/OGQYJsbGjJo'
+}, {
     url: 'https://youtube.com/shorts/VrG25GPLOPk?si=aLWnhClvOTfCkXcc'
 }, {
     url: 'https://youtube.com/shorts/Mnr4vKugkMw?feature=share'
 }, {
     url: 'https://youtube.com/shorts/neR36UuDhaU?si=Hy1Fd89MtbrbchAN'
-}, {
-    url: 'https://youtu.be/hJihf-dsrxQ'
 }];
 let videoIndex = 0;
 
@@ -842,9 +848,28 @@ async function handleCatalogAuthSubmit(e) {
     }
 }
 
-// Close catalog auth modal on Escape key
+// Welcome Promo Popup Functions
+const welcomePopupModal = document.getElementById('welcomePopupModal');
+if (welcomePopupModal && welcomePopupModal.classList.contains('active')) {
+    document.body.style.overflow = 'hidden';
+}
+
+function closeWelcomePopup() {
+    const modal = document.getElementById('welcomePopupModal');
+    if (modal) modal.classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function handleWelcomePopupOverlayClick(e) {
+    if (e.target && e.target.id === 'welcomePopupModal') {
+        closeWelcomePopup();
+    }
+}
+
+// Close modals on Escape key
 document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
+        closeWelcomePopup();
         closeCatalogAuthModal();
     }
 });
